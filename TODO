@@ -5,4 +5,7 @@
 
 - Implement the plotting part of the visualization. 
 
+- Figure out a better way to read the spectra. Specutils code is no
+  longer supported. Maybe put everything in ascii?
+  
 
