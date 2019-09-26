@@ -1,7 +1,8 @@
 #!/usr/bin/env python 
 
 import numpy as np
-from specutils.io.read_fits import read_fits_spectrum1d
+#from specutils.io.read_fits import read_fits_spectrum1d
+from spectrum1d import read_fits_spectrum1d
 from astropy.io import fits
 import astropy.units as u
 from astropy.constants import h,c
