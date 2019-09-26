@@ -1,0 +1,9 @@
+LRIS_B400	10	fit
+LRIS_B600	10	fit
+LRIS_R400	10	fit
+DEIMOS		10	fit
+GMOS_B600	10	fit
+GMOS_R400	15	median
+DBSP_B		 5	fit
+DBSP_R		10	fit
+MMT		15	median
