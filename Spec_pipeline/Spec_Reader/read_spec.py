@@ -1,10 +1,10 @@
 #This is just a wrapper function for reading the spectra. 
 
-import sys
-sys.path.append("Spec_Reader/")
-from GMOS_Spec import GMOS_Spec
-from LRIS_Spec import LRIS_Spec
-from DBSP_Spec import DBSP_Spec
+#import sys
+#sys.path.append("Spec_Reader/")
+from .GMOS_Spec import GMOS_Spec
+from .LRIS_Spec import LRIS_Spec
+from .DBSP_Spec import DBSP_Spec
 
 def read_spec(name, zspec, instrument, fits_files, line_center=None, 
               blue=False,red=False):

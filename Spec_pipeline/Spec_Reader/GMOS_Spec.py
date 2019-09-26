@@ -2,14 +2,15 @@
 
 import numpy as np
 #from specutils.io.read_fits import read_fits_spectrum1d
-from spectrum1d import read_fits_spectrum1d
 from astropy.io import fits
 import astropy.units as u
 from astropy.constants import h,c
 import re
+import os
 
-from Spec import Spec
-from rebin_spec import rebin_spec
+from .spectrum1d import read_fits_spectrum1d
+from .Spec import Spec
+from .rebin_spec import rebin_spec
 
 #As there are too many different things to keep in minds, we'll load
 #the spectra as objects, so we can load the appropiate sensitivity
@@ -48,7 +49,8 @@ class GMOS_Spec(Spec):
     def __flam_sky(self):
         
         #Read the template
-        sky_temp = np.loadtxt("Sky_Templates/template_sky_GMOS.dat")
+        sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+                              "/Sky_Templates/template_sky_GMOS.dat")
         lam_sky = sky_temp[:,0]*u.AA
         flam_sky_orig = sky_temp[:,1]*u.erg/u.s/u.cm**2/u.AA
 

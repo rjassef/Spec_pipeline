@@ -6,7 +6,8 @@
 import numpy as np
 import astropy.units as u
 from astropy.constants import h,c
-from obtain_error_spectrum import get_error_spec
+
+from .obtain_error_spectrum import get_error_spec
 
 class Spec(object):
 
@@ -53,7 +54,7 @@ class Spec(object):
             pass
         #Try to open the error spectrum. If not found, generate it.
         try:
-            cat = open(self.spec_err_name,"r")
+            cat = open(self.data_prefix+"/"+self.spec_err_name,"r")
             self._flam_err = np.loadtxt(cat,usecols=[1])
             self._flam_err = self._flam_err * u.erg/u.s/u.cm**2/u.AA
         except IOError:

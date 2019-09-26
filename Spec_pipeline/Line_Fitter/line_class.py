@@ -6,9 +6,10 @@ import numpy as np
 import astropy.units as u
 from astropy.constants import c
 from scipy.special import betainc
-import MC_errors as MC
-import fit_chi2 as fit
-import plot_fit
+
+from . import MC_errors as MC
+from . import fit_chi2 as fit
+from . import plot_fit
 
 class Line_fit(object):
     

@@ -9,10 +9,10 @@ import multiprocessing as mp
 import copy
 
 import sys
-sys.path.append("Spec_Reader")
-from read_spec import read_spec
-sys.path.append("Line_Fitter")
-from default_lines import Default_Line_fit
+import os
+sys.path.append(os.environ['SPEC_PIPE_LOC'])
+from Spec_pipeline.Spec_Reader.read_spec import read_spec
+from Spec_pipeline.Line_Fitter.default_lines import Default_Line_fit
 
 
 em_lines = ["LyA", "NV", "CIV", "CIII", "Hb"]

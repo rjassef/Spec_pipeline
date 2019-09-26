@@ -1,10 +1,11 @@
 import numpy as np
-import fit_chi2 as fit
 import matplotlib.pyplot as plt
 import astropy.units as u
 import multiprocessing as mp
 from functools import partial
 import copy
+
+from . import fit_chi2 as fit
 
 ####
 

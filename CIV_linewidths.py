@@ -9,10 +9,10 @@ import multiprocessing as mp
 import copy
 
 import sys
-sys.path.append("Spec_Reader")
-from read_spec import read_spec
-sys.path.append("Line_Fitter")
-from default_lines import Default_Line_fit
+import os
+sys.path.append(os.environ['SPEC_PIPE_LOC'])
+from Spec_pipeline.Spec_Reader.read_spec import read_spec
+from Spec_pipeline.Line_Fitter.default_lines import Default_Line_fit
 
 ######
 
@@ -24,19 +24,8 @@ Ncpu = mp.cpu_count()-2
 #nrep = 100
 nrep = 10
 
-estimate_errors = True
-#estimate_errors = False
-
-######
-
-#Define the continuum regions.
-continuum_regions = [[1425., 1470.],[1680.,1705.]]*u.AA
-
-#Define the velocity region to consider for the line fit. 
-line_velocity_region = 10000.*u.km/u.s
-
-#Line center
-line_center = 1549.*u.AA
+#estimate_errors = True
+estimate_errors = False
 
 #######
 
@@ -56,15 +45,16 @@ for line in cat:
     if line[0]=="#":
         continue
 
+    #Set the fitter object.
+    civ_fit = Default_Line_fit("CIV")
+
     #Read the line and set up the correct object.
     x = line.split()
-    spec = read_spec(x[0],float(x[1]),x[2],x[3:],line_center=line_center)
+    spec = read_spec(x[0],float(x[1]),x[2],x[3:],
+                     line_center=civ_fit.line_center)
     if verbose is True:
         print
         print(spec.name)
-
-    #Set the fitter object.
-    civ_fit = Default_Line_fit("CIV")
 
     #Run the fit
     civ_fit.run_fit(spec)
