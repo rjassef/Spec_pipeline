@@ -29,31 +29,46 @@ def flam_model(x,a,b,lam):
     flam_mod += flam_line_model(lam_cen,flam_line_cen,sigma_v,lam)
     return flam_mod
 
-def chi2_fit(x,spec,line_fitter,a,b,lam_cen_0,flam_line_cen_0):
-
+def meet_constraints(x,line_fitter,lam_cen_0,flam_line_cen_0):
+    
     lam_cen       = x[0] * u.AA
     flam_line_cen = x[1] * u.erg/u.s/u.cm**2/u.AA
     sigma_v       = x[2] * u.km/u.s
+   
 
-    #Apply constrains.
     if sigma_v<line_fitter.sigma_v_min or sigma_v>line_fitter.sigma_v_max:
-        return np.inf
+        return False
 
     if np.abs(lam_cen-lam_cen_0)>line_fitter.delta_lam_cen_max:
-        return np.inf
+        return False
 
     #Do not allow absorption lines.
     if flam_line_cen<0*u.erg/u.s/u.cm**2/u.AA:
-        return np.inf
+        return False
 
     #Do not allow the peak of the emission line to drift much below
     #the guess value. There is a failure mode on which the lines
     #are fit at any central wavelength with any width but with a flux
     #of effectively 0.
     if flam_line_cen_0>0 and \
-            (flam_line_cen/flam_line_cen_0).to(1.)<line_fitter.frac_flam_line_cen_min:
-        return np.inf
-    
+            (flam_line_cen/flam_line_cen_0).to(1.)<\
+            line_fitter.frac_flam_line_cen_min:
+        return False
+
+    return True
+
+
+def chi2_fit(x,spec,line_fitter,a,b,lam_cen_0,flam_line_cen_0,
+             check_constraints=True):
+
+    lam_cen       = x[0] * u.AA
+    flam_line_cen = x[1] * u.erg/u.s/u.cm**2/u.AA
+    sigma_v       = x[2] * u.km/u.s
+
+    #Check the strict constraints are met.
+    if check_constraints:
+        if not meet_constraints(x,line_fitter,lam_cen_0,flam_line_cen_0):
+            return np.inf
 
     #Construct the model.
     flam_mod = flam_model(x,a,b,spec.lam_rest).to(u.erg/u.s/u.cm**2/u.AA)

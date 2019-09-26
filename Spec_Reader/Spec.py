@@ -10,13 +10,13 @@ from obtain_error_spectrum import get_error_spec
 
 class Spec(object):
 
-    def __init__(self,_name,_zspec,_fits_files):
+    def __init__(self,_name,_zspec,_fits_files,_line_center):
         self.RT   = None
         self.instrument = None
         self.name  = _name
         self.zspec = _zspec
         self.fits_files = _fits_files
-        self.line_center = None
+        self.line_center = _line_center
         self.lam_obs  = None
         self.dlam = None
         self.texp = None

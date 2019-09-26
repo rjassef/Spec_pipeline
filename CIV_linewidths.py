@@ -6,10 +6,11 @@ warnings.simplefilter("ignore")
 import numpy as np
 import astropy.units as u
 import multiprocessing as mp
-from read_spec import read_spec
 import copy
 
 import sys
+sys.path.append("Spec_Reader")
+from read_spec import read_spec
 sys.path.append("Line_Fitter")
 from default_lines import Default_Line_fit
 
@@ -57,8 +58,7 @@ for line in cat:
 
     #Read the line and set up the correct object.
     x = line.split()
-    spec = read_spec(x[0],float(x[1]),x[2],x[3:])
-    spec.line_center = line_center
+    spec = read_spec(x[0],float(x[1]),x[2],x[3:],line_center=line_center)
     if verbose is True:
         print
         print(spec.name)

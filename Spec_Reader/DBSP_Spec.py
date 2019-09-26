@@ -15,8 +15,9 @@ from Spec import Spec
 
 class DBSP_Spec(Spec):
 
-    def __init__(self,_name,_zspec,_fits_files,blue=False,red=False):
-        super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files)
+    def __init__(self,_name,_zspec,_fits_files,_line_center=None,
+                 blue=False,red=False):
+        super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files,_line_center)
         self.RT   = 2.5*u.m #Telescope radius.
         self.instrument = "DBSP"
         self.blue = blue

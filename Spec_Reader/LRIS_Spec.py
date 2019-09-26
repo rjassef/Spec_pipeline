@@ -15,8 +15,9 @@ from Spec import Spec
 
 class LRIS_Spec(Spec):
 
-    def __init__(self,_name,_zspec,_fits_files,blue=False,red=False):
-        super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files)
+    def __init__(self,_name,_zspec,_fits_files,_line_center=None,
+                 blue=False,red=False):
+        super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center)
         self.RT   = 5.0*u.m #Telescope radius.
         self.instrument = "LRIS"
         self.blue = blue

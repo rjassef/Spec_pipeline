@@ -17,8 +17,8 @@ from rebin_spec import rebin_spec
 
 class GMOS_Spec(Spec):
 
-    def __init__(self,_name,_zspec,_fits_files):
-        super(GMOS_Spec,self).__init__(_name,_zspec,_fits_files)
+    def __init__(self,_name,_zspec,_fits_files,_line_center=None):
+        super(GMOS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center)
         self.RT   = 4.0*u.m #Telescope radius.
         self.instrument = "GMOS"
         self.__flam

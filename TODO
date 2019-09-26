@@ -1,5 +1,8 @@
 - Incorporate Sensitivities to fitting.
 
-- Implement the line fitting as a structure.
+- Implement the line shape as part of the line fitter class with a
+  default Gaussian.
+
+- Implement the plotting part of the visualization. 
 
 
