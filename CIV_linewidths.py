@@ -4,12 +4,9 @@ import warnings
 warnings.simplefilter("ignore")
 
 import numpy as np
-#import fit_chi2 as fit
 import astropy.units as u
-#import MC_errors as MC
 import multiprocessing as mp
 from read_spec import read_spec
-#import plot_fit
 import copy
 
 import sys
@@ -21,8 +18,6 @@ from default_lines import Default_Line_fit
 verbose = True
 #verbose = False
 
-#Ncpu = 14
-#Ncpu = mp.cpu_count()
 Ncpu = mp.cpu_count()-2
 #nrep = 1000
 #nrep = 100
