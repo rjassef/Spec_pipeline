@@ -9,7 +9,8 @@ class Default_Line_fit(Line_fit):
     def __init__(self,_line_name):
         
         #Search the list for the line in question.
-        cat = open(os.environ['SPEC_PIPE_LOC']+"/Line_Fitter/lines.txt","r")
+        cat = open(os.environ['SPEC_PIPE_LOC']+\
+                   "/Spec_pipeline/Line_Fitter/lines.txt","r")
         for line in cat:
             x = line.split()
             if x[0]==_line_name:

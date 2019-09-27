@@ -11,7 +11,7 @@ from .obtain_error_spectrum import get_error_spec
 
 class Spec(object):
 
-    def __init__(self,_name,_zspec,_fits_files,_line_center):
+    def __init__(self,_name,_zspec,_fits_files=None,_line_center=None):
         self.RT   = None
         self.instrument = None
         self.name  = _name

@@ -50,7 +50,7 @@ class GMOS_Spec(Spec):
         
         #Read the template
         sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                              "/Sky_Templates/template_sky_GMOS.dat")
+                              "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
         lam_sky = sky_temp[:,0]*u.AA
         flam_sky_orig = sky_temp[:,1]*u.erg/u.s/u.cm**2/u.AA
 
