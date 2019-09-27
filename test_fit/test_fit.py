@@ -7,9 +7,6 @@ import numpy as np
 import astropy.units as u
 from astropy.constants import h,c
 
-import sys
-import os
-sys.path.append(os.environ['SPEC_PIPE_LOC'])
 from Spec_pipeline.Spec_Reader.Spec import Spec
 
 #Start by creating a fake spectrum.

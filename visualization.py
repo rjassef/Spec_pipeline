@@ -8,9 +8,6 @@ import astropy.units as u
 import multiprocessing as mp
 import copy
 
-import sys
-import os
-sys.path.append(os.environ['SPEC_PIPE_LOC'])
 from Spec_pipeline.Spec_Reader.read_spec import read_spec
 from Spec_pipeline.Line_Fitter.default_lines import Default_Line_fit
 
