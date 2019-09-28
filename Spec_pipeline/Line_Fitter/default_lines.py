@@ -1,5 +1,6 @@
 import numpy as np
 import astropy.units as u
+from astropy.constants import c
 import os
 
 from .line_class import Line_fit
@@ -33,4 +34,18 @@ class Default_Line_fit(Line_fit):
                                               _line_velocity_region,
                                               _continuum_regions)
 
+    #Our default line fitting class will have a Gaussian Profile.
+    def flam_line_model(self, lam, lam_cen=None, flam_line_cen=None,
+                        sigma_v=None):
+        if lam_cen is None: lam_cen = self.lam_cen_fit
+        if flam_line_cen is None: flam_line_cen = self.flam_line_cen_fit
+        if sigma_v is None: sigma_v = self.sigma_v_fit
+        v = c*(lam/lam_cen-1.)
+        return flam_line_cen * np.exp(-0.5*(v/sigma_v)**2)
+
+    #Continuum will be a line.
+    def flam_cont_model(self,lam,a=None,b=None):
+        if a is None: a = self.a
+        if b is None: b = self.b
+        return a*lam+b
 

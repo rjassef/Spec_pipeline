@@ -12,21 +12,23 @@ def join_units(a,b):
 
 ###
 
-def flam_line_model(lam_cen, flam_line_cen, sigma_v, lam):
-    v  = c*(lam/lam_cen-1.)
-    return flam_line_cen * np.exp(-0.5*(v/sigma_v)**2)
+#def flam_line_model(lam_cen, flam_line_cen, sigma_v, lam):
+#    v  = c*(lam/lam_cen-1.)
+#    return flam_line_cen * np.exp(-0.5*(v/sigma_v)**2)
     
-def cont_model(a, b, lam):
-    return a*lam + b
+#def cont_model(a, b, lam):
+#    return a*lam + b
     
-def flam_model(x,a,b,lam):
+#def flam_model(x,a,b,lam):
+def flam_model(x,a,b,lam,line_fitter):
     
     lam_cen       = x[0] * u.AA
     flam_line_cen = x[1] * u.erg/u.s/u.cm**2/u.AA
     sigma_v       = x[2] * u.km/u.s
 
-    flam_mod  = cont_model(a,b,lam)
-    flam_mod += flam_line_model(lam_cen,flam_line_cen,sigma_v,lam)
+    flam_mod  = line_fitter.flam_cont_model(lam,a,b)
+    flam_mod += line_fitter.flam_line_model(lam,
+                                            lam_cen,flam_line_cen,sigma_v)
     return flam_mod
 
 def meet_constraints(x,line_fitter,lam_cen_0,flam_line_cen_0):
@@ -71,7 +73,8 @@ def chi2_fit(x,spec,line_fitter,a,b,lam_cen_0,flam_line_cen_0,
             return np.inf
 
     #Construct the model.
-    flam_mod = flam_model(x,a,b,spec.lam_rest).to(u.erg/u.s/u.cm**2/u.AA)
+    flam_mod = flam_model(x,a,b,spec.lam_rest,line_fitter)
+    flam_mod = flam_mod.to(u.erg/u.s/u.cm**2/u.AA)
 
     #Only consider regions within a certain velocity range of the
     #emission line.
@@ -88,7 +91,7 @@ def chi2_fit(x,spec,line_fitter,a,b,lam_cen_0,flam_line_cen_0,
 
 ###
 
-def Continuum_fit(spec,continuum_regions):
+'''def Continuum_fit(spec,continuum_regions):
 
     lam_rest = spec.lam_rest
     flam = spec.flam
@@ -121,6 +124,32 @@ def Continuum_fit(spec,continuum_regions):
     a  = (fl*o-f*l)/(l2*o-l**2)
     b  = (f - a*l)/o
 
+    return a,b'''
+
+####
+
+def Continuum_fit(spec,line_fitter):
+
+    #Define the indices of the continuum regions.
+    i_cont = np.argwhere(
+        ((spec.lam_rest>=line_fitter.continuum_regions[0][0]) &
+         (spec.lam_rest<=line_fitter.continuum_regions[0][1])) |
+        ((spec.lam_rest>=line_fitter.continuum_regions[1][0]) &
+         (spec.lam_rest<=line_fitter.continuum_regions[1][1])))
+    lam_cont_fit = spec.lam_rest[i_cont]
+    flam_cont_fit = spec.flam[i_cont]
+    flam_err_cont_fit = spec.flam_err[i_cont]
+    
+    #Do a least squares fit.
+    flame2 = flam_err_cont_fit**2
+    o  = np.sum(1./flame2)
+    f  = np.sum(flam_cont_fit/flame2)
+    l  = np.sum(lam_cont_fit/flame2)
+    l2 = np.sum(lam_cont_fit**2/flame2)
+    fl = np.sum(flam_cont_fit*lam_cont_fit/flame2)
+    a  = (fl*o-f*l)/(l2*o-l**2)
+    b  = (f - a*l)/o
+
     return a,b
 
 ####
@@ -132,14 +161,15 @@ def fit(spec, line_fitter, lam_cen_0, sigma_v_0):
     ################
     #Chi2 Continuum fit
     ################
-    a,b = Continuum_fit(spec,line_fitter.continuum_regions)
+    a,b = Continuum_fit(spec,line_fitter)
 
     ###########
     # Line fit
     ###########
     #Initial guesses
-    flam_line_cen_0 = (np.max(spec.flam[np.abs(spec.lam_rest-lam_cen_0)<3*u.AA]) - \
-        cont_model(a, b, lam_cen_0))*0.5
+    flam_line_cen_0 = \
+        (np.max(spec.flam[np.abs(spec.lam_rest-lam_cen_0)<3*u.AA]) - \
+        line_fitter.flam_cont_model(lam_cen_0, a, b))*0.5
 
     xini = [lam_cen_0.to(u.AA).value,
             flam_line_cen_0.to(u.erg/u.s/u.cm**2/u.AA).value,
@@ -157,7 +187,7 @@ def fit(spec, line_fitter, lam_cen_0, sigma_v_0):
     flam_line_cen = xopt[1] * u.erg/u.s/u.cm**2/u.AA
     sigma_v       = xopt[2] * u.km/u.s
 
-    flam_mod = flam_model(xopt,a,b,spec.lam_rest)    
+    flam_mod = flam_model(xopt,a,b,spec.lam_rest,line_fitter)    
 
     return lam_cen, flam_line_cen, sigma_v, a, b, flam_mod
 

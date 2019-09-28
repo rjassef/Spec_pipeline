@@ -8,4 +8,5 @@
 - Figure out a better way to read the spectra. Specutils code is no
   longer supported. Maybe put everything in ascii?
   
-
+- Fit_chi2 only fits a line for the continuum, even if the model in
+  the line class is different.
