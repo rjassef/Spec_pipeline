@@ -43,8 +43,8 @@ class DBSP_Spec(Spec):
             if lam_targ>spec_b[0].dispersion.min() and \
                lam_targ<spec_b[0].dispersion.max():
                 self.blue = True
-            elif lam_targ>spec_r.dispersion.min() and \
-                 lam_targ<spec_r.dispersion.max():
+            elif lam_targ>spec_r[0].dispersion.min() and \
+                 lam_targ<spec_r[0].dispersion.max():
                 self.red = True
             else:
                 print("Line not within spectral ranges")
@@ -56,8 +56,8 @@ class DBSP_Spec(Spec):
             ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
             self.spec_err_name = "error."+self.fits_files[0]
         elif self.red:
-            self.lam_obs = spec_r.dispersion
-            fnu = spec_r.data*spec_r.unit
+            self.lam_obs = spec_r[0].dispersion
+            fnu = spec_r[0].data*spec_r[0].unit
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
             self.spec_err_name = "error."+self.fits_files[1]
 

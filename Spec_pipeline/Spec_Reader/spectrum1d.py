@@ -17,9 +17,12 @@ def read_fits_spectrum1d(file_name,
     #Get the number of axis
     NAXIS = s[0].header['NAXIS']
 
+    #Declare the list.
+    spec = []
+    
     #If only one axis, then we have a single spectrum, all is good.
     if NAXIS==1:
-        spec = spectrum1d(None,s,dispersion_unit,flux_unit)
+        spec.append(spectrum1d(None,s,dispersion_unit,flux_unit))
         return spec
 
     #If not, create a dummy array over which we'll
@@ -31,7 +34,6 @@ def read_fits_spectrum1d(file_name,
     dummy = np.ndarray(axis_size)
 
     #Now, go through the axes.
-    spec = []
     it = np.nditer(dummy,["multi_index"])
     while not it.finished:
         spec1d = spectrum1d(it.multi_index,s,dispersion_unit,flux_unit)
