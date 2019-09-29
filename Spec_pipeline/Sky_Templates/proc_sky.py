@@ -28,16 +28,26 @@ def proc_geminis_sky(outname):
                fmt='%15.8e %15.8e')
 
 #####
-# LRIS
+# LRIS & DBSP
 #####
 
 def proc_LRIS_blue_sky(outname):
-    proc_LRIS("sky_keck_b.w.txt",outname)
+    D_t = 10*u.m #Telescope diameter
+    proc_LRIS_DBSP("sky_keck_b.w.txt",outname,D_t)
 
 def proc_LRIS_red_sky(outname):
-    proc_LRIS("sky_keck_r.w.txt",outname)
+    D_t = 10*u.m #Telescope diameter
+    proc_LRIS_DBSP("sky_keck_r.w.txt",outname,D_t)
 
-def proc_LRIS(sky_name,outname):
+def proc_DBSP_blue_sky(outname):
+    D_t = 5*u.m #Telescope diameter
+    proc_LRIS_DBSP("sky_palomar_b.w.txt",outname,D_t)
+    
+def proc_DBSP_red_sky(outname):
+    D_t = 5*u.m #Telescope diameter
+    proc_LRIS_DBSP("sky_palomar_r.w.txt",outname,D_t)
+        
+def proc_LRIS_DBSP(sky_name,outname,D_t):
 
     #Units are not clear, although not fundamental. We'll assume they
     #are counts.
@@ -59,7 +69,6 @@ def proc_LRIS(sky_name,outname):
 
     #We'll assume a 15min exposure time (the standard for our
     #observations).
-    D_t = 10.*u.m #Telescope diameter. 
     A_t = np.pi*(D_t/2.)**2
     texp = 15.*u.minute
     flam_sky = flam_sky * (h*c/lam_sky)/(texp*A_t*bin_size)
@@ -67,12 +76,15 @@ def proc_LRIS(sky_name,outname):
     #Write file. Strip the units.
     lam_sky  = lam_sky.to(u.AA).value
     flam_sky = flam_sky.to(u.erg/u.s/u.cm**2/u.AA).value
+    flam_sky = np.where(flam_sky>=0,flam_sky,0.)
     np.savetxt(outname,np.array([lam_sky, flam_sky]).T,
                fmt='%15.8e %15.8e')
 
 ##
 
-proc_geminis_sky("template_sky_GMOS.dat")
-proc_LRIS_blue_sky("template_sky_LRIS_b.dat")
-proc_LRIS_red_sky("template_sky_LRIS_r.dat")
+#proc_geminis_sky("template_sky_GMOS.dat")
+#proc_LRIS_blue_sky("template_sky_LRIS_b.dat")
+#proc_LRIS_red_sky("template_sky_LRIS_r.dat")
+proc_DBSP_blue_sky("template_sky_DBSP_b.dat")
+proc_DBSP_red_sky("template_sky_DBSP_r.dat")
 

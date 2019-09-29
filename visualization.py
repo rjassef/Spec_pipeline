@@ -9,6 +9,7 @@ import multiprocessing as mp
 import copy
 import matplotlib.pyplot as plt
 from astropy.constants import c
+from scipy.signal import savgol_filter
 
 from Spec_pipeline.Spec_Reader.read_spec import read_spec
 from Spec_pipeline.Line_Fitter.default_lines import Default_Line_fit
@@ -29,9 +30,15 @@ for line in cat:
     #First, plot the spectrum.
     spec_b = read_spec(x[0],float(x[1]),x[2],x[3:],blue=True)
     spec_r = read_spec(x[0],float(x[1]),x[2],x[3:],red=True)
-    plt.plot(spec_b.lam_rest,spec_b.flam,
+    #plt.plot(spec_b.lam_rest,spec_b.flam,
+    #         linestyle='solid',color='xkcd:grey')    
+    #plt.plot(spec_r.lam_rest,spec_r.flam,
+    #         linestyle='solid',color='xkcd:grey')
+    plt.plot(spec_b.lam_rest,
+             savgol_filter(spec_b.flam,5,2),
              linestyle='solid',color='xkcd:grey')    
-    plt.plot(spec_r.lam_rest,spec_r.flam,
+    plt.plot(spec_r.lam_rest,
+             savgol_filter(spec_r.flam,5,2),
              linestyle='solid',color='xkcd:grey')
 
     #Now, fit the line in turn.
