@@ -74,7 +74,8 @@ class Line_fit(object):
                 sigma_v_0=3000.*u.km/u.s):
         if lam_cen_0 is None:
             lam_cen_0 = self.line_center
-        if lam_cen_0<np.min(spec.lam_rest) or \
+        if spec.lam_rest is None or \
+           lam_cen_0<np.min(spec.lam_rest) or \
            lam_cen_0>np.max(spec.lam_rest):
             print("Line not within spectrum")
             return

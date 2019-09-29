@@ -33,7 +33,10 @@ class Spec(object):
             return self._lam_rest
         except AttributeError:
             pass
-        self._lam_rest = self.lam_obs/(1.+self.zspec)
+        if self.lam_obs is not None:
+            self._lam_rest = self.lam_obs/(1.+self.zspec)
+        else:
+            self._lam_rest = None
         return self._lam_rest
     
     @property

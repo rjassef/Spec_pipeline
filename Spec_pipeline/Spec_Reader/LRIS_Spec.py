@@ -5,9 +5,11 @@ import numpy as np
 from astropy.io import fits
 import astropy.units as u
 from astropy.constants import h,c
+import os
 
 from .spectrum1d import read_fits_spectrum1d
 from .Spec import Spec
+from .rebin_spec import rebin_spec
 
 #As there are too many different things to keep in minds, we'll load
 #the spectra as objects, so we can load the appropiate sensitivity
@@ -24,6 +26,7 @@ class LRIS_Spec(Spec):
         self.blue = blue
         self.red = red
         self.__flam
+        self.__flam_sky
 
     @property
     def __flam(self):
@@ -72,3 +75,28 @@ class LRIS_Spec(Spec):
 
         self.flam = (fnu*c/self.lam_obs**2).to(u.erg/u.cm**2/u.s/u.AA)
         return
+
+    @property
+    def __flam_sky(self):
+
+        #Figure out the spectrograph arm.
+        if self.blue:
+            sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
+                "/Spec_pipeline/Sky_Templates/template_sky_LRIS_b.dat"
+        elif self.red:
+            sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
+                "/Spec_pipeline/Sky_Templates/template_sky_LRIS_r.dat"
+        else:
+            #print("Cannot find spectrograph arm flag")
+            return
+            
+        #Read the template
+        sky_temp = np.loadtxt(sky_temp_fname)
+        lam_sky = sky_temp[:,0]*u.AA
+        flam_sky_orig = sky_temp[:,1]*u.erg/u.s/u.cm**2/u.AA
+
+        #Rebin the template to the object spectrum.
+        self.flam_sky = rebin_spec(lam_sky, flam_sky_orig, self.lam_obs)
+
+        return
+
