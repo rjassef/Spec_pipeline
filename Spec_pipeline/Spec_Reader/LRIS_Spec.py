@@ -5,6 +5,7 @@ import numpy as np
 from astropy.io import fits
 import astropy.units as u
 from astropy.constants import h,c
+import re
 import os
 
 from .spectrum1d import read_fits_spectrum1d
@@ -27,6 +28,7 @@ class LRIS_Spec(Spec):
         self.red = red
         self.__flam
         self.__flam_sky
+        self.__sens
 
     @property
     def __flam(self):
@@ -61,14 +63,24 @@ class LRIS_Spec(Spec):
             #Use mean of amplifiers.
             self.RON = 3.82
 
+            #Find the grism
+            grism_aux = re.search("^(.*?)/.*$",spec_b[0].header['GRISNAME'])
+            self.grism = "B"+grism_aux[1]
+
         elif self.red:
             self.lam_obs = spec_r[0].dispersion
             fnu = spec_r[0].data*spec_r[0].unit
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
             self.spec_err_name = "error."+self.fits_files[1]
+            
             #https://www2.keck.hawaii.edu/inst/lris/detectors.html
             #Use mean of amplifiers.
             self.RON = 4.64
+
+            #Find the Grating.
+            grating_aux = re.search("^(.*?)/.*$",spec_b[0].header['GRANAME'])
+            self.grating = "R"+grating_aux[1]
+            
 
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])#Mean lambda bin.
         self.texp = float(ff[0].header['EXPTIME'])*u.s
@@ -97,6 +109,25 @@ class LRIS_Spec(Spec):
 
         #Rebin the template to the object spectrum.
         self.flam_sky = rebin_spec(lam_sky, flam_sky_orig, self.lam_obs)
+
+        return
+
+    @property
+    def __sens(self):
+
+        #Read the sensitivity curve.
+        if self.blue:
+            grname = self.grism
+        else:
+            grname = self.grating
+        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+                               "/Spec_pipeline/Sensitivity_Files/"+
+                               "Sens_LRIS_"+grname+".txt")
+        lam_sens = sens_temp[:,0]*u.AA
+        sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
+        
+        #Rebin the template to the object spectrum.
+        self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
 
         return
 

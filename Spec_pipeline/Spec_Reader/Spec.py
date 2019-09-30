@@ -45,7 +45,7 @@ class Spec(object):
             return self._eps
         except AttributeError:
             pass
-        self._eps = (np.pi*self.RT**2) * self.dlam * self.texp/(h*c)
+        self._eps = self.sens * (np.pi*self.RT**2) * self.dlam * self.texp/(h*c)
         self._eps = self._eps.to(u.s*u.cm**2/u.erg)
         return self._eps
 

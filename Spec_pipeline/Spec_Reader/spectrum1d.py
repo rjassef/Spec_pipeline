@@ -49,6 +49,7 @@ class spectrum1d(object):
         self.dispersion = None
         self.dispersion_unit = _dispersion_unit
         self.unit = _flux_unit
+        self.header = None
         self.load_spec(multi_index,s)
 
     def load_spec(self,multi_index,s):
@@ -59,6 +60,9 @@ class spectrum1d(object):
         else:
             self.data = s[0].data
 
+        #Save the header
+        self.header = s[0].header
+            
         #Now, let's figure out the dispersion.  Not sure what is the
         #correct thing here, but this works for our spectra.
         if multi_index:

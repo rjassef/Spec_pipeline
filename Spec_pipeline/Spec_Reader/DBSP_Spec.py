@@ -91,3 +91,22 @@ class DBSP_Spec(Spec):
         self.flam_sky = rebin_spec(lam_sky, flam_sky_orig, self.lam_obs)
 
         return
+
+    @property
+    def __sens(self):
+
+        #Read the sensitivity curve.
+        if self.blue:
+            grname = "B"
+        else:
+            grname = "R"
+        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+                               "/Spec_pipeline/Sensitivity_Files/"+
+                               "Sens_DBSP_"+grname+".txt")
+        lam_sens = sens_temp[:,0]*u.AA
+        sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
+        
+        #Rebin the template to the object spectrum.
+        self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
+
+        return

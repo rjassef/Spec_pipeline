@@ -80,7 +80,7 @@ for line in cat:
 
     cato.write("\n")
 
-    exit()
+    #exit()
 
 cato.close()
 cat.close()

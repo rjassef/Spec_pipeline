@@ -25,6 +25,7 @@ class GMOS_Spec(Spec):
         self.instrument = "GMOS"
         self.__flam
         self.__flam_sky
+        self.__sens
 
     @property
     def __flam(self):
@@ -59,3 +60,23 @@ class GMOS_Spec(Spec):
 
         return
 
+    #There does not seem to be a way to recover the GRISM used for the
+    #GMOS spectra. We'll assume the B600 for all until we figure
+    #something out.
+    @property
+    def __sens(self):
+
+        #Read the sensitivity curve.
+        grname =  "B600"
+        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+                               "/Spec_pipeline/Sensitivity_Files/"+
+                               "Sens_GMOS_"+grname+".txt")
+        lam_sens = sens_temp[:,0]*u.AA
+        sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
+        
+        #Rebin the template to the object spectrum.
+        self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
+
+        return
+
+        
