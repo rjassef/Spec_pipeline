@@ -7,6 +7,7 @@ import numpy as np
 import astropy.units as u
 import multiprocessing as mp
 import copy
+import matplotlib.pyplot as plt
 
 from Spec_pipeline.Spec_Reader.read_spec import read_spec
 from Spec_pipeline.Line_Fitter.default_lines import Default_Line_fit
@@ -52,7 +53,7 @@ for line in cat:
     if verbose is True:
         print
         print(spec.name)
-
+    
     #Run the fit
     civ_fit.run_fit(spec)
     cato.write("{0:s} {1:.3f} {2:.3e} {3:.3f} ".format(

@@ -6,6 +6,8 @@ import astropy.units as u
 from astropy.constants import c
 from scipy.signal import savgol_filter
 
+from .MC_errors import get_error
+
 ###
 
 def plot_line(lam,label):
@@ -47,15 +49,41 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
     #If a chain is provided, plot the 1-sigma regions.
     if chain is not None:
         chain_output  = np.loadtxt(chain)
-        lam_mod_chain = np.tile(lam_mod,(len(lam_mod),chain_output.shape[0]))
-        flam_mod_chain = line_fitter.flam_cont_model(lam_mod_chain)+\
-                         line_fitter.flam_line_model(lam_mod_chain)
-        flam_mod_err = np.std(flam_mod_chain,axis=1)
+        #Unfortunately we'll have to go slowly about this to not
+        #trigger a memory error.
+        flam_mod_low1 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
+        flam_mod_hig1 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
+        flam_mod_low2 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
+        flam_mod_hig2 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
+        for k,lam_use in enumerate(lam_mod):
+            lam_cen       = chain_output[:,0] * u.AA
+            flam_line_cen = chain_output[:,1] * u.erg/u.s/u.cm**2/u.AA
+            sigma_v       = chain_output[:,2] * u.km/u.s
+            a             = chain_output[:,3] * u.erg/u.s/u.cm**2/u.AA**2
+            b             = chain_output[:,4] * u.erg/u.s/u.cm**2/u.AA
+            lam_mod_chain = np.tile(lam_use,chain_output.shape[0])
+            flam_mod_chain = line_fitter.flam_cont_model(lam_mod_chain,
+                                                         a=a,b=b)
+            flam_mod_chain += line_fitter.flam_line_model(lam_mod_chain,
+                                                          lam_cen=lam_cen,
+                                                          flam_line_cen=flam_line_cen,
+                                                          sigma_v=sigma_v)
+            flam_mod_low1[k], flam_mod_hig1[k] = get_error(flam_mod_chain, 
+                                                           flam_mod[k],
+                                                           cf=68.3)
+            flam_mod_low2[k], flam_mod_hig2[k] = get_error(flam_mod_chain, 
+                                                           flam_mod[k],
+                                                           cf=95.4)
         plt.fill_between(lam_mod,
-                         flam_mod-flam_mod_err,
-                         flam_mod+flam_mod_err,
+                         flam_mod-flam_mod_low2,
+                         flam_mod+flam_mod_hig2,
+                         color='xkcd:cyan',
+                         alpha=1.0)
+        plt.fill_between(lam_mod,
+                         flam_mod-flam_mod_low1,
+                         flam_mod+flam_mod_hig1,
                          color='xkcd:orange',
-                         alpha=0.5)
+                         alpha=1.0)
 
     #Plot the model.
     plt.plot(lam_mod,flam_mod,'-b')
@@ -93,7 +121,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
     if plot_fname is None:
         plt.show()
     else:
-        plt.savefig(plot_fname)
+        plt.savefig(plot_fname,dpi=300)
     plt.close()
 
 ####
