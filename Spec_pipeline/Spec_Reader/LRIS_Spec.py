@@ -78,7 +78,7 @@ class LRIS_Spec(Spec):
             self.RON = 4.64
 
             #Find the Grating.
-            grating_aux = re.search("^(.*?)/.*$",spec_b[0].header['GRANAME'])
+            grating_aux = re.search("^(.*?)/.*$",spec_r[0].header['GRANAME'])
             self.grating = "R"+grating_aux[1]
             
 
@@ -118,8 +118,10 @@ class LRIS_Spec(Spec):
         #Read the sensitivity curve.
         if self.blue:
             grname = self.grism
-        else:
+        elif self.red:
             grname = self.grating
+        else:
+            return
         sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
                                "/Spec_pipeline/Sensitivity_Files/"+
                                "Sens_LRIS_"+grname+".txt")

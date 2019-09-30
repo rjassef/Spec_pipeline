@@ -67,4 +67,5 @@ for line in cat:
     #plt.show()
     fig_name = x[0]+".eps"
     plt.savefig(fig_name)
+    plt.close()
         

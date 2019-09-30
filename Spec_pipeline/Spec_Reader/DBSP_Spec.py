@@ -99,8 +99,10 @@ class DBSP_Spec(Spec):
         #Read the sensitivity curve.
         if self.blue:
             grname = "B"
-        else:
+        elif self.red:
             grname = "R"
+        else:
+            return
         sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
                                "/Spec_pipeline/Sensitivity_Files/"+
                                "Sens_DBSP_"+grname+".txt")
