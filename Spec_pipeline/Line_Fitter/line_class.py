@@ -96,12 +96,15 @@ class Line_fit(object):
              Ncpu=Ncpu, save_chain=save_chain)
         return
 
-    def plot(self,spec,plot_fname=None):
-        plot_fit.plot_fit(spec.lam_rest, spec.flam, self.flam_mod, 
-                          self.lam_cen_fit,
-                          self.continuum_regions, 
-                          self.line_velocity_region,
-                          spec.name, self.FWHM_v,plot_fname=plot_fname)
+    def plot(self,spec,plot_fname=None,chain=None):
+        #plot_fit.plot_fit(spec.lam_rest, spec.flam, self.flam_mod, 
+        #                  self.lam_cen_fit,
+        #                  self.continuum_regions, 
+        #                  self.line_velocity_region,
+        #                  spec.name, self.FWHM_v,
+        #                  chain=chain,
+        #                  plot_fname=plot_fname)
+        plot_fit.plot_fit(spec,self,chain=chain,plot_fname=plot_fname)
 
     def run_Ftest(self,spec):
         if self.sigma_v_fit is None:

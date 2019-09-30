@@ -17,16 +17,16 @@ verbose = True
 #verbose = False
 
 Ncpu = mp.cpu_count()-2
-#nrep = 1000
+nrep = 1000
 #nrep = 100
-nrep = 10
+#nrep = 10
 
-#estimate_errors = True
-estimate_errors = False
+estimate_errors = True
+#estimate_errors = False
 
 #######
 
-cato = open("results.txt","w")
+cato = open("CIV_results.txt","w")
 cato.write("{0:s} {1:s} {2:s} {3:s} ".format(
         "obj_id","lam_cen", "flam_line_cen", "FWHM_v"))
 if estimate_errors is True:
@@ -64,7 +64,8 @@ for line in cat:
     if estimate_errors is True:
         if verbose is True:
             print("Running MC with ",nrep,"steps in ",Ncpu,"cores...")
-        civ_fit.run_MC(spec,nrep,Ncpu=Ncpu)
+        chain_name = spec.name+".CIV_chain.txt"
+        civ_fit.run_MC(spec,nrep,Ncpu=Ncpu,save_chain=chain_name)
         cato.write("{0:.3f} {1:.3f} ".format(civ_fit.lam_cen_low.value,
                                              civ_fit.lam_cen_hig.value))
         cato.write("{0:.3e} {1:.3e} ".format(civ_fit.flam_line_cen_low.value,
@@ -75,12 +76,10 @@ for line in cat:
     #Plot the fit.
     if verbose is True:
         print("Making the plot...")
-    #plot_fname = "{0:s}.CIV.eps".format(obj_id)
-    civ_fit.plot(spec)
+    plot_fname = "{0:s}.CIV_fit.png".format(spec.name)
+    civ_fit.plot(spec,chain=chain_name,plot_fname=plot_fname)
 
     cato.write("\n")
-
-    #exit()
 
 cato.close()
 cat.close()

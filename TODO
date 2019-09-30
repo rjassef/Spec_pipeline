@@ -5,7 +5,12 @@
   spectra.  We'll use for now the B600 for everything, but we need to
   Figure this out.
 
-- For Palomar, the information was not saved eitherm but it seems the
+- For Palomar, the information was not saved either, but it seems the
   same grating was always used on each side.
 
 - Add more emission lines to the lines.txt file.
+
+- Implement joint fits for some lines. Easiest is to implement them as
+  classes, like an OII class, OIII class, NII_Halpha class, SII class
+  for example. For OII, MgII and CIV it is likely we can just get away
+  with a single profile for the doublet.

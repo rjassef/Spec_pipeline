@@ -51,7 +51,7 @@ def get_error(x,xbf):
 def fit_func(spec, line_fitter, flam_resamp):
     
     nrep_x = len(flam_resamp)
-    output = np.zeros((nrep_x,3))
+    output = np.zeros((nrep_x,5))
     for i in range(nrep_x):
         new_spec = copy.deepcopy(spec)
         new_spec.flam = flam_resamp[i]
@@ -60,7 +60,9 @@ def fit_func(spec, line_fitter, flam_resamp):
             line_fitter.lam_cen_fit, line_fitter.sigma_v_fit)
         output[i,:] = [lam_cenx.to(u.AA).value, 
                        flam_line_cenx.to(u.erg/u.s/u.cm**2/u.AA).value, 
-                       sigma_vx.to(u.km/u.s).value]
+                       sigma_vx.to(u.km/u.s).value,
+                       ax.to(u.erg/u.s/u.cm**2/u.AA**2).value,
+                       bx.to(u.erg/u.s/u.cm**2/u.AA).value]
     return output
     
 
@@ -88,8 +90,9 @@ def MC_errors(nrep, spec, line_fitter,
     sigma_v       = Output[:,2] * u.km/u.s
     
     if save_chain is not None:
-        np.savetxt(save_chain,np.array([lam_cen.value,flam_line_cen.value,
-                                        sigma_v.value]).T)
+        #np.savetxt(save_chain,np.array([lam_cen.value,flam_line_cen.value,
+        #                                sigma_v.value]).T)
+        np.savetxt(save_chain,Output)
 
     lam_cen_low, lam_cen_hig = get_error(lam_cen, line_fitter.lam_cen_fit)
     flam_line_cen_low, \
