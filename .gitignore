@@ -4,3 +4,4 @@ __pycache__
 results.txt
 visualization.summary.txt
 data.txt
+*chain.txt
