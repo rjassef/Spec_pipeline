@@ -87,16 +87,22 @@ def get_error_spec(spec, wd=15):
     lam_mean, flam_mean, flam_std = rolling_linear_regression(
         spec.lam_obs,spec.flam,wd)
 
-    #Repeat with the sky spectrum.
+    #Repeat with the sky spectrum and the eps factor.
     lam_sky_mean, flam_sky_mean, flam_sky_std = rolling_linear_regression(
         spec.lam_obs,spec.flam_sky,wd)
-
+    if np.isscalar(spec.eps.value):
+        eps_use = self.eps
+    else:
+        lam_eps_use, eps_use, eps_std = rolling_linear_regression(
+            spec.lam_obs,spec.eps,wd)
+        
+        
     #Get the zero-th order SN array
     SN_lam = flam_mean/flam_std
 
     #Fit the SN array to the error parameters.
     K1, K2 = get_error_pars(lam_mean,flam_mean,SN_lam,flam_sky_mean,
-                            spec.eps,spec.RON)
+                            eps_use,spec.RON)
 
     #Get the error spectrum
     flam_err = np.sqrt(K1*spec.eps*(np.abs(spec.flam)+

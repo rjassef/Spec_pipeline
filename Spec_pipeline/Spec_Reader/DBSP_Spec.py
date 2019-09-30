@@ -27,6 +27,7 @@ class DBSP_Spec(Spec):
         self.red  = red
         self.__flam
         self.__flam_sky
+        self.__sens
 
     @property
     def __flam(self):
