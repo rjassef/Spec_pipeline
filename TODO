@@ -1,13 +1,3 @@
-- Incorporate Sensitivities to fitting.
-
-- Implement the line shape as part of the line fitter class with a
-  default Gaussian.
-
-- Implement the plotting part of the visualization. 
-
-- Figure out a better way to read the spectra. Specutils code is no
-  longer supported. Maybe put everything in ascii?
-  
 - Fit_chi2 only fits a line for the continuum, even if the model in
   the line class is different.
 
@@ -17,4 +7,5 @@
 
 - For Palomar, the information was not saved eitherm but it seems the
   same grating was always used on each side.
-  
+
+- Add more emission lines to the lines.txt file.
