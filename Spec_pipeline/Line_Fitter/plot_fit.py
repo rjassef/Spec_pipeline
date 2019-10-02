@@ -6,7 +6,7 @@ import astropy.units as u
 from astropy.constants import c
 from scipy.signal import savgol_filter
 
-from .MC_errors import get_error
+from .MC_errors_general import get_error
 
 ###
 
@@ -43,8 +43,9 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
                             (spec.lam_rest<xmax*u.AA)]
 
     #Set the model
-    flam_mod = line_fitter.flam_cont_model(lam_mod)+\
-               line_fitter.flam_line_model(lam_mod)
+    #flam_mod = line_fitter.flam_cont_model(lam_mod)+\
+    #           line_fitter.flam_line_model(lam_mod)
+    flam_mod = line_fitter.flam_model(lam_mod)
 
     #If a chain is provided, plot the 1-sigma regions.
     if chain is not None:
@@ -56,18 +57,9 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
         flam_mod_low2 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
         flam_mod_hig2 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
         for k,lam_use in enumerate(lam_mod):
-            lam_cen       = chain_output[:,0] * u.AA
-            flam_line_cen = chain_output[:,1] * u.erg/u.s/u.cm**2/u.AA
-            sigma_v       = chain_output[:,2] * u.km/u.s
-            a             = chain_output[:,3] * u.erg/u.s/u.cm**2/u.AA**2
-            b             = chain_output[:,4] * u.erg/u.s/u.cm**2/u.AA
             lam_mod_chain = np.tile(lam_use,chain_output.shape[0])
-            flam_mod_chain = line_fitter.flam_cont_model(lam_mod_chain,
-                                                         a=a,b=b)
-            flam_mod_chain += line_fitter.flam_line_model(lam_mod_chain,
-                                                          lam_cen=lam_cen,
-                                                          flam_line_cen=flam_line_cen,
-                                                          sigma_v=sigma_v)
+            flam_mod_chain = line_fitter.flam_model(lam_mod_chain,
+                                                    chain_output=chain_output)
             flam_mod_low1[k], flam_mod_hig1[k] = get_error(flam_mod_chain, 
                                                            flam_mod[k],
                                                            cf=68.3)

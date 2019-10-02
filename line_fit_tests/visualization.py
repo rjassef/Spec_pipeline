@@ -49,10 +49,11 @@ for line in cat:
         line_fit = Default_Line_fit(em_line)
         spec = read_spec(x[0],float(x[1]),x[2],x[3:],
                          line_center=line_fit.line_center)
-        line_fit.run_fit(spec,sigma_v_0=1000.*u.km/u.s)
+        line_fit.set_initial_fit_values(spec,sigma_v_0=1000.*u.km/u.s)
+        line_fit.run_fit(spec)
 
         #Check if fit was done. If not, move on to next emission line.
-        if line_fit.sigma_v_fit is None:
+        if line_fit.xopt_line is None:
             continue
         
         #Run the Ftest

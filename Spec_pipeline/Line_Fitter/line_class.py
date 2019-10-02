@@ -7,8 +7,10 @@ import astropy.units as u
 from astropy.constants import c
 from scipy.special import betainc
 
-from . import MC_errors as MC
-from . import fit_chi2 as fit
+#from . import MC_errors as MC
+from . import MC_errors_general as MC
+#from . import fit_chi2 as fit
+from . import fit_general as fit
 from . import plot_fit
 
 class Line_fit(object):
@@ -20,115 +22,76 @@ class Line_fit(object):
         self.line_velocity_region = _line_velocity_region
         self.continuum_regions = _continuum_regions
 
-        #Values that will come from the fitting.
-        self.lam_cen_fit       = None
-        self.flam_line_cen_fit = None
-        self.sigma_v_fit       = None
-        self.a                 = None
-        self.b                 = None
-        self.flam_mod          = None
-
-        #Values that will come from the MC
-        self.lam_cen_low = None
-        self.lam_cen_hig = None
-        self.flam_line_cen_low = None
-        self.flam_line_cen_hig = None
-        self.sigma_v_low = None
-        self.sigma_v_hig = None
-
+        self.x0_line = None
+        self.x0_cont = None
+        self.xopt_line = None
+        self.xopt_cont = None
+        
         #Values from Ftest
         self.chi2 = None
         self.chi2_no_line = None
         self.F = None
         self.p = None
 
-        #Set the default constraints for the fitting.
-        self.sigma_v_min =  100.*u.km/u.s
-        self.sigma_v_max = 5000.*u.km/u.s
-        self.delta_lam_cen_max = 2.*u.AA
-        #Minimum peak height fraction compared to initial guess.
-        self.frac_flam_line_cen_min = 1e-1
 
-    @property
-    def FWHM_v_low(self):
-        if self.sigma_v_low is None:
-            print("First run the MC")
-            return
-        return self.sigma_v_low*2.*(2.*np.log(2.))**0.5
+    def run_fit(self, spec):
 
-    @property
-    def FWHM_v_hig(self):
-        if self.sigma_v_hig is None:
-            print("First run the MC")
-            return
-        return self.sigma_v_hig*2.*(2.*np.log(2.))**0.5
-
-    @property
-    def FWHM_v(self):
-        if self.sigma_v_fit is None:
-            print("First fit the line")
-            return
-        return self.sigma_v_fit*2.*(2.*np.log(2.))**0.5
-
-    def run_fit(self, spec,lam_cen_0=None,
-                sigma_v_0=3000.*u.km/u.s):
-        if lam_cen_0 is None:
-            lam_cen_0 = self.line_center
+        #Check the centroid of the emission line is within the
+        #spectrum.
         if spec.lam_rest is None or \
-           lam_cen_0<np.min(spec.lam_rest) or \
-           lam_cen_0>np.max(spec.lam_rest):
+           self.line_center<np.min(spec.lam_rest) or \
+           self.line_center>np.max(spec.lam_rest):
             print("Line not within spectrum")
             return
-        self.lam_cen_fit, self.flam_line_cen_fit, self.sigma_v_fit, \
-            self.a, self.b, self.flam_mod = \
-                                            fit.fit(spec,self, 
-                                                    lam_cen_0, sigma_v_0)
+
+        if self.x0_line is None or self.x0_cont is None:
+            self.set_initial_fit_values(spec)
+        
+        #Run the fit.
+        self.xopt_line, self.xopt_cont = fit.fit(spec, self)
+        self.set_cont_pars(self.xopt_cont)
+        self.set_line_pars(self.xopt_line)
         return
 
     def run_MC(self,spec,nrep,Ncpu=None,save_chain=None):
-        if self.sigma_v_fit is None:
-            print("First fit the line")
+        if self.xopt_line is None:
+            print("First run the line fit.")
             return
-        [self.lam_cen_low, self.lam_cen_hig,\
-         self.flam_line_cen_low, self.flam_line_cen_hig,\
-         self.sigma_v_low, self.sigma_v_hig] = MC.MC_errors(
-             nrep, spec, self, 
-             Ncpu=Ncpu, save_chain=save_chain)
+        MC.MC_errors(nrep, spec, self, Ncpu=Ncpu, save_chain=save_chain)
         return
 
     def plot(self,spec,plot_fname=None,chain=None):
-        #plot_fit.plot_fit(spec.lam_rest, spec.flam, self.flam_mod, 
-        #                  self.lam_cen_fit,
-        #                  self.continuum_regions, 
-        #                  self.line_velocity_region,
-        #                  spec.name, self.FWHM_v,
-        #                  chain=chain,
-        #                  plot_fname=plot_fname)
         plot_fit.plot_fit(spec,self,chain=chain,plot_fname=plot_fname)
 
     def run_Ftest(self,spec):
-        if self.sigma_v_fit is None:
+        if self.xopt_line is None:
             print("First fit the line")
             return
-        self.chi2 = fit.chi2_fit([self.lam_cen_fit.value,
-                                  self.flam_line_cen_fit.value,
-                                  self.sigma_v_fit.value],
-                                 spec, self, self.a, self.b,
-                                 self.lam_cen_fit, 
-                                 self.flam_line_cen_fit,
-                                 check_constraints=False)
-        self.chi2_no_line = fit.chi2_fit([self.lam_cen_fit.value,
-                                          0.,
-                                          self.sigma_v_fit.value],
-                                         spec, self, self.a, self.b,
-                                         self.lam_cen_fit, 
-                                         self.flam_line_cen_fit,
-                                         check_constraints=False)
-            
+
+        #Only consider regions within a certain velocity range of the
+        #canonical emission line center.
+        v = (c*(spec.lam_rest/self.line_center-1.)).to(u.km/u.s)
+        vabs = np.abs(v)
+        iuse = np.argwhere(vabs<self.line_velocity_region)
+
+        
+        #With emission line.
+        self.chi2 = fit.chi2_line_fit(self.xopt_line,
+                                      spec, self,
+                                      iuse, self.xopt_cont,
+                                      check_constraints=False)
+
+        #Without emission line.
+        x_noline = np.copy(self.xopt_line)
+        x_noline[1] = 0.
+        self.chi2_no_line = fit.chi2_line_fit(x_noline,
+                                              spec, self,
+                                              iuse, self.xopt_cont,
+                                              check_constraints=False)
+        
+        
         #Get the degrees of freedom.
-        dv = (c*(spec.lam_rest/self.lam_cen_fit-1.)).to(u.km/u.s)
-        dvabs = np.abs(dv)
-        n_datapoints = len(spec.flam[dvabs<self.line_velocity_region])
+        n_datapoints = len(iuse)
         nu = n_datapoints - 2 - 3
         nu_no_line = n_datapoints
         chi2_nu = self.chi2/float(nu)

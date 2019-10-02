@@ -62,6 +62,7 @@ for line in cat:
         civ_fit.FWHM_v.value))
 
     #Get the fit errors.
+    chain_name = None
     if estimate_errors is True:
         if verbose is True:
             print("Running MC with ",nrep,"steps in ",Ncpu,"cores...")
