@@ -1,6 +1,3 @@
-- Fit_chi2 only fits a line for the continuum, even if the model in
-  the line class is different.
-
 - It seems that the grating information was not preserved for the GMOS
   spectra.  We'll use for now the B600 for everything, but we need to
   Figure this out.
