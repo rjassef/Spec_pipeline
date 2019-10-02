@@ -91,7 +91,7 @@ def get_error_spec(spec, wd=15):
     lam_sky_mean, flam_sky_mean, flam_sky_std = rolling_linear_regression(
         spec.lam_obs,spec.flam_sky,wd)
     if np.isscalar(spec.eps.value):
-        eps_use = self.eps
+        eps_use = spec.eps
     else:
         lam_eps_use, eps_use, eps_std = rolling_linear_regression(
             spec.lam_obs,spec.eps,wd)

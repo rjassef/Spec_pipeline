@@ -18,7 +18,8 @@ z = 3.0
 fake = Spec("Fake",z)
 fake.spec_err_name = "fake_err.txt"
 subprocess.call("rm data/fake_err.txt",shell=True)
-                
+fake.sens = 1.0
+
 #Set the wavelength range.
 lam_rest_min = 1200.
 lam_rest_max = 1800.
@@ -60,15 +61,16 @@ flam_err_model = (N_Gamma_err_model/fact).to(u.erg/u.s/u.cm**2/u.AA)
 
 fake.flam = np.random.normal(flam_model,flam_err_model)*flam_model.unit
 
-#plt.plot(fake.lam_rest,fake.flam,'-b')
-#plt.plot(fake.lam_rest,flam_model,'-k')
-#plt.show()
-
 #Now, run the fit.
 civ_fit = Default_Line_fit("CIV")
 civ_fit.run_fit(fake)
 print(civ_fit.FWHM_v,civ_line.FWHM_v)
 
-civ_fit.run_MC(fake,1000)
-print(civ_fit.FWHM_v_low, civ_fit.FWHM_v_hig)
+plt.plot(fake.lam_rest,fake.flam,'-b')
+plt.plot(fake.lam_rest,flam_model,'-k')
+plt.plot(fake.lam_rest,civ_fit.flam_model(fake.lam_rest),'-r')
+plt.show()
+
+#civ_fit.run_MC(fake,1000)
+#print(civ_fit.FWHM_v_low, civ_fit.FWHM_v_hig)
 
