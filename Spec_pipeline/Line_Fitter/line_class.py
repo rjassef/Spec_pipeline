@@ -36,14 +36,12 @@ class Line_fit(object):
 
     def run_fit(self, spec):
 
-        #Check the centroid of the emission line is within the
-        #spectrum.
-        if spec.lam_rest is None or \
-           self.line_center<np.min(spec.lam_rest) or \
-           self.line_center>np.max(spec.lam_rest):
-            print("Line not within spectrum")
+        #Check that the fit can be run.
+        if not self.can_fit_be_run(spec):
             return
 
+        #If no initial guesses have been set, set the default ones
+        #here.
         if self.x0_line is None or self.x0_cont is None:
             self.set_initial_fit_values(spec)
         
