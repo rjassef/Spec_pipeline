@@ -12,14 +12,6 @@ def join_units(a,b):
 
 ###
 
-#def flam_line_model(lam_cen, flam_line_cen, sigma_v, lam):
-#    v  = c*(lam/lam_cen-1.)
-#    return flam_line_cen * np.exp(-0.5*(v/sigma_v)**2)
-    
-#def cont_model(a, b, lam):
-#    return a*lam + b
-    
-#def flam_model(x,a,b,lam):
 def flam_model(x,a,b,lam,line_fitter):
     
     lam_cen       = x[0] * u.AA
