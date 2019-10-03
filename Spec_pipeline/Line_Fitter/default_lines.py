@@ -49,19 +49,17 @@ class Default_Line_fit(Line_fit):
 
         #Parse the data
         x[1:] = [float(ix) for ix in x[1:]]
-        _line_name = x[0]
-        _line_center = x[1]*u.AA
-        _line_velocity_region = x[2]*u.km/u.s
-        _continuum_regions = np.zeros((int((len(x)-3)/2),2))
+        self.line_center = x[1]*u.AA
+        self.line_velocity_region = x[2]*u.km/u.s
+        self.continuum_regions = np.zeros((int((len(x)-3)/2),2))
         for i in range((int((len(x)-3)/2))):
-            _continuum_regions[i][0] = x[i*2+3]
-            _continuum_regions[i][1] = x[i*2+4]
-        _continuum_regions = _continuum_regions*u.AA
+            self.continuum_regions[i][0] = x[i*2+3]
+            self.continuum_regions[i][1] = x[i*2+4]
+        self.continuum_regions = _continuum_regions*u.AA
 
         #Initialize the class
-        super(Default_Line_fit,self).__init__(_line_name,_line_center,
-                                              _line_velocity_region,
-                                              _continuum_regions)
+        super(Default_Line_fit,self).__init__(_line_name)
+
 
     ###################
     # Fit Model
@@ -158,6 +156,27 @@ class Default_Line_fit(Line_fit):
             return False
         return True
         
+
+    #This function is called to determine the indices of the spectrum
+    #to be used for fitting the continuum.
+    def get_i_cont(self,spec):
+        i_cont = np.argwhere(
+            ((spec.lam_rest>=self.continuum_regions[0][0]) &
+             (spec.lam_rest<=self.continuum_regions[0][1])) |
+            ((spec.lam_rest>=self.continuum_regions[1][0]) &
+             (spec.lam_rest<=self.continuum_regions[1][1])))
+    return i_cont
+
+    #This is one is called to determine the indices of the spectrum
+    #used for fitting the emission line.
+    def get_i_line(self,spec):
+        #Only consider regions within a certain velocity range of the
+        #canonical emission line center.
+        v = (c*(spec.lam_rest/self.line_center-1.)).to(u.km/u.s)
+        vabs = np.abs(v)
+        i_line = np.argwhere(vabs<self.line_velocity_region)
+    return i_line
+
 
     #####################
     # Useful properties.

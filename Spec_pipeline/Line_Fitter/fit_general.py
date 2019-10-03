@@ -57,11 +57,7 @@ def fit(spec, line_fitter, x0_cont=None, x0_line=None):
     #################
 
     #Define the indices of the continuum regions.
-    i_cont = np.argwhere(
-        ((spec.lam_rest>=line_fitter.continuum_regions[0][0]) &
-         (spec.lam_rest<=line_fitter.continuum_regions[0][1])) |
-        ((spec.lam_rest>=line_fitter.continuum_regions[1][0]) &
-         (spec.lam_rest<=line_fitter.continuum_regions[1][1])))
+    i_cont = line_fitter.get_i_cont(spec)
 
     #Run the fit
     xopt_cont = fmin(chi2_cont_fit, line_fitter.x0_cont,
@@ -73,11 +69,8 @@ def fit(spec, line_fitter, x0_cont=None, x0_line=None):
     # Line fit.
     #################
     
-    #Only consider regions within a certain velocity range of the
-    #canonical emission line center.
-    v = (c*(spec.lam_rest/line_fitter.line_center-1.)).to(u.km/u.s)
-    vabs = np.abs(v)
-    i_line = np.argwhere(vabs<line_fitter.line_velocity_region)
+    #Determine the indices of the line fitting region.
+    i_line = line_fitter.get_i_line(spec)
 
     #Run the line fit.
     xopt_line = fmin(chi2_line_fit, line_fitter.x0_line  ,

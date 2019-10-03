@@ -15,13 +15,11 @@ from . import plot_fit
 
 class Line_fit(object):
     
-    def __init__(self,_line_name,_line_center,_line_velocity_region,
-                 _continuum_regions):
-        self.line_name   = _line_name
-        self.line_center = _line_center
-        self.line_velocity_region = _line_velocity_region
-        self.continuum_regions = _continuum_regions
+    def __init__(self,_line_name):
 
+        self.line_name = _line_name
+
+        #Fit arrays
         self.x0_line = None
         self.x0_cont = None
         self.xopt_line = None
@@ -66,13 +64,9 @@ class Line_fit(object):
             print("First fit the line")
             return
 
-        #Only consider regions within a certain velocity range of the
-        #canonical emission line center.
-        v = (c*(spec.lam_rest/self.line_center-1.)).to(u.km/u.s)
-        vabs = np.abs(v)
-        iuse = np.argwhere(vabs<self.line_velocity_region)
+        #Get the indices of the line fitting region.
+        iuse = get_i_line(self,spec)
 
-        
         #With emission line.
         self.chi2 = fit.chi2_line_fit(self.xopt_line,
                                       spec, self,

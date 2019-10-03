@@ -1,0 +1,10 @@
+##
+# 1 Line complex name
+# 2 Line 1 center (AA)
+# 3 Line 2 center (AA)
+# 4 Joint velocity displacement: 1=yes, 0=no
+# 5 Joint line widths: 1=yes, 0=no
+# 6 Fixed ratio: 0=no, any other number is the flux ratio.
+# 7 Velocity region for the fit (km/s)
+# 8 Continuum region(s) (AA)
+LyA_NV  1216.    1241.	1	1	0	5000.  1150.   1200.   1320. 1360.

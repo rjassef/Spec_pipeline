@@ -96,10 +96,8 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
         plt.plot([lam2,lam2],[flam_min,flam_max],'--g')
 
     #Plot the line-fitting regions.
-    v = (c*(spec.lam_rest/line_fitter.lam_cen_fit-1.)).to(u.km/u.s)
-    vabs = np.abs(v)
-    vmax = line_fitter.line_velocity_region
-    lam_line_fit = spec.lam_rest[vabs<vmax]
+    i_line = line_fitter.get_i_line(spec)
+    lam_line_fit = spec.lam_rest[i_line]
     lam_line_fit_min = np.min(lam_line_fit).value
     lam_line_fit_max = np.max(lam_line_fit).value
     plt.plot([lam_line_fit_min,lam_line_fit_min],[flam_min,flam_max],'--b')
