@@ -1,0 +1,45 @@
+##
+#Single Emission lines.
+#
+# 1 Line name
+# 2 Line center (AA)
+# 3 Velocity region for the fit (km/s)
+# 4- Continuum region(s) (AA)
+CIV	1	1549.48   10000.   1425.   1470.   1680. 1705.
+CIII 	1	1908.734  10000.   1870.   1895.   1920. 1935.
+MgII 	1	2799.117  10000.   2700.   2750.   2850. 2900.
+Hb   	1	4861.333  10000.   4800.   4850.   5010. 5030.
+
+##
+# Dual Lines
+#
+# 1 Line complex name
+# 2 Line 1 center (AA)
+# 3 Line 2 center (AA)
+# 4 Line1-Line2 Joint velocity displacement: 1=yes, 0=no
+# 5 Line1-Line2 Joint line widths: 1=yes, 0=no
+# 6 Line1-Line2 Fixed ratio: <0=no, any other number is the flux ratio.
+# 7 Velocity region for the fit (km/s)
+# 8 Continuum region(s) (AA)
+LyA_NV  2	1215.67    1240.81	0	0	-1	5000.  1150.   1200.   1260. 1360.
+OIII	2	5006.84	   4958.91	1	1	2.98	5000.  4800.   4850.   5010. 5030.
+OII	2	3726.16	   3728.91	1	1	1.0	5000.  3650.   3700.   3750. 3800.
+
+##
+# Triple Lines
+#
+# 1 Line complex name
+# 2 Line 1 center (AA)
+# 3 Line 2 center (AA)
+# 4 Line 3 center (AA)
+# 5 Line1-Line2 Joint velocity displacement: 1=yes, 0=no
+# 6 Line1-Line3 Joint velocity displacement: 1=yes, 0=no
+# 7 Line2-Line3 Joint velocity displacement: 1=yes, 0=no
+# 8 Line1-Line2 Joint line widths: 1=yes, 0=no
+# 9 Line1-Line3 Joint line widths: 1=yes, 0=no
+#10 Line2-Line3 Joint line widths: 1=yes, 0=no
+#11 Line1-Line2 Fixed ratio: <0=no, any other number is the flux ratio.
+#12 Line1-Line3 Fixed ratio: <0=no, any other number is the flux ratio.
+#13 Line2-Line3 Fixed ratio: <0=no, any other number is the flux ratio.
+#14 Velocity region for the fit (km/s)
+#15 Continuum region(s) (AA)

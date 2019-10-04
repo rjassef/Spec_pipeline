@@ -40,8 +40,8 @@ class Joint_Line_fit(Line_fit):
         self.sigma_v2_hig   = None
         
         #Set the default constraints for the fitting.
-        self.dv1_max      = 500.*u.km/u.s
-        self.dv2_max      = 300.*u.km/u.s
+        self.dv1_max      =  500.*u.km/u.s
+        self.dv2_max      =  300.*u.km/u.s
         self.sigma_v1_min =  100.*u.km/u.s
         self.sigma_v1_max = 5000.*u.km/u.s
         self.sigma_v2_min =  100.*u.km/u.s
@@ -86,8 +86,6 @@ class Joint_Line_fit(Line_fit):
     #sigma_v2_fit (if joint_sigma is 0)
     #a
     #b
-
-    #Note that line 1 is always bluer than line 2.
 
     
     #Complete model.
@@ -194,9 +192,13 @@ class Joint_Line_fit(Line_fit):
         
         #Check if centroid of the emission line is within the
         #spectrum.
+        min_lam_targ = np.min([self.line1_center.value,
+                               self.line2_center.value])*self.line1_center.unit
+        max_lam_targ = np.max([self.line1_center.value,
+                               self.line2_center.value])*self.line1_center.unit
         if spec.lam_rest is None or \
-           self.line1_center<np.min(spec.lam_rest) or \
-           self.line2_center>np.max(spec.lam_rest):
+           min_lam_targ<np.min(spec.lam_rest) or \
+           max_lam_targ>np.max(spec.lam_rest):
             if verbose:
                 print("Lines not within spectrum")
             return False
@@ -305,7 +307,7 @@ class Joint_Line_fit(Line_fit):
             ))*0.5
         flam_line2_0 = \
             (np.max(
-                spec.flam[np.abs(spec.lam_rest-self.line1_center)<3*u.AA]
+                spec.flam[np.abs(spec.lam_rest-self.line2_center)<3*u.AA]
             ))*0.5
         
 

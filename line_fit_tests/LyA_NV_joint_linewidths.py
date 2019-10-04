@@ -76,18 +76,18 @@ for line in cat:
             print("Running MC with ",nrep,"steps in ",Ncpu,"cores...")
         chain_name = spec.name+".LyA_NV_chain.txt"
         line_fit.run_MC(spec,nrep,Ncpu=Ncpu,save_chain=chain_name)
-        cato.write("{0:.3f} {1:.3f} ".format(line_fit.dv1_low,
-                                             line_fit.dv1_hig))
-        cato.write("{0:.3f} {1:.3f} ".format(line_fit.flam_line1_low,
-                                             line_fit.flam_line1_hig))
-        cato.write("{0:.3f} {1:.3f} ".format(line_fit.FWHM_v1_low,
-                                             line_fit.FWHM_v1_hig))
-        cato.write("{0:.3f} {1:.3f} ".format(line_fit.dv2_low,
-                                             line_fit.dv2_hig))
-        cato.write("{0:.3f} {1:.3f} ".format(line_fit.flam_line2_low,
-                                             line_fit.flam_line2_hig))
-        cato.write("{0:.3f} {1:.3f} ".format(line_fit.FWHM_v2_low,
-                                             line_fit.FWHM_v2_hig))
+        cato.write("{0:.3f} {1:.3f} ".format(line_fit.dv1_low.value,
+                                             line_fit.dv1_hig.value))
+        cato.write("{0:.3f} {1:.3f} ".format(line_fit.flam_line1_low.value,
+                                             line_fit.flam_line1_hig.value))
+        cato.write("{0:.3f} {1:.3f} ".format(line_fit.FWHM_v1_low.value,
+                                             line_fit.FWHM_v1_hig.value))
+        cato.write("{0:.3f} {1:.3f} ".format(line_fit.dv2_low.value,
+                                             line_fit.dv2_hig.value))
+        cato.write("{0:.3f} {1:.3f} ".format(line_fit.flam_line2_low.value,
+                                             line_fit.flam_line2_hig.value))
+        cato.write("{0:.3f} {1:.3f} ".format(line_fit.FWHM_v2_low.value,
+                                             line_fit.FWHM_v2_hig.value))
 
     #Plot the fit.
     if verbose is True:

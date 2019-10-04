@@ -65,7 +65,7 @@ class Line_fit(object):
             return
 
         #Get the indices of the line fitting region.
-        iuse = get_i_line(self,spec)
+        iuse = self.get_i_line(spec)
 
         #With emission line.
         self.chi2 = fit.chi2_line_fit(self.xopt_line,
@@ -84,7 +84,7 @@ class Line_fit(object):
         
         #Get the degrees of freedom.
         n_datapoints = len(iuse)
-        nu = n_datapoints - 2 - 3
+        nu = n_datapoints - self.npar_line
         nu_no_line = n_datapoints
         chi2_nu = self.chi2/float(nu)
         chi2_no_line_nu = self.chi2_no_line/float(nu_no_line)

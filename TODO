@@ -26,3 +26,22 @@
   - Fixed or variable flux ratios.
   - Same or different widths. 
 
+  Try implementing it as N lines.
+
+- Setup test run for sky fitting, include moon glow. 
+
+- Lines to fit for: 
+
+  OVI/Lyb
+  Lya/NV
+  CIV
+  HeII 1640
+  CIII
+  CII 2326
+  NeIV 2440
+  MgII
+  OII  3727
+  NeIII 3868.74
+  Hbeta
+  OIII 
+  

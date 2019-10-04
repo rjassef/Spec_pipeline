@@ -164,8 +164,9 @@ class Default_Line_fit(Line_fit):
             ((spec.lam_rest>=self.continuum_regions[0][0]) &
              (spec.lam_rest<=self.continuum_regions[0][1])) |
             ((spec.lam_rest>=self.continuum_regions[1][0]) &
-             (spec.lam_rest<=self.continuum_regions[1][1])))
-    return i_cont
+             (spec.lam_rest<=self.continuum_regions[1][1]))
+        )
+        return i_cont
 
     #This is one is called to determine the indices of the spectrum
     #used for fitting the emission line.
@@ -175,7 +176,7 @@ class Default_Line_fit(Line_fit):
         v = (c*(spec.lam_rest/self.line_center-1.)).to(u.km/u.s)
         vabs = np.abs(v)
         i_line = np.argwhere(vabs<self.line_velocity_region)
-    return i_line
+        return i_line
 
 
     #####################
