@@ -203,6 +203,21 @@ class Default_Line_fit(Line_fit):
             return
         return self.sigma_v_fit*2.*(2.*np.log(2.))**0.5
 
+
+    @property
+    def npar_fit(self):
+        _npar_fit = self.npar_line + self.npar_cont
+        return _npar_fit
+
+    @property
+    def npar_line(self):
+        _npar_line = 3
+        return _npar_line
+
+    @property
+    def npar_cont(self):
+        _npar_cont = 2
+        return _npar_cont
         
      
     ######################

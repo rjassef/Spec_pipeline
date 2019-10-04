@@ -22,10 +22,6 @@ def plot_line(lam,label):
 
 ###
 
-#def plot_fit(lam_rest, flam, flam_mod, lam_cen,
-#             continuum_regions, vmax, obj_id, FWHM_v,
-#             plot_fname=None,chain=None):
-
 def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
 
     #Set the plot x-axis limits.
@@ -43,8 +39,6 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
                             (spec.lam_rest<xmax*u.AA)]
 
     #Set the model
-    #flam_mod = line_fitter.flam_cont_model(lam_mod)+\
-    #           line_fitter.flam_line_model(lam_mod)
     flam_mod = line_fitter.flam_model(lam_mod)
 
     #If a chain is provided, plot the 1-sigma regions.
@@ -106,7 +100,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
     #Labels
     plt.xlabel(r'$\lambda_{Rest}\ (\AA)$')
     plt.ylabel(r'$F_{\lambda}\ (erg/cm^2/s/\AA)$')
-    plt.title("{0:s}  FWHM = {1:.1f}".format(spec.name,line_fitter.FWHM_v))
+    #plt.title("{0:s}  FWHM = {1:.1f}".format(spec.name,line_fitter.FWHM_v))
 
     if plot_fname is None:
         plt.show()

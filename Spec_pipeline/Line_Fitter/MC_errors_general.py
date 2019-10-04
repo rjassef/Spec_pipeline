@@ -50,7 +50,7 @@ def get_error(x,xbf,cf=68.3):
 def fit_func(spec, line_fitter, flam_resamp):
     
     nrep_x = len(flam_resamp)
-    output = np.zeros((nrep_x,5))
+    output = np.zeros((nrep_x,line_fitter.npar_fit))
     for i in range(nrep_x):
         new_spec = copy.deepcopy(spec)
         new_spec.flam = flam_resamp[i]
