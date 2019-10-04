@@ -69,7 +69,7 @@ class Default_Line_fit(Line_fit):
     def flam_model(self,lam,x_line=None,x_cont=None,chain_output=None):
         
         if chain_output is not None:
-            x_opt = chain_output[:,:3].T
+            x_line = chain_output[:,:3].T
             x_cont = chain_output[:,3:].T
             
         return self.flam_cont_model(lam,x_cont)+\
