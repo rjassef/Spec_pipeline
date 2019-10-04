@@ -55,7 +55,7 @@ class Default_Line_fit(Line_fit):
         for i in range((int((len(x)-3)/2))):
             self.continuum_regions[i][0] = x[i*2+3]
             self.continuum_regions[i][1] = x[i*2+4]
-        self.continuum_regions = _continuum_regions*u.AA
+        self.continuum_regions = self.continuum_regions*u.AA
 
         #Initialize the class
         super(Default_Line_fit,self).__init__(_line_name)

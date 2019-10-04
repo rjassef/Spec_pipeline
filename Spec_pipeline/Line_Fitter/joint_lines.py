@@ -10,9 +10,9 @@ import os
 from .line_class import Line_fit
 from .MC_errors_general import get_error
 
-class Default_Line_fit(Line_fit):
+class Joint_Line_fit(Line_fit):
 
-    def __init__(self,_line_name)
+    def __init__(self,_line_name):
 
         #Values that will come from the fitting.
         self.dv1_fit        = None
@@ -21,9 +21,12 @@ class Default_Line_fit(Line_fit):
         self.dv2_fit        = None
         self.flam_line2_fit = None
         self.sigma_v2_fit   = None
+        self.npar_line = 6
+        
         self.a              = None
         self.b              = None
-
+        self.npar_cont = 2
+        
         #Values that will come from the MC
 
         
@@ -32,7 +35,7 @@ class Default_Line_fit(Line_fit):
 
         #Search the list for the line in question.
         cat = open(os.environ['SPEC_PIPE_LOC']+\
-                   "/Spec_pipeline/Line_Fitter/jointlines.txt","r")
+                   "/Spec_pipeline/Line_Fitter/joint_lines.txt","r")
         for line in cat:
             x = line.split()
             if x[0]==_line_name:
@@ -51,10 +54,10 @@ class Default_Line_fit(Line_fit):
         for i in range((int((len(x)-3)/2))):
             self.continuum_regions[i][0] = x[i*2+3]
             self.continuum_regions[i][1] = x[i*2+4]
-        self.continuum_regions = _continuum_regions*u.AA
+        self.continuum_regions = self.continuum_regions*u.AA
 
         #Initialize the class
-        super(Default_Line_fit,self).__init__(_line_name)
+        super(Joint_Line_fit,self).__init__(_line_name)
 
     ###################
     # Fit Model
@@ -71,18 +74,23 @@ class Default_Line_fit(Line_fit):
     #b
 
     #Note that line 1 is always bluer than line 2.
+
+    @property
+    def npar_fit(self):
+        _npar_fit = self.npar_line + self.npar_cont
+        if joint_dv==1   : _npar_fit -= 1
+        if fixed_ratio>0 : _npar_fit -= 1
+        if joint_sigma==1: _npar_fit -= 1
+        return _npar_fit
+        
     
     #Complete model.
     def flam_model(self,lam,x_line=None,x_cont=None,chain_output=None):
 
-        npar_line = 6
-        if joint_dv==1   : npar_line -= 1
-        if fixed_ratio>0 : npar_line -= 1
-        if joint_sigma==1: npar_line -= 1
-        
         if chain_output is not None:
-            x_line = chain_output[:,:npar_line].T
-            x_cont = chain_output[:,npar_line:].T
+            n = self.npar_fit-self.npar_cont
+            x_line = chain_output[:,:n].T
+            x_cont = chain_output[:,n:].T
             
         return self.flam_cont_model(lam,x_cont)+\
             self.flam_line_model(lam,x_line)
@@ -90,16 +98,8 @@ class Default_Line_fit(Line_fit):
     #A Gaussian per line.
     def flam_line_model(self,lam,x_line):
 
-        if x_line is not None:
-            dv1, flam_line1, sigma_v1,\
-                dv2, flam_line2, sigma_v2 = self.line_par_parser(x_line)
-        else:
-            dv1 = self.dv1_fit
-            dv2 = self.dv2_fit
-            flam_line1 = self.flam_line1_fit
-            flam_line2 = self.flam_line2_fit
-            sigma_v1 = self.sigma_v1
-            sigma_v2 = self.sigma_v2
+        dv1, flam_line1, sigma_v1,\
+            dv2, flam_line2, sigma_v2 = self.line_par_parser(x_line)
             
         v1 = c*(lam/self.line1_center-1.)
         v2 = c*(lam/self.line2_center-1.)
@@ -110,27 +110,38 @@ class Default_Line_fit(Line_fit):
 
     #Continuum will be a straight line.
     def flam_cont_model(self,lam,x_cont=None):
-        if x_cont is not None:
-            a = x_cont[0]*u.erg/u.cm**2/u.s/u.AA**2
-            b = x_cont[1]*u.erg/u.cm**2/u.s/u.AA
-        else:
-            a = self.a
-            b = self.b
+        a, b = cont_par_parser(x_cont)
         return a*lam+b
 
-
-    def line_par_paser(self,x_line):
-
-        dv1        = x_line[0]*u.km/u.s
-        flam_line1 = x_line[1]*u.erg/u.s/u.cm**2/u.AA
-        sigma_v1   = x_line[2]*u.km/u.s
-            
-        k=3
-        if joint_dv==0:
-            dv2 = x_line[k]*u.km/u.s
-            k+=1
+    #
+    def cont_par_parser(self,x_cont):
+        if x_cont is None:
+            a = self.a
+            b = self.b
         else:
-            dv2 = dv1
+            a = x_cont[0]*u.erg/u.cm**2/u.s/u.AA**2
+            b = x_cont[1]*u.erg/u.cm**2/u.s/u.AA
+        return a, b
+    
+    def line_par_parser(self,x_line):
+        if x_line is None:
+            dv1 = self.dv1_fit
+            dv2 = self.dv2_fit
+            flam_line1 = self.flam_line1_fit
+            flam_line2 = self.flam_line2_fit
+            sigma_v1 = self.sigma_v1
+            sigma_v2 = self.sigma_v2
+        else:
+            dv1        = x_line[0]*u.km/u.s
+            flam_line1 = x_line[1]*u.erg/u.s/u.cm**2/u.AA
+            sigma_v1   = x_line[2]*u.km/u.s
+            
+            k=3
+            if joint_dv==0:
+                dv2 = x_line[k]*u.km/u.s
+                k+=1
+            else:
+                dv2 = dv1
             if fixed_ratio>0:
                 flam_line2 = x_line[k]*u.erg/u.s/u.cm**2/u.AA
                 k+=1
@@ -177,7 +188,7 @@ class Default_Line_fit(Line_fit):
              (spec.lam_rest<=self.continuum_regions[0][1])) |
             ((spec.lam_rest>=self.continuum_regions[1][0]) &
              (spec.lam_rest<=self.continuum_regions[1][1])))
-    return i_cont
+        return i_cont
 
     #This is one is called to determine the indices of the spectrum
     #used for fitting the emission line.
@@ -190,6 +201,19 @@ class Default_Line_fit(Line_fit):
         v2abs = np.abs(v2)
         i_line = np.argwhere((v1abs<self.line_velocity_region) |
                              (v2abs<self.line_velocity_region))
-    return i_line
+        return i_line
 
+
+    def sigma_to_FWHM(self,sigma_v):
+        if sigma_v is None:
+            return None
+        return sigma_v*2.*(2.*np.log(2.))**0.5
+
+    @property
+    def FWHM_v1(self):
+        return sigma_to_FWHM(self.sigma_v1)
+
+    @property
+    def FWHM_v2(self):
+        return sigma_to_FWHM(self.sigma_v2)
 
