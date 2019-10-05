@@ -12,7 +12,7 @@
 - Add more emission lines to the lines.txt file.
 
 - Change continuum fit for Lyalpha to be a step function or something
-  more sensible than now.
+  more sensible than now. SOLUTION: Just used the red continuum side.
 
 - Implement joint fits for some lines. Easiest is to implement them as
   classes, like an OII class, OIII class, NII_Halpha class, SII class

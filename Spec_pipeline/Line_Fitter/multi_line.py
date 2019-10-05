@@ -9,10 +9,6 @@ import re
 from .line_class import Line_fit
 from .MC_errors_general import get_error
 
-def comb(n,k):
-    c = np.math.factorial(n)/(np.math.factorial(n-k)*np.math.factorial(k))
-    return np.int32(c)
-
 class Multi_Line_fit(Line_fit):
 
     def __init__(self,_line_name):
@@ -63,9 +59,9 @@ class Multi_Line_fit(Line_fit):
             k+= np.sum(np.arange(self.nlines))
             
         self.line_velocity_region = x[k]*u.km/u.s
-        n_creg = int((len(x)-(k+1))/2)
-        self.continuum_regions = np.zeros((n_creg,2))
-        for i in range(n_creg):
+        self.ncont_reg = int((len(x)-(k+1))/2)
+        self.continuum_regions = np.zeros((self.ncont_reg,2))
+        for i in range(self.ncont_reg):
             self.continuum_regions[i][0] = x[i*2+k+1]
             self.continuum_regions[i][1] = x[i*2+k+2]
         self.continuum_regions = self.continuum_regions*u.AA
@@ -115,14 +111,14 @@ class Multi_Line_fit(Line_fit):
                 k+=1
             else:
                 j = np.nonzero(self.joint_sigma[:,i])[0]
-                x_line_use[i*3+1] = x_line_use[j*3]
+                x_line_use[i*3+1] = x_line_use[j*3+1]
 
-            if self.fixed_ratio[self.fixed_ratio[:,i]>=0,i].size==0:
+            if self.fixed_ratio[self.fixed_ratio[:,i]>0,i].size==0:
                 x_line_use[i*3+2] = x_line_fit[k]
                 k+=1
             else:
                 j = np.nonzero(self.fixed_ratio[:,i])[0]
-                x_line_use[i*3+2] = x_line_use[j*3]*self.fixed_ratio[j,i]
+                x_line_use[i*3+2] = x_line_use[j*3+2]*self.fixed_ratio[j,i]
 
         return x_line_use
         
@@ -198,7 +194,7 @@ class Multi_Line_fit(Line_fit):
         x_line_use = self.line_par_translator(x_line)
 
         for i in range(self.nlines):
-            dv, flam_line, sigma_v = self.line_par_parser(i,x_line)
+            dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
 
             #Do no allow huge shifts on the line centers
             if np.abs(dv)>self.dv_max[i]:
@@ -237,11 +233,15 @@ class Multi_Line_fit(Line_fit):
     #This function is called to determine the indices of the spectrum
     #to be used for fitting the continuum.
     def get_i_cont(self,spec):
-        i_cont = np.argwhere(
-            ((spec.lam_rest>=self.continuum_regions[0][0]) &
-             (spec.lam_rest<=self.continuum_regions[0][1])) |
-            ((spec.lam_rest>=self.continuum_regions[1][0]) &
-             (spec.lam_rest<=self.continuum_regions[1][1])))
+
+        i_cont_use = []
+        for k in range(self.ncont_reg):
+            i_cont_use.append(
+                np.argwhere((spec.lam_rest>=self.continuum_regions[k][0]) &
+             (spec.lam_rest<=self.continuum_regions[k][1]))
+            )
+        i_cont_flat = [item for sublist in i_cont_use for item in sublist]
+        i_cont = np.unique(i_cont_flat)
         return i_cont
 
     #This is one is called to determine the indices of the spectrum
@@ -300,7 +300,7 @@ class Multi_Line_fit(Line_fit):
             if self.joint_dv[self.joint_dv[:,i]>0,i].size==0: _npar_line+=1
             if self.joint_sigma[self.joint_sigma[:,i]>0,i].size==0: \
                _npar_line+=1
-            if self.fixed_ratio[self.fixed_ratio[:,i]>=0,i].size==0: \
+            if self.fixed_ratio[self.fixed_ratio[:,i]>0,i].size==0: \
                _npar_line+=1
         return _npar_line
 
@@ -322,7 +322,7 @@ class Multi_Line_fit(Line_fit):
         
         for i in range(self.nlines):
             self.dv_fit[i], self.flam_line_fit[i],\
-                self.sigma_v_fit[i] = self.line_par_parser(i,x_line)
+                self.sigma_v_fit[i] = self.line_par_parser(i,x_line_use)
 
         return
 
@@ -357,7 +357,7 @@ class Multi_Line_fit(Line_fit):
             if self.joint_sigma[self.joint_sigma[:,i]>0,i].size==0:
                 self.x0_line[k] = flam_line_0[i]
                 k+=1
-            if self.fixed_ratio[self.fixed_ratio[:,i]>=0,i].size==0:
+            if self.fixed_ratio[self.fixed_ratio[:,i]>0,i].size==0:
                 self.x0_line[k] = sigma_v_0[i]
                 k+=1
 
@@ -392,4 +392,51 @@ class Multi_Line_fit(Line_fit):
         self.b_low, self.b_hig = get_error(b, self.b)
 
         return
-     
+
+    ##########
+    # Printing
+    ##########
+
+    def print_fit_header(self):
+        print_output = ""
+        for i in range(self.nlines):
+            print_output += "{1:s}{0:d} {2:s}{0:d} {3:s}{0:d} ".format(
+                i+1,"dv", "flam_line", "FWHM_v")
+        return print_output
+
+    
+    def print_fit(self):
+        print_output = ""
+        for i in range(self.nlines): 
+            print_output += "{0:.3f} {1:.3e} {2:.3f} ".format(
+                self.dv_fit[i].value, 
+                self.flam_line_fit[i].value, 
+                self.FWHM_v[i].value)
+        return print_output
+
+    def print_MC_header(self):
+        print_output = ""
+        for i in range(self.nlines):
+            print_output += "{1:s}{0:d}_low {1:s}{0:d}_hig ".format(
+                i+1,"dv")
+            print_output += "{1:s}{0:d}_low {1:s}{0:d}_hig ".format(
+                i+1,"flam_line")
+            print_output += "{1:s}{0:d}_low {1:s}{0:d}_hig ".format(
+                i+1,"sigma_v")
+        return print_output
+
+
+    
+    def print_MC(self):
+        print_output = ""
+        for i in range(self.nlines):
+            print_output += "{0:.3f} {1:.3f} ".format(
+                self.dv_low[i].value,
+                self.dv_hig[i].value)
+            print_output += "{0:.3e} {1:.3e} ".format(
+                self.flam_line_low[i].value,
+                self.flam_line_hig[i].value)
+            print_output += "{0:.3f} {1:.3f} ".format(
+                self.FWHM_v_low[i].value,
+                self.FWHM_v_hig[i].value)
+        return print_output

@@ -25,8 +25,14 @@ def plot_line(lam,label):
 def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
 
     #Set the plot x-axis limits.
-    xmin = np.min(line_fitter.continuum_regions).to(u.AA).value * (1.-0.005)
-    xmax = np.max(line_fitter.continuum_regions).to(u.AA).value * (1.+0.005)
+    i_line = line_fitter.get_i_line(spec)
+    i_cont = line_fitter.get_i_cont(spec)
+    xminl = np.min(spec.lam_rest[i_line])
+    xmaxl = np.max(spec.lam_rest[i_line])
+    xminc = np.min(spec.lam_rest[i_cont])
+    xmaxc = np.max(spec.lam_rest[i_cont])
+    xmin = np.min([xminl.value,xminc.value])
+    xmax = np.max([xmaxl.value,xmaxc.value])
     plt.xlim([xmin,xmax])
 
     #Plot the spectrum.
@@ -83,14 +89,14 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
     plt.ylim([flam_min,flam_max])
 
     #Plot the continuum fit regions.
-    for i in range(len(line_fitter.continuum_regions[:][0])):
+    #for i in range(len(line_fitter.continuum_regions[:][0])):
+    for i in range(line_fitter.ncont_reg):
         lam1 = line_fitter.continuum_regions[i][0].value
         lam2 = line_fitter.continuum_regions[i][1].value
         plt.plot([lam1,lam1],[flam_min,flam_max],'--g')
         plt.plot([lam2,lam2],[flam_min,flam_max],'--g')
 
     #Plot the line-fitting regions.
-    i_line = line_fitter.get_i_line(spec)
     lam_line_fit = spec.lam_rest[i_line]
     lam_line_fit_min = np.min(lam_line_fit).value
     lam_line_fit_max = np.max(lam_line_fit).value
