@@ -74,8 +74,9 @@ class Line_fit(object):
                                       check_constraints=False)
 
         #Without emission line.
-        x_noline = np.copy(self.xopt_line)
-        x_noline[1] = 0.
+        #x_noline = np.copy(self.xopt_line)
+        #x_noline[1] = 0.
+        x_noline = np.zeros(self.xopt_line.shape)
         self.chi2_no_line = fit.chi2_line_fit(x_noline,
                                               spec, self,
                                               iuse, self.xopt_cont,
