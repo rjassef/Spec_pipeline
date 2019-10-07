@@ -3,8 +3,6 @@
 # emission lines.
 
 import numpy as np
-import astropy.units as u
-from astropy.constants import c
 from scipy.special import betainc
 
 #from . import MC_errors as MC

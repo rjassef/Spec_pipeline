@@ -13,6 +13,11 @@ class Multi_Line_fit(Line_fit):
 
     def __init__(self,_line_name):
 
+        #Basic units to be used.
+        self.flamunit = u.erg/(u.s*u.cm**2*u.AA)
+        self.waveunit = u.AA
+        self.vunit    = u.km/u.s
+
         #Search the list for the line in question.
         cat = open(os.environ['SPEC_PIPE_LOC']+\
                    "/Spec_pipeline/Line_Fitter/multi_lines.txt","r")
@@ -35,7 +40,7 @@ class Multi_Line_fit(Line_fit):
         self.nlines = int(x[1])
 
         #Assign parameters for the fit
-        self.line_center = np.array(x[2:2+self.nlines*1])*u.AA
+        self.line_center = np.array(x[2:2+self.nlines*1])*self.waveunit
         k = 2+self.nlines
         if self.nlines>1:
             self.joint_dv = np.zeros((self.nlines,self.nlines),dtype=np.int32)
@@ -164,8 +169,8 @@ class Multi_Line_fit(Line_fit):
             a = self.a
             b = self.b
         else:
-            a = x_cont[0]*u.erg/u.cm**2/u.s/u.AA**2
-            b = x_cont[1]*u.erg/u.cm**2/u.s/u.AA
+            a = x_cont[0]*self.flamunit/self.waveunit
+            b = x_cont[1]*self.flamunit
         return a, b
 
     def line_par_parser(self,i,x_line_use):
@@ -174,9 +179,9 @@ class Multi_Line_fit(Line_fit):
             flam_line = self.flam_line_fit[i]
             sigma_v   = self.sigma_v_fit[i]
         else:
-            dv        = x_line_use[i*3]*u.km/u.s
-            flam_line = x_line_use[i*3+1]*u.erg/u.cm**2/u.s/u.AA
-            sigma_v   = x_line_use[i*3+2]*u.km/u.s 
+            dv        = x_line_use[i*3]  *self.vunit
+            flam_line = x_line_use[i*3+1]*self.flamunit
+            sigma_v   = x_line_use[i*3+2]*self.vunit
         return dv, flam_line, sigma_v
 
 
@@ -314,9 +319,9 @@ class Multi_Line_fit(Line_fit):
 
     def set_line_pars(self,x_line):
 
-        self.dv_fit        = np.zeros(self.nlines)*u.km/u.s
-        self.flam_line_fit = np.zeros(self.nlines)*u.erg/u.s/u.cm**2/u.AA
-        self.sigma_v_fit   = np.zeros(self.nlines)*u.km/u.s
+        self.dv_fit        = np.zeros(self.nlines)*self.vunit
+        self.flam_line_fit = np.zeros(self.nlines)*self.flamunit
+        self.sigma_v_fit   = np.zeros(self.nlines)*self.vunit
         
         x_line_use = self.line_par_translator(x_line)
         
@@ -369,12 +374,12 @@ class Multi_Line_fit(Line_fit):
         x_line = Output[:,:self.npar_line].T
         x_cont = Output[:,self.npar_line:].T
 
-        self.dv_low = np.zeros(self.nlines)*u.km/u.s
-        self.dv_hig = np.zeros(self.nlines)*u.km/u.s
-        self.flam_line_low = np.zeros(self.nlines)*u.erg/u.s/u.cm**2/u.AA
-        self.flam_line_hig = np.zeros(self.nlines)*u.erg/u.s/u.cm**2/u.AA
-        self.sigma_v_low = np.zeros(self.nlines)*u.km/u.s
-        self.sigma_v_hig = np.zeros(self.nlines)*u.km/u.s
+        self.dv_low = np.zeros(self.nlines)*self.vunit
+        self.dv_hig = np.zeros(self.nlines)*self.vunit
+        self.flam_line_low = np.zeros(self.nlines)*self.flamunit
+        self.flam_line_hig = np.zeros(self.nlines)*self.flamunit
+        self.sigma_v_low = np.zeros(self.nlines)*self.vunit
+        self.sigma_v_hig = np.zeros(self.nlines)*self.vunit
         
         x_line_use = self.line_par_translator(x_line)
         for i in range(self.nlines):

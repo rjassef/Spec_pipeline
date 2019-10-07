@@ -34,10 +34,10 @@ class DBSP_Spec(Spec):
         
         spec_b = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_files[0],
                                       dispersion_unit=u.AA, 
-                                      flux_unit = u.erg/u.cm**2/u.s/u.Hz)
+                                      flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
         spec_r = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_files[1],
                                       dispersion_unit=u.AA, 
-                                      flux_unit = u.erg/u.cm**2/u.s/u.Hz)
+                                      flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
 
         if not self.blue and not self.red:
             lam_targ = self.line_center*(1.+self.zspec)
@@ -66,7 +66,7 @@ class DBSP_Spec(Spec):
         self.texp = float(ff[0].header['EXPTIME'])*u.s
         self.RON  = float(ff[0].header['RON'])
 
-        self.flam = (fnu*c/self.lam_obs**2).to(u.erg/u.cm**2/u.s/u.AA)
+        self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
         return
 
     @property
@@ -86,7 +86,7 @@ class DBSP_Spec(Spec):
         #Read the template
         sky_temp = np.loadtxt(sky_temp_fname)
         lam_sky = sky_temp[:,0]*u.AA
-        flam_sky_orig = sky_temp[:,1]*u.erg/u.s/u.cm**2/u.AA
+        flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
 
         #Rebin the template to the object spectrum.
         self.flam_sky = rebin_spec(lam_sky, flam_sky_orig, self.lam_obs)

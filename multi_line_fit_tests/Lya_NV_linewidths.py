@@ -1,10 +1,9 @@
 #!/usr/bin/env python 
 
-import warnings
-warnings.simplefilter("ignore")
+#import warnings
+#warnings.simplefilter("ignore")
 
 import numpy as np
-import astropy.units as u
 import multiprocessing as mp
 import copy
 import matplotlib.pyplot as plt
@@ -51,7 +50,7 @@ for i,line in enumerate(cat):
     
     #Read the line and set up the correct object.
     x = line.split()
-    spec = read_spec(x[0],float(x[1]),x[2],x[3:],
+    spec = read_spec(x[0],float(x[1]),x[2],x[4:],grname=x[3],
                      line_center=lya_nv_fit.line_center[0])
     if verbose is True:
         print

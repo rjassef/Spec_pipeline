@@ -14,7 +14,6 @@ def chi2_line_fit(x,spec,line_fitter,iuse,x_cont,
 
     #Construct the model.
     flam_mod = line_fitter.flam_model(spec.lam_rest[iuse],x,x_cont)
-    flam_mod = flam_mod.to(u.erg/u.s/u.cm**2/u.AA)
 
     #Get the chi2
     diff = spec.flam[iuse]-flam_mod
@@ -32,7 +31,6 @@ def chi2_cont_fit(x,spec,line_fitter,iuse,check_constraints=True):
 
     #Construct the model.
     flam_mod = line_fitter.flam_cont_model(spec.lam_rest[iuse],x)
-    flam_mod = flam_mod.to(u.erg/u.s/u.cm**2/u.AA)
 
     #Get the chi2
     diff = spec.flam[iuse]-flam_mod

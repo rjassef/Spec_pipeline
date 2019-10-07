@@ -31,8 +31,10 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
     xmaxl = np.max(spec.lam_rest[i_line])
     xminc = np.min(spec.lam_rest[i_cont])
     xmaxc = np.max(spec.lam_rest[i_cont])
-    xmin = np.min([xminl.value,xminc.value])
-    xmax = np.max([xmaxl.value,xmaxc.value])
+    xmincr = np.min(line_fitter.continuum_regions)
+    xmaxcr = np.max(line_fitter.continuum_regions)
+    xmin = np.min([xminl.value,xminc.value,xmincr.value])
+    xmax = np.max([xmaxl.value,xmaxc.value,xmaxcr.value])
     plt.xlim([xmin,xmax])
 
     #Plot the spectrum.
@@ -46,16 +48,17 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
 
     #Set the model
     flam_mod = line_fitter.flam_model(lam_mod)
+    flam_cont_mod = line_fitter.flam_cont_model(lam_mod)
 
     #If a chain is provided, plot the 1-sigma regions.
     if chain is not None:
         chain_output  = np.loadtxt(chain)
         #Unfortunately we'll have to go slowly about this to not
         #trigger a memory error.
-        flam_mod_low1 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
-        flam_mod_hig1 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
-        flam_mod_low2 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
-        flam_mod_hig2 = np.zeros(len(lam_mod))*u.erg/u.s/u.cm**2/u.AA
+        flam_mod_low1 = np.zeros(len(lam_mod))*line_fitter.flamunit
+        flam_mod_hig1 = np.zeros(len(lam_mod))*line_fitter.flamunit
+        flam_mod_low2 = np.zeros(len(lam_mod))*line_fitter.flamunit
+        flam_mod_hig2 = np.zeros(len(lam_mod))*line_fitter.flamunit
         for k,lam_use in enumerate(lam_mod):
             lam_mod_chain = np.tile(lam_use,chain_output.shape[0])
             flam_mod_chain = line_fitter.flam_model(lam_mod_chain,
@@ -78,6 +81,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
                          alpha=1.0)
 
     #Plot the model.
+    plt.plot(lam_mod,flam_cont_mod,'--r')
     plt.plot(lam_mod,flam_mod,'-b')
 
     #Set the y-axis limits

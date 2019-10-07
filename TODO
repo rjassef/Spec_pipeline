@@ -1,18 +1,24 @@
-- It seems that the grating information was not preserved for the GMOS
-  spectra.  We'll use for now the B600 for everything, but we need to
-  Figure this out.
+- Add more emission lines to the lines.txt file. Lines to fit for: 
 
-  Solution: Make it a request. We can get the grating list from the
-  Gemini archive and then have a lookup table. Not elegant, but will
-  work.
+  OVI/Lyb
+  Lya/NV
+  CIV
+  HeII 1640
+  CIII
+  CII 2326
+  NeIV 2440
+  MgII
+  OII  3727
+  NeIII 3868.74
+  Hbeta
+  OIII 
+  
+- Setup test run for sky fitting, include moon glow. 
 
-- For Palomar, the information was not saved either, but it seems the
-  same grating was always used on each side.
+####
 
-- Add more emission lines to the lines.txt file.
+Done
 
-- Change continuum fit for Lyalpha to be a step function or something
-  more sensible than now. SOLUTION: Just used the red continuum side.
 
 - Implement joint fits for some lines. Easiest is to implement them as
   classes, like an OII class, OIII class, NII_Halpha class, SII class
@@ -28,20 +34,22 @@
 
   Try implementing it as N lines.
 
-- Setup test run for sky fitting, include moon glow. 
+  Solution: N-lines class implemented.
 
-- Lines to fit for: 
 
-  OVI/Lyb
-  Lya/NV
-  CIV
-  HeII 1640
-  CIII
-  CII 2326
-  NeIV 2440
-  MgII
-  OII  3727
-  NeIII 3868.74
-  Hbeta
-  OIII 
-  
+- Change continuum fit for Lyalpha to be a step function or something
+  more sensible than now. SOLUTION: Just used the red continuum side.
+
+- For Palomar, the information was not saved either, but it seems the
+  same grating was always used on each side. Solution: Dan confirms
+  same setup was always used.
+
+
+- It seems that the grating information was not preserved for the GMOS
+  spectra.  We'll use for now the B600 for everything, but we need to
+  Figure this out.
+
+  Solution: Make it a request. We can get the grating list from the
+  Gemini archive and then have a lookup table. Not elegant, but will
+  work. - Now requested by spec_reader.
+

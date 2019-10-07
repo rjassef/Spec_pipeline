@@ -18,12 +18,12 @@ verbose = True
 #verbose = False
 
 Ncpu = mp.cpu_count()-2
-#nrep = 1000
+nrep = 10000
 #nrep = 100
-nrep = 10
+#nrep = 10
 
-estimate_errors = False
-#estimate_errors = True
+#estimate_errors = False
+estimate_errors = True
 
 #make_plot = False
 make_plot = True

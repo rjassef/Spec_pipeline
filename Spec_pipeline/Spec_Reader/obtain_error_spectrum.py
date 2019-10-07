@@ -109,6 +109,6 @@ def get_error_spec(spec, wd=15):
                                     K2*spec.flam_sky)*spec.lam_obs + 
                        spec.RON**2)/(K1*spec.eps*spec.lam_obs)
 
-    return flam_err.to(u.erg/u.s/u.cm**2/u.AA), K1, K2
+    return flam_err.to(u.erg/(u.s*u.cm**2*u.AA)), K1, K2
 
 

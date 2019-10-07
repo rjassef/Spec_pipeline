@@ -19,13 +19,15 @@ from .rebin_spec import rebin_spec
 
 class GMOS_Spec(Spec):
 
-    def __init__(self,_name,_zspec,_fits_files,_line_center=None):
-        super(GMOS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center)
+    def __init__(self,_name,_zspec,_fits_files,_line_center=None,_grname=None):
+        self.grname = _grname
         self.RT   = 4.0*u.m #Telescope radius.
         self.instrument = "GMOS"
+        super(GMOS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center)
         self.__flam
         self.__flam_sky
         self.__sens
+
 
     @property
     def __flam(self):
@@ -33,7 +35,7 @@ class GMOS_Spec(Spec):
         ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
         spec = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_files[0],
                                     dispersion_unit=u.AA, 
-                                    flux_unit = u.erg/u.cm**2/u.s/u.Hz)
+                                    flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
         self.lam_obs = spec[0].dispersion
         fnu = spec[0].data * spec[0].unit
 
@@ -43,7 +45,7 @@ class GMOS_Spec(Spec):
         self.spec_err_name = "error."+self.fits_files[0]
         self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
 
-        self.flam = (fnu*c/self.lam_obs**2).to(u.erg/u.cm**2/u.s/u.AA)
+        self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
         return 
 
     @property
@@ -53,7 +55,7 @@ class GMOS_Spec(Spec):
         sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
                               "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
         lam_sky = sky_temp[:,0]*u.AA
-        flam_sky_orig = sky_temp[:,1]*u.erg/u.s/u.cm**2/u.AA
+        flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
 
         #Rebin the template to the object spectrum.
         self.flam_sky = rebin_spec(lam_sky, flam_sky_orig, self.lam_obs)
@@ -61,16 +63,14 @@ class GMOS_Spec(Spec):
         return
 
     #There does not seem to be a way to recover the GRISM used for the
-    #GMOS spectra. We'll assume the B600 for all until we figure
-    #something out.
+    #GMOS spectra. Parameter must be provided in object declaration.
     @property
     def __sens(self):
 
         #Read the sensitivity curve.
-        grname =  "B600"
         sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
                                "/Spec_pipeline/Sensitivity_Files/"+
-                               "Sens_GMOS_"+grname+".txt")
+                               "Sens_GMOS_"+self.grname+".txt")
         lam_sens = sens_temp[:,0]*u.AA
         sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
         

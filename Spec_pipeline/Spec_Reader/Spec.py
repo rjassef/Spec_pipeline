@@ -50,7 +50,7 @@ class Spec(object):
         return self._eps
 
     @property
-    def flam_err(self):
+    def flam_err(self,save_err=True):
         try:
             return self._flam_err
         except AttributeError:
@@ -59,13 +59,14 @@ class Spec(object):
         try:
             cat = open(self.data_prefix+"/"+self.spec_err_name,"r")
             self._flam_err = np.loadtxt(cat,usecols=[1])
-            self._flam_err = self._flam_err * u.erg/u.s/u.cm**2/u.AA
+            self._flam_err = self._flam_err * u.erg/(u.s*u.cm**2*u.AA)
         except IOError:
             self._flam_err, self.K1, self.K2 = \
                                                get_error_spec(self,wd=15)
-            np.savetxt(self.data_prefix+"/"+self.spec_err_name,
-                       np.array([self.lam_obs,
-                                 self._flam_err]).T)
+            if save_err:
+                np.savetxt(self.data_prefix+"/"+self.spec_err_name,
+                           np.array([self.lam_obs,
+                                     self._flam_err]).T)
         return self._flam_err
 
 

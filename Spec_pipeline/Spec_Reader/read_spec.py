@@ -7,10 +7,18 @@ from .LRIS_Spec import LRIS_Spec
 from .DBSP_Spec import DBSP_Spec
 
 def read_spec(name, zspec, instrument, fits_files, line_center=None, 
-              blue=False,red=False):
+              blue=False,red=False,grname=None):
     
     if instrument=="GMOS":
-        spec = GMOS_Spec(name,zspec,fits_files,line_center)
+
+        #For GMOS we need that the grating name is declared in the
+        #function call.
+        if grname is None:
+            print("Need to provide a grating name to create a GMOS spectrum.")
+            return
+        spec = GMOS_Spec(name,zspec,fits_files,line_center,
+                         grname)
+
     elif instrument=="LRIS":
         if line_center is None and not blue and not red:
             print("Cannot read spectrum.")
