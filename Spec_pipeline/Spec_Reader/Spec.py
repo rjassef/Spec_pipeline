@@ -26,6 +26,7 @@ class Spec(object):
         self.K1 = None
         self.K2 = None
         self.data_prefix = "data/"
+        self.save_err = True
 
     @property
     def lam_rest(self):
@@ -50,7 +51,7 @@ class Spec(object):
         return self._eps
 
     @property
-    def flam_err(self,save_err=True):
+    def flam_err(self):
         try:
             return self._flam_err
         except AttributeError:
@@ -63,7 +64,7 @@ class Spec(object):
         except IOError:
             self._flam_err, self.K1, self.K2 = \
                                                get_error_spec(self,wd=15)
-            if save_err:
+            if self.save_err:
                 np.savetxt(self.data_prefix+"/"+self.spec_err_name,
                            np.array([self.lam_obs,
                                      self._flam_err]).T)

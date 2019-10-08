@@ -87,9 +87,9 @@ class Fake_LRIS_Spec(object):
     def __flam_err(self):
         
         #Transform to counts.
-        dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
-        flam_to_counts = self.sens * self.texp * (np.pi*self.RT)**2 * dlam / \
-                         (h*c/self.lam_obs)
+        self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
+        flam_to_counts = self.sens * self.texp * (np.pi*self.RT)**2 * \
+            self.dlam / (h*c/self.lam_obs)
         counts     = self.flam     * flam_to_counts
         counts_sky = self.flam_sky * flam_to_counts
         self.flam_err = (counts + counts_sky + self.RON**2)**0.5 / \
@@ -111,5 +111,5 @@ class Fake_LRIS_Spec(object):
 
 
     def gen_obs_spec(self):
-        return np.random.normal(self.flam,self.flam_err)
+        return np.random.normal(self.flam,self.flam_err)*self.flam.unit
         
