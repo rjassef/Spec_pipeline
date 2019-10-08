@@ -7,10 +7,10 @@ from Spec_pipeline.Spec_Reader.rebin_spec import rebin_spec
 
 class Fake_LRIS_Spec(object):
 
-    def __init__(self,_side,_z=2.5,_Vmag=24.0):
+    def __init__(self,_side,z=2.5,Vmag=24.0):
 
-        self.z    = _z    #Redshift
-        self.Vmag = _Vmag #Normalization magnitude
+        self.z    = z    #Redshift
+        self.Vmag = Vmag #Normalization magnitude
         self.side = _side
         if self.side!='blue' and self.side!='red':
             print("Please declare red or blue side")
@@ -67,7 +67,7 @@ class Fake_LRIS_Spec(object):
 
         sky_temp = np.loadtxt(fname)
         lam_sky_temp  = sky_temp[:,0]*self.waveunit
-        flam_sky_temp = sky_temp[:,1]*self.flamunit
+        flam_sky_temp = sky_temp[:,1]*self.flamunit*1e-3
         self.flam_sky = rebin_spec(lam_sky_temp, flam_sky_temp, self.lam_obs)
         return
 
@@ -88,12 +88,12 @@ class Fake_LRIS_Spec(object):
         
         #Transform to counts.
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
-        flam_to_counts = self.sens * self.texp * np.pi*self.RT**2 * \
-            self.dlam / (h*c/self.lam_obs)
-        counts     = self.flam     * flam_to_counts
-        counts_sky = self.flam_sky * flam_to_counts
-        self.flam_err = (counts + counts_sky + self.RON**2)**0.5 / \
-                        flam_to_counts
+        eps = self.sens * self.texp * np.pi*self.RT**2 * \
+              self.dlam / (h*c/self.lam_obs)
+        eps = eps.to(u.s*u.cm**2*u.AA/u.erg)
+        counts     = self.flam     * eps
+        counts_sky = self.flam_sky * eps
+        self.flam_err = (counts + counts_sky + self.RON**2)**0.5 / eps
         self.flam_err = self.flam_err.to(self.flamunit)
         return
 
@@ -111,5 +111,8 @@ class Fake_LRIS_Spec(object):
 
 
     def gen_obs_spec(self):
-        return np.random.normal(self.flam,self.flam_err)*self.flam.unit
+        self.flam.to(self.flamunit)
+        self.flam_err.to(self.flamunit)
+        return np.random.normal(self.flam.value,
+                                self.flam_err.value)*self.flam.unit
         

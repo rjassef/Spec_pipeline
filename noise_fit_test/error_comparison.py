@@ -18,8 +18,8 @@ show_plots = False
 
 
 #Create the fake object.
-fake_spec_b = Fake_LRIS_Spec('blue')
-fake_spec_r = Fake_LRIS_Spec('red')
+fake_spec_b = Fake_LRIS_Spec('blue',Vmag=24.0,z=2.5)
+#fake_spec_r = Fake_LRIS_Spec('red')
 
 if show_plots:
     plt.plot(fake_spec_b.lam_obs, fake_spec_b.gen_obs_spec(),
@@ -40,10 +40,10 @@ if show_plots:
 lris_b = Spec('fake_qso_blue',fake_spec_b.z)
 
 #Load the basic information.
-lris_b.RT   = np.copy(fake_spec_b.RT)*fake_spec_b.RT.unit
-lris_b.dlam = np.copy(fake_spec_b.dlam)*fake_spec_b.dlam.unit
-lris_b.texp = np.copy(fake_spec_b.texp)*fake_spec_b.texp.unit
-lris_b.RON  = np.copy(fake_spec_b.RON)
+lris_b.RT    = np.copy(fake_spec_b.RT)*fake_spec_b.RT.unit
+lris_b.dlam  = np.copy(fake_spec_b.dlam)*fake_spec_b.dlam.unit
+lris_b.texp  = np.copy(fake_spec_b.texp)*fake_spec_b.texp.unit
+lris_b.RON   = np.copy(fake_spec_b.RON)
 
 #Copy the wavelength range, sky spectra and sensisitivity curve.
 lris_b.lam_obs  = np.copy(fake_spec_b.lam_obs)*fake_spec_b.lam_obs.unit

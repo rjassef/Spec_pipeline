@@ -3,78 +3,128 @@
 import numpy as np
 import astropy.units as u
 from scipy.optimize import fmin
+from scipy import interpolate
 from pysynphot import observation
 from pysynphot import spectrum
 from astropy.constants import h,c
+import matplotlib.pyplot as plt
 
 ###
 
 def rolling_linear_regression(lam,flam,window):
 
-    lam_lr      = np.zeros(len(lam)-window)
-    flam_lr     = np.zeros(len(lam)-window)
-    flam_std_lr = np.zeros(len(lam)-window)
+    lam_lr      = np.zeros(len(lam)-window)*lam.unit
+    flam_lr     = np.zeros(len(lam)-window)*flam.unit
+    flam_std_lr = np.zeros(len(lam)-window)*flam.unit
     for k in range(len(lam)-window):
         lam_use  = lam[k:k+window]
         flam_use = flam[k:k+window]
 
-        f  = flam_use.mean()
-        l  = lam_use.mean()
-        l2 = (lam_use*lam_use).mean()
-        fl = (flam_use*lam_use).mean()
+        ndeg = 3
+        p = np.polyfit(lam_use.value,flam_use.value,ndeg)
+        flam_mod = 0
+        for i in range(ndeg+1):
+            flam_mod += p[ndeg-i]*(lam_use.value)**i
+        flam_mod = flam_mod*flam_use.unit
 
-        a = (fl-f*l)/(l2-l**2)
-        b = f-a*l
-
-        flam_mod = a*lam_use + b
-        
         kk = int((window-1)/2)
-        lam_lr[k]  = lam_use[kk].value
-        flam_lr[k] = flam_mod[kk].value
-        flam_std_lr[k] = (flam_use-flam_mod).std().value
+        lam_lr[k]  = lam_use[kk]
+        flam_lr[k] = flam_mod[kk]
+        flam_std_lr[k] = np.std(flam_use-flam_mod)
+        #plt.plot(lam_use,flam_use,'x')
+        #plt.plot(lam_use,flam_mod,'-')
+        #plt.show()
 
-    lam_lr *= lam.unit
-    flam_lr *= flam.unit
-    flam_std_lr *= flam.unit
+    plt.plot(lam,flam)
+    plt.plot(lam_lr, flam_lr)
+    plt.show()
 
     return lam_lr, flam_lr, flam_std_lr
 
 ###
 
-def S_func(x,lam_obs,flam,SN_lam,flam_sky,eps,RON):
+#https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
 
-    K1 = np.abs(x[0])
-    K2 = np.abs(x[1])
+def smooth(x,wd):
+    w = np.ones(wd,'d')
+    s = np.r_[x[wd-1:0:-1],x,x[-2:-wd-1:-1]]
+    y = np.convolve(w/w.sum(),s,mode='valid')
+    return y
 
-    #if K1<0.1 or K1>100.:
-    #    return 1e32
-    #if K2<0.1 or K2>100.:
-    #if K2<0.:
-    #    return 1e32
+def smooth_errors(lam,flam,flam_sky,sens,wd):
+
+    lam_sm      = smooth(lam.value,wd)
+    flam_sm     = smooth(flam.value,wd)
+    flam_sky_sm = smooth(flam_sky.value,wd)
+    sens_sm     = smooth(sens,wd)
+
+    flam_mod    = np.interp(lam.value,lam_sm,flam_sm)*flam.unit
+    flam_sky_mod= np.interp(lam.value,lam_sm,flam_sky_sm)*flam_sky.unit
+    sens_mod    = np.interp(lam.value,lam_sm,sens_sm)
+
+    lam_lr      = np.zeros(len(lam)-wd)*lam.unit
+    flam_lr     = np.zeros(len(lam)-wd)*flam.unit
+    flam_std_lr = np.zeros(len(lam)-wd)*flam.unit
+    flam_sky_lr = np.zeros(len(lam)-wd)*flam.unit
+    sens_lr     = np.zeros(len(lam)-wd)
+    for k in range(len(lam)-wd):
+        lam_use  = lam[k:k+wd]
+        flam_use = flam[k:k+wd]
+        flam_mod_use = flam_mod[k:k+wd]
+        flam_sky_mod_use = flam_sky_mod[k:k+wd]
+        sens_mod_use = sens_mod[k:k+wd]
+
+        kk = int((wd-1)/2)
+        lam_lr[k]  = lam_use[kk]
+        flam_lr[k] = flam_mod_use[kk]
+        flam_std_lr[k] = np.std(flam_use-flam_mod_use)
+        flam_sky_lr[k] = flam_sky_mod_use[kk]
+        sens_lr[k]     = sens_mod_use[kk]
+
+    #plt.plot(lam,flam)
+    #plt.plot(lam,flam_mod)
+    #plt.plot(lam_lr,flam_lr)
+    #plt.show()
+    #plt.plot(lam,flam_sky)
+    #plt.plot(lam,flam_sky_mod)
+    #plt.show()
+    #plt.plot(lam,sens)
+    #plt.plot(lam,sens_mod)
+    #plt.show()
+
+    return lam_lr, flam_lr, flam_std_lr, flam_sky_lr, sens_lr
+
+###
+
+def S_func(x,flam,flam_std,flam_sky,eps,RON):
+
+    K1 = x[0]
+    K2 = x[1]
+
+    if K1<0. or K2<0.:
+        return np.inf
     
-    top = K1*eps*np.abs(flam)*lam_obs
-    bot = K1*eps*(np.abs(flam)+flam_sky*K2)*lam_obs + RON**2
-    SN_lam_mod = top/(bot**0.5)
+    flam_std_mod = np.sqrt( K1*eps*(flam+K2*flam_sky) + RON**2 ) / (K1*eps)
 
-    S = np.sum((SN_lam-SN_lam_mod)**2)
+    S = np.sum((flam_std-flam_std_mod)**2).value
     return S
     
 
 ###
 
-def get_error_pars(lam_obs,flam,SN_lam,flam_sky,eps, RON):
+def get_error_pars(flam,SN_lam,flam_sky,eps,RON):
 
     #Both K1 and K2 should be around 1.0
     K1_0 = 1.0
     K2_0 = 0.0
     x0 = np.array([K1_0, K2_0])
-    xopt = fmin(S_func,x0  ,args=(lam_obs,flam,SN_lam,flam_sky,eps,RON),
+    xopt = fmin(S_func,x0  ,args=(flam,SN_lam,flam_sky,eps,RON),
                                   disp=False)
-    xopt = fmin(S_func,xopt,args=(lam_obs,flam,SN_lam,flam_sky,eps,RON),
+    xopt = fmin(S_func,xopt,args=(flam,SN_lam,flam_sky,eps,RON),
                                   disp=False)
 
-    K1 = np.abs(xopt[0])
-    K2 = np.abs(xopt[1])
+    K1 = xopt[0]
+    K2 = xopt[1]
    
     return K1, K2
 
@@ -84,30 +134,37 @@ def get_error_spec(spec, wd=15):
 
     #Calculate the rolling mean and std of the spectrum in a window of
     #wd pixels.
-    lam_mean, flam_mean, flam_std = rolling_linear_regression(
-        spec.lam_obs,spec.flam,wd)
+    lam_meanx, flam_meanx, flam_stdx, \
+        flam_sky_meanx, sens_usex = \
+                                    smooth_errors(
+                                        spec.lam_obs,spec.flam,
+                                        spec.flam_sky,spec.sens,wd)
 
-    #Repeat with the sky spectrum and the eps factor.
-    lam_sky_mean, flam_sky_mean, flam_sky_std = rolling_linear_regression(
-        spec.lam_obs,spec.flam_sky,wd)
-    if np.isscalar(spec.eps.value):
-        eps_use = spec.eps
-    else:
-        lam_eps_use, eps_use, eps_std = rolling_linear_regression(
-            spec.lam_obs,spec.eps,wd)
-        
-        
-    #Get the zero-th order SN array
-    SN_lam = flam_mean/flam_std
+    
+    #For this exercise, we need to not consider the Lyalpha forrest
+    #region. Real IGM absorption appears as noise and throws
+    #everything off the board.
+    kuse = np.where(lam_meanx>1300.*u.AA*(1.+spec.zspec))
+    lam_mean = lam_meanx[kuse]
+    flam_mean = flam_meanx[kuse]
+    flam_std = flam_stdx[kuse]
+    flam_sky_mean = flam_sky_meanx[kuse]
+    sens_use = sens_usex[kuse]
 
-    #Fit the SN array to the error parameters.
-    K1, K2 = get_error_pars(lam_mean,flam_mean,SN_lam,flam_sky_mean,
+    #Estimate the size of the new wavelength bin.
+    dlam_mean = np.mean(lam_mean[1:]-lam_mean[:-1])
+
+    #Get the eps factor to use.
+    eps_use = spec.eps(sens=sens_use,lam_obs=lam_mean,dlam=dlam_mean)
+
+    #Fit the std array to the error parameters.
+    K1, K2 = get_error_pars(flam_mean,flam_std,flam_sky_mean,
                             eps_use,spec.RON)
 
     #Get the error spectrum
-    flam_err = np.sqrt(K1*spec.eps*(np.abs(spec.flam)+
-                                    K2*spec.flam_sky)*spec.lam_obs + 
-                       spec.RON**2)/(K1*spec.eps*spec.lam_obs)
+    flam_err = np.sqrt(K1*spec.eps()*(np.abs(spec.flam)+
+                                    K2*spec.flam_sky) + 
+                       spec.RON**2)/(K1*spec.eps())
 
     return flam_err.to(u.erg/(u.s*u.cm**2*u.AA)), K1, K2
 

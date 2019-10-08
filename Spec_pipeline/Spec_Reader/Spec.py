@@ -40,14 +40,16 @@ class Spec(object):
             self._lam_rest = None
         return self._lam_rest
     
-    @property
-    def eps(self):
-        try:
-            return self._eps
-        except AttributeError:
-            pass
-        self._eps = self.sens * (np.pi*self.RT**2) * self.dlam * self.texp/(h*c)
-        self._eps = self._eps.to(u.s*u.cm**2/u.erg)
+    def eps(self,sens=None,lam_obs=None,dlam=None):
+        if sens is None:
+            sens = self.sens
+        if lam_obs is None:
+            lam_obs = self.lam_obs
+        if dlam is None:
+            dlam = self.dlam
+        self._eps = sens * (np.pi*self.RT**2) * dlam * self.texp/\
+                    (h*c/lam_obs)
+        self._eps = self._eps.to(u.s*u.cm**2*u.AA/u.erg)
         return self._eps
 
     @property
@@ -63,7 +65,7 @@ class Spec(object):
             self._flam_err = self._flam_err * u.erg/(u.s*u.cm**2*u.AA)
         except IOError:
             self._flam_err, self.K1, self.K2 = \
-                                               get_error_spec(self,wd=15)
+                                               get_error_spec(self,wd=5)
             if self.save_err:
                 np.savetxt(self.data_prefix+"/"+self.spec_err_name,
                            np.array([self.lam_obs,
