@@ -1,7 +1,7 @@
 #!/usr/bin/env python 
 
-#import warnings
-#warnings.simplefilter("ignore")
+import warnings
+warnings.simplefilter("ignore")
 
 import numpy as np
 import multiprocessing as mp

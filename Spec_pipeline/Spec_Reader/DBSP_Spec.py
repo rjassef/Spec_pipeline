@@ -5,6 +5,7 @@ import numpy as np
 from astropy.io import fits
 import astropy.units as u
 from astropy.constants import h,c
+import re
 import os
 
 from .spectrum1d import read_fits_spectrum1d
@@ -61,6 +62,7 @@ class DBSP_Spec(Spec):
             fnu = spec_r[0].data*spec_r[0].unit
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
             self.spec_err_name = "error."+self.fits_files[1]
+        self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
 
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])#Mean lambda bin.
         self.texp = float(ff[0].header['EXPTIME'])*u.s

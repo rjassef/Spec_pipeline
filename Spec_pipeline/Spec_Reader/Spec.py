@@ -65,7 +65,7 @@ class Spec(object):
             self._flam_err = self._flam_err * u.erg/(u.s*u.cm**2*u.AA)
         except IOError:
             self._flam_err, self.K1, self.K2 = \
-                                               get_error_spec(self,wd=5)
+                                               get_error_spec(self,wd=15)
             if self.save_err:
                 np.savetxt(self.data_prefix+"/"+self.spec_err_name,
                            np.array([self.lam_obs,

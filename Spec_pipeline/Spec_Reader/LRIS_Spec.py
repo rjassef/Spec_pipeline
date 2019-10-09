@@ -81,6 +81,7 @@ class LRIS_Spec(Spec):
             grating_aux = re.search("^(.*?)/.*$",spec_r[0].header['GRANAME'])
             self.grating = "R"+grating_aux[1]
             
+        self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
 
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])#Mean lambda bin.
         self.texp = float(ff[0].header['EXPTIME'])*u.s

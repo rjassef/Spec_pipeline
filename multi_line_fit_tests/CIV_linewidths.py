@@ -22,8 +22,8 @@ nrep = 10000
 #nrep = 100
 #nrep = 10
 
-#estimate_errors = False
-estimate_errors = True
+estimate_errors = False
+#estimate_errors = True
 
 #make_plot = False
 make_plot = True
@@ -50,8 +50,8 @@ for i,line in enumerate(cat):
     
     #Read the line and set up the correct object.
     x = line.split()
-    spec = read_spec(x[0],float(x[1]),x[2],x[3:],
-                     line_center=civ_fit.line_center)
+    spec = read_spec(x[0],float(x[1]),x[2],x[4:],
+                     line_center=civ_fit.line_center[0],grname=x[3])
     if verbose is True:
         print
         print(spec.name)

@@ -8,3 +8,5 @@ visualization.summary.txt
 err_b_comp.dat
 err*.dat
 err*.png
+MCfiles
+plots

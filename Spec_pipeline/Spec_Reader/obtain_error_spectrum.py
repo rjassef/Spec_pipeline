@@ -31,13 +31,6 @@ def rolling_linear_regression(lam,flam,window):
         lam_lr[k]  = lam_use[kk]
         flam_lr[k] = flam_mod[kk]
         flam_std_lr[k] = np.std(flam_use-flam_mod)
-        #plt.plot(lam_use,flam_use,'x')
-        #plt.plot(lam_use,flam_mod,'-')
-        #plt.show()
-
-    plt.plot(lam,flam)
-    plt.plot(lam_lr, flam_lr)
-    plt.show()
 
     return lam_lr, flam_lr, flam_std_lr
 
@@ -52,6 +45,11 @@ def smooth(x,wd):
     return y
 
 def smooth_errors(lam,flam,flam_sky,sens,wd):
+
+    #lam_lr, flam_lr, flam_std_lr = rolling_linear_regression(lam,flam,wd)
+    #aux1  , flam_sky_lr, aux2    = rolling_linear_regression(lam,flam_sky,wd)
+    #aux1  , sens_lr    , aux2    = rolling_linear_regression(lam,sens,wd)
+    #return lam_lr, flam_lr, flam_std_lr, flam_sky_lr, sens_lr
 
     lam_sm      = smooth(lam.value,wd)
     flam_sm     = smooth(flam.value,wd)
@@ -81,17 +79,6 @@ def smooth_errors(lam,flam,flam_sky,sens,wd):
         flam_sky_lr[k] = flam_sky_mod_use[kk]
         sens_lr[k]     = sens_mod_use[kk]
 
-    #plt.plot(lam,flam)
-    #plt.plot(lam,flam_mod)
-    #plt.plot(lam_lr,flam_lr)
-    #plt.show()
-    #plt.plot(lam,flam_sky)
-    #plt.plot(lam,flam_sky_mod)
-    #plt.show()
-    #plt.plot(lam,sens)
-    #plt.plot(lam,sens_mod)
-    #plt.show()
-
     return lam_lr, flam_lr, flam_std_lr, flam_sky_lr, sens_lr
 
 ###
@@ -115,8 +102,8 @@ def S_func(x,flam,flam_std,flam_sky,eps,RON):
 def get_error_pars(flam,SN_lam,flam_sky,eps,RON):
 
     #Both K1 and K2 should be around 1.0
-    K1_0 = 1.0
-    K2_0 = 0.0
+    K1_0 = 1e-3
+    K2_0 = 1e-3
     x0 = np.array([K1_0, K2_0])
     xopt = fmin(S_func,x0  ,args=(flam,SN_lam,flam_sky,eps,RON),
                                   disp=False)

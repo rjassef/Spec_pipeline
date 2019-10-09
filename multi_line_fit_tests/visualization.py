@@ -28,8 +28,8 @@ for line in cat:
     x = line.split()
 
     #First, plot the spectrum.
-    spec_b = read_spec(x[0],float(x[1]),x[2],x[3:],blue=True)
-    spec_r = read_spec(x[0],float(x[1]),x[2],x[3:],red=True)
+    spec_b = read_spec(x[0],float(x[1]),x[2],x[4:],blue=True,grname=x[3])
+    spec_r = read_spec(x[0],float(x[1]),x[2],x[4:],red=True ,grname=x[3])
     spec_b.flam[spec_b.flam<0] = 0.
     spec_r.flam[spec_r.flam<0] = 0.
     plt.plot(spec_b.lam_rest,
@@ -43,8 +43,8 @@ for line in cat:
     for k,em_line in enumerate(em_lines):
         print(x[0],em_line)
         line_fit = Multi_Line_fit(em_line)
-        spec = read_spec(x[0],float(x[1]),x[2],x[3:],
-                         line_center=line_fit.line_center[0])
+        spec = read_spec(x[0],float(x[1]),x[2],x[4:],
+                         line_center=line_fit.line_center[0],grname=x[3])
         line_fit.run_fit(spec)
 
         #Check if fit was done. If not, move on to next emission line.

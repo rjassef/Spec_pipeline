@@ -7,10 +7,11 @@ from Spec_pipeline.Spec_Reader.rebin_spec import rebin_spec
 
 class Fake_LRIS_Spec(object):
 
-    def __init__(self,_side,z=2.5,Vmag=24.0):
+    def __init__(self,_side,z=2.5,Vmag=24.0,rmag=24.0):
 
         self.z    = z    #Redshift
         self.Vmag = Vmag #Normalization magnitude
+        self.rmag = rmag #Normalization magnitude
         self.side = _side
         if self.side!='blue' and self.side!='red':
             print("Please declare red or blue side")
@@ -102,11 +103,15 @@ class Fake_LRIS_Spec(object):
 
     @property
     def norm(self):
-        lam_eff = 5500.*u.AA
-        fnu_V   = 3631.*10.**(-0.4*self.Vmag)*u.Jy
-        flam_V  = (fnu_V*c/lam_eff**2).to(self.flamunit)
+        if self.side=='blue':
+            lam_eff = 5500.*u.AA
+            fnu     = 3631.*10.**(-0.4*self.Vmag)*u.Jy
+        if self.side=='red':
+            lam_eff = 6350.*u.AA
+            fnu     = 3631.*10.**(-0.4*self.rmag)*u.Jy
+        flam    = (fnu*c/lam_eff**2).to(self.flamunit)
         k = np.argmin(np.abs(self.lam_obs_full-lam_eff))
-        _norm   = flam_V/self.flam_orig_full[k]
+        _norm   = flam/self.flam_orig_full[k]
         return _norm
 
 
