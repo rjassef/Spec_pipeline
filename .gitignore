@@ -6,3 +6,5 @@ visualization.summary.txt
 *chain.txt
 *tar.gz
 err_b_comp.dat
+err*.dat
+err*.png
