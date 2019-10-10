@@ -11,7 +11,7 @@ from .MC_errors_general import get_error
 
 class Multi_Line_fit(Line_fit):
 
-    def __init__(self,_line_name):
+    def __init__(self,_line_name,lines_file=None):
 
         #Basic units to be used.
         self.flamunit = u.erg/(u.s*u.cm**2*u.AA)
@@ -19,8 +19,10 @@ class Multi_Line_fit(Line_fit):
         self.vunit    = u.km/u.s
 
         #Search the list for the line in question.
-        cat = open(os.environ['SPEC_PIPE_LOC']+\
-                   "/Spec_pipeline/Line_Fitter/multi_lines.txt","r")
+        if lines_file is None:
+            lines_file = os.environ['SPEC_PIPE_LOC']+\
+                   "/Spec_pipeline/Line_Fitter/multi_lines.txt"
+        cat = open(lines_file,"r")
         for line in cat:
             if not line.strip():
                 continue

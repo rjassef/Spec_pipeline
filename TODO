@@ -1,18 +1,3 @@
-- Add more emission lines to the lines.txt file. Lines to fit for: 
-
-  OVI/Lyb
-  Lya/NV
-  CIV
-  HeII 1640
-  CIII
-  CII 2326
-  NeIV 2440
-  MgII
-  OII  3727
-  NeIII 3868.74
-  Hbeta
-  OIII 
-  
 - Setup test run for sky fitting, include moon glow. 
 
 ####
@@ -53,3 +38,19 @@ Done
   Gemini archive and then have a lookup table. Not elegant, but will
   work. - Now requested by spec_reader.
 
+- Add more emission lines to the lines.txt file. Lines to fit for: 
+
+  OVI/Lyb
+  Lya/NV
+  CIV
+  HeII 1640
+  CIII
+  CII 2326
+  NeIV 2440
+  MgII
+  OII  3727
+  NeIII 3868.74
+  Hbeta
+  OIII 
+
+  Solution: Done

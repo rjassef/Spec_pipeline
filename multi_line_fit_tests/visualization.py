@@ -15,7 +15,22 @@ from Spec_pipeline.Spec_Reader.read_spec import read_spec
 from Spec_pipeline.Line_Fitter.multi_line import Multi_Line_fit
 
 
-em_lines = ["LyA_NVred", "CIV", "CIII", "MgII", "OII", "Hb", "OIII"]
+#em_lines = ["LyA_NVred", "CIV", "CIII", "MgII", "OII", "Hb", "OIII"]
+
+em_lines = [
+    'Lyb_OVI',
+    'LyA_NVred',
+    'CIV',
+    'HeII',
+    'CIII',
+    'CII',
+    'NeIV',
+    'MgII',
+    'OII',
+    'NeIII',
+    'Hb',
+    'OIII'
+]
 
 cato = open("visualization.summary.txt","w")
 
