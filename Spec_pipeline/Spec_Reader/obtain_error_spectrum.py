@@ -102,7 +102,9 @@ def S_func(x,flam,flam_std,flam_sky,eps,RON):
 def get_error_pars(flam,SN_lam,flam_sky,eps,RON):
 
     #Both K1 and K2 should be around 1.0
-    K1_0 = 1e-3
+    #K1_0 = 1e-3
+    #K2_0 = 1e-3
+    K1_0 = 1.0
     K2_0 = 1e-3
     x0 = np.array([K1_0, K2_0])
     xopt = fmin(S_func,x0  ,args=(flam,SN_lam,flam_sky,eps,RON),

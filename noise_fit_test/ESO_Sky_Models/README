@@ -1,0 +1,57 @@
+Models taken from:
+
+https://www.eso.org/observing/etc/bin/gen/form?INS.MODE=swspectr+INS.NAME=SKYCALC
+
+We only vary moon phase. 
+
+separation of Sun and Moon:   0 degrees = New Moon
+separation of Sun and Moon:  90 degrees = Quarter Moon
+separation of Sun and Moon: 180 degrees = Full Moon
+
+File name: Night_Sky_[deg].dat with deg corresponding to the moon
+phase as above.
+
+Col1: Wavelength (nm)
+Col2: Radiance (ph/s/m**2/um/arcsec**2)
+
+######
+
+Input Configuration
+
+   Observatory Height : 2640m above sea level
+
+   Altitude : 90.0
+   Airmass  : 1.00
+
+   Season      : Entire Year
+   Time Period : Entire Night
+   PWV         : 2.50 mm
+
+   Monthly Averaged Solar Radio Flux : 130.00 sfu
+
+   Components included in the radiance model:
+
+      Scattered Moonlight:
+         separation of Sun and Moon       : 90 degrees
+         separation of Moon and object    : 45 degrees
+         altitude of Moon above horizon   : 45 degrees
+         distance to Moon                 : 1.000
+
+      Scattered Starlight
+
+      Zodiacal Light:
+         heliocentric ecliptic longitude of object : 135 degrees
+         ecliptic latitude of object               : 90 degrees
+
+      Molecular Emission of Lower Atmosphere
+      Emission Lines of Upper Atmosphere
+      Airglow/Residual Continuum
+
+   Wavelength grid:
+       Range: 300.00 nm - 2000.00 nm
+       Fixed wavelength step delta=0.10 nm
+
+   Wavelengths in Air or Vacuum : Vacuum
+
+   LSF convolution kernel: none
+

@@ -57,7 +57,7 @@ cat.close()
 
 #Now, go through every folder. 
 for i,folder in enumerate(folders):
-    print folder
+    print(folder)
     for (dirpath,dirnames,filenames) in os.walk(folder):
         continue
 
@@ -121,9 +121,11 @@ for i,folder in enumerate(folders):
         else:
             plt.show()
 
-    #Finally, save the sensitivities.
+    #Finally, save the sensitivities. Since values are in percentage,
+    #multiply everything by 0.01, as we'll use them as a fraction
+    #later.
     fname = "Sens_"+folder+".txt"
     if type_save[i]=="fit":
-        np.savetxt(fname,np.array([wave.value,fit_sens(wave)]).T)
+        np.savetxt(fname,np.array([wave.value,fit_sens(wave)*0.01]).T)
     elif type_save[i]=="median":
-        np.savetxt(fname,np.array([wave.value,median_sens]).T)
+        np.savetxt(fname,np.array([wave.value,median_sens*0.01]).T)

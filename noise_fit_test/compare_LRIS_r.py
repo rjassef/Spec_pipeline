@@ -28,11 +28,11 @@ for z in z_values:
 
         #Run the MC.
         nrep = 100
-        MC_filename = "MCfiles/err_r.z{0:.1f}.r{1:.1f}.dat".format(z,rmag)
+        MC_filename = "MCfiles/err_LRIS_r.z{0:.1f}.r{1:.1f}.dat".format(z,rmag)
         gc.run_MC(lris_r,nrep,fake_spec_r,MC_filename)
 
         #Make the plot
-        plot_name = "plots/err_r.z{0:.1f}.r{1:.1f}.png".format(z,rmag)
+        plot_name = "plots/err_LRIS_r.z{0:.1f}.r{1:.1f}.png".format(z,rmag)
         gc.plot_MC(MC_filename,fake_spec_r,plot_name=plot_name)
         print()
 

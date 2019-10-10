@@ -1,6 +1,3 @@
-import warnings
-warnings.simplefilter("ignore")
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,7 +8,7 @@ def get_error(x,xbf,cf=68.3):
     xhig = np.percentile(x[x>xbf], cf)
     return xlow, xhig
 
-def load_new_object(obj_new, obj_old):
+def load_new_object(obj_new, obj_old, flam_sky_use=None):
 
     #Load the basic information.
     obj_new.RT    = np.copy(obj_old.RT)*obj_old.RT.unit
@@ -21,12 +18,16 @@ def load_new_object(obj_new, obj_old):
 
     #Copy the wavelength range, sky spectra and sensisitivity curve.
     obj_new.lam_obs  = np.copy(obj_old.lam_obs)*obj_old.lam_obs.unit
-    obj_new.flam_sky = np.copy(obj_old.flam_sky)*obj_old.flam_sky.unit
     obj_new.sens     = np.copy(obj_old.sens)*obj_old.sens.unit
+    
+    if flam_sky_use is None:
+        obj_new.flam_sky = np.copy(obj_old.flam_sky)*obj_old.flam_sky.unit
+    else:
+        obj_new.flam_sky = flam_sky_use
 
     #Set the switch to not save the error spectrum.
     obj_new.save_err = False
-    obj_new.spec_err_name = "err.fake_qso_b.dat"
+    obj_new.spec_err_name = "err.fake_qso.dat"
 
     return
 
