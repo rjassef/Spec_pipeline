@@ -13,6 +13,9 @@ class Multi_Line_fit(Line_fit):
 
     def __init__(self,_line_name,lines_file=None):
 
+        #Load the main class.
+        super(Multi_Line_fit,self).__init__(_line_name)
+
         #Basic units to be used.
         self.flamunit = u.erg/(u.s*u.cm**2*u.AA)
         self.waveunit = u.AA
@@ -78,9 +81,7 @@ class Multi_Line_fit(Line_fit):
         self.sigma_v_min = np.ones(self.nlines)*100.*u.km/u.s
         self.sigma_v_max = np.ones(self.nlines)*5000.*u.km/u.s
 
-        
-        #Finally, load the main class.
-        super(Multi_Line_fit,self).__init__(_line_name)
+        return
 
 
     #Parameter translator.
@@ -133,7 +134,6 @@ class Multi_Line_fit(Line_fit):
     ###################
     # Fit Model
     ###################
-        
     
     #Complete model.
     def flam_model(self,lam,x_line=None,x_cont=None,chain_output=None):

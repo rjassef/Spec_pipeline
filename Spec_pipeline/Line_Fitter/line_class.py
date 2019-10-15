@@ -22,7 +22,9 @@ class Line_fit(object):
         self.x0_cont = None
         self.xopt_line = None
         self.xopt_cont = None
-        
+
+        self.nlines = None
+
         #Values from Ftest
         self.chi2 = None
         self.chi2_no_line = None
