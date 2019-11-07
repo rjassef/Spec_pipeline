@@ -5,6 +5,7 @@
 from .GMOS_Spec import GMOS_Spec
 from .LRIS_Spec import LRIS_Spec
 from .DBSP_Spec import DBSP_Spec
+from .SDSS_Spec import SDSS_Spec
 
 def read_spec(name, zspec, instrument, fits_files, line_center=None, 
               blue=False,red=False,grname=None):
@@ -31,6 +32,8 @@ def read_spec(name, zspec, instrument, fits_files, line_center=None,
             print("Provide a side or a wavelength of interest")
             return None
         spec = DBSP_Spec(name,zspec,fits_files,line_center,blue,red)
+    elif instrument=="SDSS":
+        spec = SDSS_Spec(name,zspec,fits_files)
     else:
         print("Unknown instrument {0:s}".format(instrument))
         return None
