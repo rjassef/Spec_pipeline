@@ -368,7 +368,14 @@ class Multi_Line_fit(Line_fit):
                 self.x0_line[k] = sigma_v_0[i]
                 k+=1
 
-        self.x0_cont = [1.,0.]
+        #self.x0_cont = [1.,0.]
+
+        i_cont = self.get_i_cont(spec)
+        mean_cont = np.mean(spec.flam[i_cont]).to(self.flamunit)
+        mean_lam  = np.mean(spec.lam_rest[i_cont]).to(self.waveunit)
+        a0 = mean_cont.value/mean_lam.value
+        b0 = 0.
+        self.x0_cont = [a0,b0]
         return
 
     def parse_chain_output(self,Output):

@@ -27,8 +27,12 @@ class SDSS_Spec(Spec):
 
         s = fits.open(self.data_prefix+"/"+self.fits_files[0])
         self.lam_obs   = 10.**(s[1].data['loglam']) * u.AA
-        self.flam      = s[1].data['flux'] * 1e-17 * u.erg/(u.cm**2*u.s*u.AA)
-        self._flam_err = s[1].data['ivar']**-0.5 * 1e-17 * u.erg/(u.cm**2*u.s*u.AA)
+
+        flux_unit = 1e-17 * u.erg/(u.cm**2*u.s*u.AA)
+        self.flam      = s[1].data['flux'] * flux_unit
+        self._flam_err = s[1].data['ivar']**-0.5
+        self._flam_err = np.where(s[1].data['ivar']>0,
+                                  self._flam_err,1e32) * flux_unit
         return
 
     @property
