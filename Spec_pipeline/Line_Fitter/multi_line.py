@@ -187,6 +187,30 @@ class Multi_Line_fit(Line_fit):
         return dv, flam_line, sigma_v
 
 
+    #Line flux or fluxes, depending on the case.
+    def line_flux(self,x_line=None,chain_output=None):
+
+        if chain_output is not None:
+            x_line = chain_output[:,:self.npar_line].T
+
+        if x_line is not None:
+            x_line_use = self.line_par_translator(x_line)
+        else:
+            x_line_use = None
+            
+        integrated_flux = np.zeros(self.nlines)*u.erg/u.cm**2/u.s
+        for i in range(self.nlines):
+            integrated_flux[i] = self.get_line_flux(i,x_line_use)
+            
+        return integrated_flux
+
+    def get_line_flux(self,i,x_line_use=None):
+        dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
+        flux = flam_line * self.line_center[i]*(2.*np.pi)**0.5 * \
+               sigma_v/c
+        flux = flux.to(u.erg/u.s/u.cm**2)
+        return flux
+
     #############
     # Constraints
     #############
