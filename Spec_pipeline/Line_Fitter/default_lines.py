@@ -6,8 +6,9 @@ import os
 from .line_class import Line_fit
 from .MC_errors_general import get_error
 
+
 class Default_Line_fit(Line_fit):
-    
+
     def __init__(self,_line_name):
 
         #Values that will come from the fitting.
@@ -33,11 +34,11 @@ class Default_Line_fit(Line_fit):
         self.sigma_v_min =  100.*u.km/u.s
         self.sigma_v_max = 5000.*u.km/u.s
         self.delta_lam_cen_max = 2.*u.AA
-        
+
         #Minimum peak height fraction compared to initial guess.
         self.frac_flam_line_cen_min = 1e-1
 
-        
+
         #Search the list for the line in question.
         cat = open(os.environ['SPEC_PIPE_LOC']+\
                    "/Spec_pipeline/Line_Fitter/lines.txt","r")
@@ -67,18 +68,18 @@ class Default_Line_fit(Line_fit):
 
     #Complete model.
     def flam_model(self,lam,x_line=None,x_cont=None,chain_output=None):
-        
+
         if chain_output is not None:
             x_line = chain_output[:,:3].T
             x_cont = chain_output[:,3:].T
-            
+
         return self.flam_cont_model(lam,x_cont)+\
             self.flam_line_model(lam,x_line)
 
 
     #Our default line fitting class will have a Gaussian Profile.
     def flam_line_model(self, lam, x_line=None):
-        
+
         if x_line is not None:
             lam_cen       = x_line[0]*u.AA
             flam_line_cen = x_line[1]*u.erg/u.cm**2/u.s/u.AA
@@ -87,7 +88,7 @@ class Default_Line_fit(Line_fit):
             lam_cen       = self.lam_cen_fit
             flam_line_cen = self.flam_line_cen_fit
             sigma_v       = self.sigma_v_fit
-            
+
         v = c*(lam/lam_cen-1.)
         return flam_line_cen * np.exp(-0.5*(v/sigma_v)**2)
 
@@ -111,11 +112,11 @@ class Default_Line_fit(Line_fit):
 
     #Constraints on the emission line fit parameters.
     def meet_line_constraints(self,x_line):
-            
+
         lam_cen       = x_line[0] * u.AA
         flam_line_cen = x_line[1] * u.erg/u.s/u.cm**2/u.AA
         sigma_v       = x_line[2] * u.km/u.s
-   
+
         lam_cen_0       = self.x0_line[0] * u.AA
         flam_line_cen_0 = self.x0_line[1] * u.erg/u.s/u.cm**2/u.AA
 
@@ -145,7 +146,7 @@ class Default_Line_fit(Line_fit):
 
     #This function is called to determine that the fit can indeed be run.
     def can_fit_be_run(self,spec,verbose=True):
-        
+
         #Check if centroid of the emission line is within the
         #spectrum.
         if spec.lam_rest is None or \
@@ -155,7 +156,7 @@ class Default_Line_fit(Line_fit):
                 print("Line not within spectrum")
             return False
         return True
-        
+
 
     #This function is called to determine the indices of the spectrum
     #to be used for fitting the continuum.
@@ -219,12 +220,12 @@ class Default_Line_fit(Line_fit):
     def npar_cont(self):
         _npar_cont = 2
         return _npar_cont
-        
-     
+
+
     ######################
     # Parameter setters. #
     ######################
-    
+
     def set_cont_pars(self,x_cont):
         self.a = x_cont[0]*u.erg/u.cm**2/u.s/u.AA**2
         self.b = x_cont[1]*u.erg/u.cm**2/u.s/u.AA
@@ -249,14 +250,14 @@ class Default_Line_fit(Line_fit):
         flam_line_cen_0 = \
             (np.max(spec.flam[np.abs(spec.lam_rest-lam_cen_0)<3*u.AA]))*0.5
 
-        
+
         self.x0_line = [lam_cen_0.to(u.AA).value,
                         flam_line_cen_0.to(u.erg/u.cm**2/u.s/u.AA).value,
                         sigma_v_0.to(u.km/u.s).value]
         self.x0_cont = [1.,0.]
         return
 
-    
+
     def parse_chain_output(self,Output):
 
         lam_cen       = Output[:,0] * u.AA
@@ -264,14 +265,14 @@ class Default_Line_fit(Line_fit):
         sigma_v       = Output[:,2] * u.km/u.s
         a             = Output[:,3] * u.erg/u.s/u.cm**2/u.AA**2
         b             = Output[:,4] * u.erg/u.s/u.cm**2/u.AA
-        
+
         self.lam_cen_low, self.lam_cen_hig = \
             get_error(lam_cen, self.lam_cen_fit)
-        
+
         self.flam_line_cen_low, \
-            self.flam_line_cen_hig = get_error(flam_line_cen, 
+            self.flam_line_cen_hig = get_error(flam_line_cen,
                                                self.flam_line_cen_fit)
-        self.sigma_v_low, self.sigma_v_hig = get_error(sigma_v, 
+        self.sigma_v_low, self.sigma_v_hig = get_error(sigma_v,
                                                        self.sigma_v_fit)
         self.a_low, self.a_hig = get_error(a, self.a)
         self.b_low, self.b_hig = get_error(b, self.b)
