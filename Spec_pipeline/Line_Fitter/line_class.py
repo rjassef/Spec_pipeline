@@ -12,7 +12,7 @@ from . import fit_general as fit
 from . import plot_fit
 
 class Line_fit(object):
-    
+
     def __init__(self,_line_name):
 
         self.line_name = _line_name
@@ -31,6 +31,8 @@ class Line_fit(object):
         self.F = None
         self.p = None
 
+    def zline(self, spec):
+        return spec.zspec+line_fit.dv_fit[i]/c
 
     def run_fit(self, spec):
 
@@ -42,7 +44,7 @@ class Line_fit(object):
         #here.
         if self.x0_line is None or self.x0_cont is None:
             self.set_initial_fit_values(spec)
-        
+
         #Run the fit.
         self.xopt_line, self.xopt_cont = fit.fit(spec, self)
         self.set_cont_pars(self.xopt_cont)
@@ -81,8 +83,8 @@ class Line_fit(object):
                                               spec, self,
                                               iuse, self.xopt_cont,
                                               check_constraints=False)
-        
-        
+
+
         #Get the degrees of freedom.
         n_datapoints = len(iuse)
         nu = n_datapoints - self.npar_line
