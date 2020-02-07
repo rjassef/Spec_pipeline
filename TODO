@@ -1,4 +1,7 @@
-- Setup test run for sky fitting, include moon glow. 
+
+- Reimplement the spectral reading routines to hold both the red and blue sides if needed. Likely the best thing to do is to load both sides separately and on the fly determine which side is needed. For example, lam, flam and flam_err can be a routine that, if provided a wavelength of interest, returns the correct side.
+
+- When that is done, setup the fitting such that a "default" spectrum can be loaded at the time when the fitting object is created. The fitting subroutines can still be called with an spec object in the call, but if no spec object is provided, then the default is used. The complication here is that now, for loading the spectrum, we need to provide the line that we want to fit so the correct side can be loaded.
 
 ####
 
@@ -11,11 +14,11 @@ Done
   with a single profile for the doublet.
 
   Actually, easiest will be to have a single joint class that has
-  different properties read from a file. It should allow for: 
+  different properties read from a file. It should allow for:
 
-  - Centers with the same or with different velocity shifts. 
+  - Centers with the same or with different velocity shifts.
   - Fixed or variable flux ratios.
-  - Same or different widths. 
+  - Same or different widths.
 
   Try implementing it as N lines.
 
@@ -38,7 +41,7 @@ Done
   Gemini archive and then have a lookup table. Not elegant, but will
   work. - Now requested by spec_reader.
 
-- Add more emission lines to the lines.txt file. Lines to fit for: 
+- Add more emission lines to the lines.txt file. Lines to fit for:
 
   OVI/Lyb
   Lya/NV
@@ -51,6 +54,9 @@ Done
   OII  3727
   NeIII 3868.74
   Hbeta
-  OIII 
+  OIII
 
   Solution: Done
+
+
+- Setup test run for sky fitting, include moon glow. DONE
