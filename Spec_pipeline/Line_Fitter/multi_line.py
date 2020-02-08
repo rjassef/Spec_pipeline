@@ -1,4 +1,4 @@
-#Class to jointly fit N emission lines. 
+#Class to jointly fit N emission lines.
 
 import numpy as np
 import astropy.units as u
@@ -11,10 +11,10 @@ from .MC_errors_general import get_error
 
 class Multi_Line_fit(Line_fit):
 
-    def __init__(self,_line_name,lines_file=None):
+    def __init__(self,_line_name,lines_file=None,spec=None):
 
         #Load the main class.
-        super(Multi_Line_fit,self).__init__(_line_name)
+        super(Multi_Line_fit,self).__init__(_line_name,spec)
 
         #Basic units to be used.
         self.flamunit = u.erg/(u.s*u.cm**2*u.AA)
@@ -67,7 +67,7 @@ class Multi_Line_fit(Line_fit):
                 j2 = np.sum(np.arange(self.nlines-(i+1),self.nlines))+k
                 self.fixed_ratio[i][i+1:] = x[j1:j2]
             k+= np.sum(np.arange(self.nlines))
-            
+
         self.line_velocity_region = x[k]*u.km/u.s
         self.ncont_reg = int((len(x)-(k+1))/2)
         self.continuum_regions = np.zeros((self.ncont_reg,2))
@@ -89,14 +89,14 @@ class Multi_Line_fit(Line_fit):
     #x_line_use is what is used to construct the model.
 
     #Order is always [dv1, flam_line1, sigma_v1, dv2, flam_line2, ...]
-    
+
     def line_par_translator(self,x_line_fit):
 
         if len(x_line_fit.shape)==1:
             x_line_use = np.zeros(self.nlines*3)
         else:
             x_line_use = np.zeros((self.nlines*3,x_line_fit.shape[1]))
-                                  
+
         #All parameters for the first line are always fit.
         x_line_use[:3] = x_line_fit[:3]
 
@@ -113,7 +113,7 @@ class Multi_Line_fit(Line_fit):
             else:
                 j = np.nonzero(self.joint_dv[:,i])[0]
                 x_line_use[i*3] = x_line_use[j*3]
-                
+
             if self.joint_sigma[self.joint_sigma[:,i]>0,i].size==0:
                 x_line_use[i*3+1] = x_line_fit[k]
                 k+=1
@@ -129,12 +129,12 @@ class Multi_Line_fit(Line_fit):
                 x_line_use[i*3+2] = x_line_use[j*3+2]*self.fixed_ratio[j,i]
 
         return x_line_use
-        
-        
+
+
     ###################
     # Fit Model
     ###################
-    
+
     #Complete model.
     def flam_model(self,lam,x_line=None,x_cont=None,chain_output=None):
 
@@ -146,11 +146,11 @@ class Multi_Line_fit(Line_fit):
             x_line_use = self.line_par_translator(x_line)
         else:
             x_line_use = None
-            
+
         flam_model = self.flam_cont_model(lam,x_cont)
         for i in range(self.nlines):
             flam_model += self.flam_line_model(lam,i,x_line_use)
-            
+
         return flam_model
 
 
@@ -165,7 +165,7 @@ class Multi_Line_fit(Line_fit):
         a, b = self.cont_par_parser(x_cont)
         return a*lam+b
 
-    
+
     def cont_par_parser(self,x_cont):
         if x_cont is None:
             a = self.a
@@ -197,11 +197,11 @@ class Multi_Line_fit(Line_fit):
             x_line_use = self.line_par_translator(x_line)
         else:
             x_line_use = None
-            
+
         integrated_flux = np.zeros(self.nlines)*u.erg/u.cm**2/u.s
         for i in range(self.nlines):
             integrated_flux[i] = self.get_line_flux(i,x_line_use)
-            
+
         return integrated_flux
 
     def get_line_flux(self,i,x_line_use=None):
@@ -233,7 +233,7 @@ class Multi_Line_fit(Line_fit):
 
             #Do not allow too narrow or too broad emission lines.
             if sigma_v < self.sigma_v_min[i] or \
-               sigma_v > self.sigma_v_max[i]: 
+               sigma_v > self.sigma_v_max[i]:
                 return False
 
             #Do no allow negative emission lines.
@@ -244,7 +244,7 @@ class Multi_Line_fit(Line_fit):
 
     #This function is called to determine that the fit can indeed be run.
     def can_fit_be_run(self,spec,verbose=True):
-        
+
         #Check if centroid of the emission line is within the
         #spectrum.
         min_lam_targ = np.min(self.line_center)
@@ -260,7 +260,7 @@ class Multi_Line_fit(Line_fit):
     ##################
     # Index functions
     ##################
-    
+
     #This function is called to determine the indices of the spectrum
     #to be used for fitting the continuum.
     def get_i_cont(self,spec):
@@ -282,12 +282,12 @@ class Multi_Line_fit(Line_fit):
         #canonical emission line center.
         lam_min = np.min(self.line_center)
         lam_max = np.max(self.line_center)
-        
+
         v1 = (c*(spec.lam_rest/lam_min-1.)).to(u.km/u.s)
         v2 = (c*(spec.lam_rest/lam_max-1.)).to(u.km/u.s)
         v1abs = np.abs(v1)
         v2abs = np.abs(v2)
-        
+
         i_line1 = np.argwhere(v1abs<self.line_velocity_region)
         i_line2 = np.argwhere(v2abs<self.line_velocity_region)
 
@@ -348,9 +348,9 @@ class Multi_Line_fit(Line_fit):
         self.dv_fit        = np.zeros(self.nlines)*self.vunit
         self.flam_line_fit = np.zeros(self.nlines)*self.flamunit
         self.sigma_v_fit   = np.zeros(self.nlines)*self.vunit
-        
+
         x_line_use = self.line_par_translator(x_line)
-        
+
         for i in range(self.nlines):
             self.dv_fit[i], self.flam_line_fit[i],\
                 self.sigma_v_fit[i] = self.line_par_parser(i,x_line_use)
@@ -370,14 +370,14 @@ class Multi_Line_fit(Line_fit):
         #Set up the initial values.
         dv_0      = np.zeros(self.nlines) #km/s
         sigma_v_0 = 1000.*np.ones(self.nlines) #km/s
-        
+
         flam_line_0 = np.zeros(self.nlines)
         for i in range(self.nlines):
             aux = np.max(
                 spec.flam[np.abs(spec.lam_rest-self.line_center[i])<3*u.AA]
             )*0.5
             flam_line_0[i] = aux.value
-        
+
         self.x0_line = np.zeros(self.npar_line)
         self.x0_line[:3] = [dv_0[0], flam_line_0[0], sigma_v_0[0]]
         k = 3
@@ -403,7 +403,7 @@ class Multi_Line_fit(Line_fit):
         return
 
     def parse_chain_output(self,Output):
-        
+
         x_line = Output[:,:self.npar_line].T
         x_cont = Output[:,self.npar_line:].T
 
@@ -413,7 +413,7 @@ class Multi_Line_fit(Line_fit):
         self.flam_line_hig = np.zeros(self.nlines)*self.flamunit
         self.sigma_v_low = np.zeros(self.nlines)*self.vunit
         self.sigma_v_hig = np.zeros(self.nlines)*self.vunit
-        
+
         x_line_use = self.line_par_translator(x_line)
         for i in range(self.nlines):
             dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
@@ -442,13 +442,13 @@ class Multi_Line_fit(Line_fit):
                 i+1,"dv", "flam_line", "FWHM_v")
         return print_output
 
-    
+
     def print_fit(self):
         print_output = ""
-        for i in range(self.nlines): 
+        for i in range(self.nlines):
             print_output += "{0:.3f} {1:.3e} {2:.3f} ".format(
-                self.dv_fit[i].value, 
-                self.flam_line_fit[i].value, 
+                self.dv_fit[i].value,
+                self.flam_line_fit[i].value,
                 self.FWHM_v[i].value)
         return print_output
 
@@ -464,7 +464,7 @@ class Multi_Line_fit(Line_fit):
         return print_output
 
 
-    
+
     def print_MC(self):
         print_output = ""
         for i in range(self.nlines):

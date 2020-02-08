@@ -4,6 +4,7 @@
 
 import numpy as np
 from scipy.special import betainc
+from astropy.constants import c
 
 #from . import MC_errors as MC
 from . import MC_errors_general as MC
@@ -13,9 +14,10 @@ from . import plot_fit
 
 class Line_fit(object):
 
-    def __init__(self,_line_name):
+    def __init__(self,_line_name,_default_spec=None):
 
         self.line_name = _line_name
+        self.default_spec = _default_spec
 
         #Fit arrays
         self.x0_line = None
@@ -31,10 +33,26 @@ class Line_fit(object):
         self.F = None
         self.p = None
 
-    def zline(self, spec):
-        return spec.zspec+line_fit.dv_fit[i]/c
+    def get_spec_use(self,spec):
+        if spec is None:
+            if self.default_spec is None:
+                print("Need to provide an spectrum")
+                return None
+            else:
+                return self.default_spec
+        return spec
 
-    def run_fit(self, spec):
+    def zline(self, spec_use=None):
+        spec = self.get_spec_use(spec_use)
+        if spec is None:
+            return
+        return spec.zspec+self.dv_fit/c
+
+    def run_fit(self, spec_use=None):
+
+        spec = self.get_spec_use(spec_use)
+        if spec is None:
+            return
 
         #Check that the fit can be run.
         if not self.can_fit_be_run(spec):
@@ -51,17 +69,28 @@ class Line_fit(object):
         self.set_line_pars(self.xopt_line)
         return
 
-    def run_MC(self,spec,nrep,Ncpu=None,save_chain=None):
+    def run_MC(self,nrep,spec_use=None,Ncpu=None,save_chain=None):
+        spec = self.get_spec_use(spec_use)
+        if spec is None:
+            return
         if self.xopt_line is None:
             print("First run the line fit.")
             return
         MC.MC_errors(nrep, spec, self, Ncpu=Ncpu, save_chain=save_chain)
         return
 
-    def plot(self,spec,plot_fname=None,chain=None):
+    def plot(self,spec_use=None,plot_fname=None,chain=None):
+        spec = self.get_spec_use(spec_use)
+        if spec is None:
+            return
         plot_fit.plot_fit(spec,self,chain=chain,plot_fname=plot_fname)
 
-    def run_Ftest(self,spec):
+    def run_Ftest(self,spec_use=None):
+
+        spec = self.get_spec_use(spec_use)
+        if spec is None:
+            return
+
         if self.xopt_line is None:
             print("First fit the line")
             return

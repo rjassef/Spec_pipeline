@@ -1,7 +1,7 @@
 
 - Reimplement the spectral reading routines to hold both the red and blue sides if needed. Likely the best thing to do is to load both sides separately and on the fly determine which side is needed. For example, lam, flam and flam_err can be a routine that, if provided a wavelength of interest, returns the correct side.
 
-- When that is done, setup the fitting such that a "default" spectrum can be loaded at the time when the fitting object is created. The fitting subroutines can still be called with an spec object in the call, but if no spec object is provided, then the default is used. The complication here is that now, for loading the spectrum, we need to provide the line that we want to fit so the correct side can be loaded.
+- When that is done, setup the fitting such that a "default" spectrum can be loaded at the time when the fitting object is created. The fitting subroutines can still be called with an spec object in the call, but if no spec object is provided, then the default is used. The complication here is that now, for loading the spectrum, we need to provide the line that we want to fit so the correct side can be loaded. [Partially done, needs implementation of previous point still]
 
 ####
 
