@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 import numpy as np
 #from specutils.io.read_fits import read_fits_spectrum1d
@@ -12,7 +12,7 @@ from .spectrum1d import read_fits_spectrum1d
 from .Spec import Spec
 from .rebin_spec import rebin_spec
 
-#As there are too many different things to keep in minds, we'll load
+#As there are too many different things to keep in mind, we'll load
 #the spectra as objects, so we can load the appropiate sensitivity
 #curves and sky spectra without having to think too much about it
 #during the code execution.
@@ -32,12 +32,12 @@ class LRIS_Spec(Spec):
 
     @property
     def __flam(self):
-        
+
         spec_b = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_files[0],
-                                      dispersion_unit=u.AA, 
+                                      dispersion_unit=u.AA,
                                       flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
         spec_r = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_files[1],
-                                      dispersion_unit=u.AA, 
+                                      dispersion_unit=u.AA,
                                       flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
 
         #Line that we want to fit unless side has been decided already.
@@ -52,7 +52,7 @@ class LRIS_Spec(Spec):
             else:
                 print("Line not within spectral ranges")
                 return
-        
+
         if self.blue:
             self.lam_obs = spec_b[0].dispersion
             fnu = spec_b[0].data*spec_b[0].unit
@@ -72,7 +72,7 @@ class LRIS_Spec(Spec):
             fnu = spec_r[0].data*spec_r[0].unit
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
             self.spec_err_name = "error."+self.fits_files[1]
-            
+
             #https://www2.keck.hawaii.edu/inst/lris/detectors.html
             #Use mean of amplifiers.
             self.RON = 4.64
@@ -80,7 +80,7 @@ class LRIS_Spec(Spec):
             #Find the Grating.
             grating_aux = re.search("^(.*?)/.*$",spec_r[0].header['GRANAME'])
             self.grating = "R"+grating_aux[1]
-            
+
         self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
 
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])#Mean lambda bin.
@@ -102,7 +102,7 @@ class LRIS_Spec(Spec):
         else:
             #print("Cannot find spectrograph arm flag")
             return
-            
+
         #Read the template
         sky_temp = np.loadtxt(sky_temp_fname)
         lam_sky = sky_temp[:,0]*u.AA
@@ -128,9 +128,8 @@ class LRIS_Spec(Spec):
                                "Sens_LRIS_"+grname+".txt")
         lam_sens = sens_temp[:,0]*u.AA
         sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
-        
+
         #Rebin the template to the object spectrum.
         self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
 
         return
-
