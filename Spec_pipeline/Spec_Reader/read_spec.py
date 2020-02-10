@@ -1,4 +1,4 @@
-#This is just a wrapper function for reading the spectra. 
+#This is just a wrapper function for reading the spectra.
 
 #import sys
 #sys.path.append("Spec_Reader/")
@@ -7,9 +7,9 @@ from .LRIS_Spec import LRIS_Spec
 from .DBSP_Spec import DBSP_Spec
 from .SDSS_Spec import SDSS_Spec
 
-def read_spec(name, zspec, instrument, fits_files, line_center=None, 
+def read_spec(name, zspec, instrument, fits_files, line_center=None,
               blue=False,red=False,grname=None):
-    
+
     if instrument=="GMOS":
 
         #For GMOS we need that the grating name is declared in the
@@ -17,8 +17,7 @@ def read_spec(name, zspec, instrument, fits_files, line_center=None,
         if grname is None:
             print("Need to provide a grating name to create a GMOS spectrum.")
             return
-        spec = GMOS_Spec(name,zspec,fits_files,line_center,
-                         grname)
+        spec = GMOS_Spec(name,zspec,fits_files,grname)
 
     elif instrument=="LRIS":
         if line_center is None and not blue and not red:
@@ -38,4 +37,3 @@ def read_spec(name, zspec, instrument, fits_files, line_center=None,
         print("Unknown instrument {0:s}".format(instrument))
         return None
     return spec
-
