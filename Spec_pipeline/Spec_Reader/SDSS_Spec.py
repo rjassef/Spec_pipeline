@@ -16,6 +16,18 @@ from .rebin_spec import rebin_spec
 
 class SDSS_Spec(Spec):
 
+    """
+Module that read an SDSS spectrum and returns a spec object.
+
+Args:
+   _name (string)      : Object name or ID.
+
+   _zspec (float)      : Spectroscopic redshift.
+
+   _fits_files (list)  : Spectrum file name. Has to be a one element list.
+
+   """
+
     def __init__(self,_name,_zspec,_fits_files):
         super(SDSS_Spec,self).__init__(_name,_zspec,_fits_files)
         self.RT   = 1.25*u.m #Telescope radius.
