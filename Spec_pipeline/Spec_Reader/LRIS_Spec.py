@@ -19,6 +19,29 @@ from .rebin_spec import rebin_spec
 
 class LRIS_Spec(Spec):
 
+    """
+Module that read an LRIS spectrum and returns a spec object.
+
+Args:
+   _name (string)      : Object name or ID.
+
+   _zspec (float)      : Spectroscopic redshift.
+
+   _fits_files (list)  : Spectrum file name. Has to be a one element list.
+
+   _line_center (float): Optional. Grating used for the observations.
+                         Needs to have astropy units of AA.
+
+   blue (boolean)      : Optional. If wavenlength of interest is not provided,
+                         it should be indicated whether the blue side or the
+                         red side spectrum should be loaded.
+
+   red (boolean)       : Optional. If wavenlength of interest is not provided,
+                         it should be indicated whether the blue side or the
+                         red side spectrum should be loaded.
+
+   """
+
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
                  blue=False,red=False):
         super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center)
