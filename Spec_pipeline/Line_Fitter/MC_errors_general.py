@@ -89,7 +89,7 @@ def MC_errors(nrep, spec, line_fitter,
     if save_chain is not None:
         np.savetxt(save_chain,Output)
 
-    line_fitter.parse_chain_output(Output)
+    #line_fitter.parse_chain_output(Output)
 
     line_fitter.MC_output = Output
 
