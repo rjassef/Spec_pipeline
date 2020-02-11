@@ -14,6 +14,6 @@ spec = read_spec(x[0],float(x[1]),x[2],x[4:],grname=x[3])
 
 line_fit = Multi_Line_fit("CIV",spec=spec)
 line_fit.run_fit()
-line_fit.run_MC(100,Ncpu=mp.cpu_count()-2)
+line_fit.run_MC(500,Ncpu=mp.cpu_count()-2)
 print(line_fit.print_MC_header)
 print(line_fit.print_MC)
