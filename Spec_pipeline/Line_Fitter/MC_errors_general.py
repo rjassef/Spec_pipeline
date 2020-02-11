@@ -25,7 +25,7 @@ def my_hist(x,xbf,xlow,xhig,ax,nbins=None,cum=False):
     ax.plot([x2 ,x2 ],[ymin,ymax],'b--')
 
 def plot_MC_chain(chain,bf_par, err_low, err_hig):
-    
+
     print("{0:.2e} -{1:.2f} +{2:.2f}".format(
         bf_par,err_low,err_hig))
 
@@ -48,7 +48,7 @@ def get_error(x,xbf,cf=68.3):
 
 
 def fit_func(spec, line_fitter, flam_resamp):
-    
+
     nrep_x = len(flam_resamp)
     output = np.zeros((nrep_x,line_fitter.npar_fit))
     for i in range(nrep_x):
@@ -62,7 +62,7 @@ def fit_func(spec, line_fitter, flam_resamp):
         output[i,:] = np.concatenate((xopt_line, xopt_cont))
 
     return output
-    
+
 
 def MC_errors(nrep, spec, line_fitter,
               save_chain=None,Ncpu=None):
@@ -75,7 +75,7 @@ def MC_errors(nrep, spec, line_fitter,
 
     #Star the multiprocessing.
     if Ncpu is None:
-        Ncpu = mp.cpu_count()    
+        Ncpu = mp.cpu_count()
     Pool = mp.Pool(Ncpu)
     func = partial(fit_func, spec, line_fitter)
 
@@ -85,11 +85,12 @@ def MC_errors(nrep, spec, line_fitter,
     Output = np.vstack(Output)
 
     line_fitter.parse_chain_output(Output)
-    
+
     if save_chain is not None:
         np.savetxt(save_chain,Output)
 
-    line_fitter.parse_chain_output(Output)
+    #line_fitter.parse_chain_output(Output)
+
+    line_fitter.MC_output = Output
 
     return
-

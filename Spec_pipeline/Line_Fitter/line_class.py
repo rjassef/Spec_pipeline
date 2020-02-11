@@ -33,6 +33,9 @@ class Line_fit(object):
         self.F = None
         self.p = None
 
+        #MC Output
+        self.MC_output = None
+
     def get_spec_use(self,spec):
         if spec is None:
             if self.default_spec is None:
