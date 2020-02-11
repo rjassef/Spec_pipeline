@@ -186,9 +186,23 @@ class Multi_Line_fit(Line_fit):
             sigma_v   = x_line_use[i*3+2]*self.vunit
         return dv, flam_line, sigma_v
 
+    @property
+    def line_SNR(self):
+        #Can only run if an MC chain exists.
+        if self.MC_output is None:
+            print("Need to run an MC first")
+            return None
+
+        #Get the line fluxes and their dispersion (used as noise).
+        S = self.line_flux()
+        N = np.std(self.line_flux(MC=True),axis=1)
+        return (S/N).to(1.)
 
     #Line flux or fluxes, depending on the case.
-    def line_flux(self,x_line=None,chain_output=None):
+    def line_flux(self,x_line=None,chain_output=None,MC=False):
+
+        if MC:
+            chain_output = self.MC_output
 
         if chain_output is not None:
             x_line = chain_output[:,:self.npar_line].T
@@ -438,6 +452,7 @@ class Multi_Line_fit(Line_fit):
     # Printing
     ##########
 
+    @property
     def print_fit_header(self):
         print_output = ""
         for i in range(self.nlines):
@@ -445,7 +460,7 @@ class Multi_Line_fit(Line_fit):
                 i+1,"dv", "flam_line", "FWHM_v")
         return print_output
 
-
+    @property
     def print_fit(self):
         print_output = ""
         for i in range(self.nlines):
@@ -455,9 +470,11 @@ class Multi_Line_fit(Line_fit):
                 self.FWHM_v[i].value)
         return print_output
 
+    @property
     def print_MC_header(self):
         print_output = ""
         for i in range(self.nlines):
+            print_output += "{1:s}{0:d} ".format(i+1,"SNR")
             print_output += "{1:s}{0:d}_low {1:s}{0:d}_hig ".format(
                 i+1,"dv")
             print_output += "{1:s}{0:d}_low {1:s}{0:d}_hig ".format(
@@ -467,10 +484,11 @@ class Multi_Line_fit(Line_fit):
         return print_output
 
 
-
+    @property
     def print_MC(self):
         print_output = ""
         for i in range(self.nlines):
+            print_output += "{0:.3e} ".format(self.line_SNR[i])
             print_output += "{0:.3f} {1:.3f} ".format(
                 self.dv_low[i].value,
                 self.dv_hig[i].value)
