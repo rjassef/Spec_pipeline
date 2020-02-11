@@ -84,6 +84,8 @@ def MC_errors(nrep, spec, line_fitter,
     Output = Pool.map(func,flam_resamp_split)
     Output = np.vstack(Output)
 
+    line_fitter.MC_output = Output
+
     line_fitter.parse_chain_output(Output)
 
     if save_chain is not None:
@@ -91,6 +93,5 @@ def MC_errors(nrep, spec, line_fitter,
 
     #line_fitter.parse_chain_output(Output)
 
-    line_fitter.MC_output = Output
 
     return
