@@ -1,11 +1,9 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 import numpy as np
 import astropy.units as u
 from scipy.optimize import fmin
 from scipy import interpolate
-from pysynphot import observation
-from pysynphot import spectrum
 from astropy.constants import h,c
 import matplotlib.pyplot as plt
 
@@ -90,12 +88,12 @@ def S_func(x,flam,flam_std,flam_sky,eps,RON):
 
     if K1<0. or K2<0.:
         return np.inf
-    
+
     flam_std_mod = np.sqrt( K1*eps*(flam+K2*flam_sky) + RON**2 ) / (K1*eps)
 
     S = np.sum((flam_std-flam_std_mod)**2).value
     return S
-    
+
 
 ###
 
@@ -114,7 +112,7 @@ def get_error_pars(flam,SN_lam,flam_sky,eps,RON):
 
     K1 = xopt[0]
     K2 = xopt[1]
-   
+
     return K1, K2
 
 ###
@@ -129,7 +127,7 @@ def get_error_spec(spec, wd=15):
                                         spec.lam_obs,spec.flam,
                                         spec.flam_sky,spec.sens,wd)
 
-    
+
     #For this exercise, we need to not consider the Lyalpha forrest
     #region. Real IGM absorption appears as noise and throws
     #everything off the board.
@@ -152,9 +150,7 @@ def get_error_spec(spec, wd=15):
 
     #Get the error spectrum
     flam_err = np.sqrt(K1*spec.eps()*(np.abs(spec.flam)+
-                                    K2*spec.flam_sky) + 
+                                    K2*spec.flam_sky) +
                        spec.RON**2)/(K1*spec.eps())
 
     return flam_err.to(u.erg/(u.s*u.cm**2*u.AA)), K1, K2
-
-
