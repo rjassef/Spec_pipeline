@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-#import warnings
-#warnings.simplefilter("ignore")
+import warnings
+warnings.simplefilter("ignore")
 import multiprocessing as mp
 
 from Spec_pipeline.Spec_Reader.read_spec import read_spec
