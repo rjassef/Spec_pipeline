@@ -198,13 +198,16 @@ class Multi_Line_fit(Line_fit):
         else:
             x_line_use = None
 
-        integrated_flux = np.zeros(self.nlines)*u.erg/u.cm**2/u.s
+        if chain_output is not None:
+            integrated_flux = np.zeros((self.nlines,len(chain_output)))*u.erg/u.cm**2/u.s
+        else:
+            integrated_flux = np.zeros(self.nlines)*u.erg/u.cm**2/u.s
         for i in range(self.nlines):
-            integrated_flux[i] = self.get_line_flux(i,x_line_use)
+            integrated_flux[i] = self._get_line_flux(i,x_line_use)
 
         return integrated_flux
 
-    def get_line_flux(self,i,x_line_use=None):
+    def _get_line_flux(self,i,x_line_use=None):
         dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
         flux = flam_line * self.line_center[i]*(2.*np.pi)**0.5 * \
                sigma_v/c
