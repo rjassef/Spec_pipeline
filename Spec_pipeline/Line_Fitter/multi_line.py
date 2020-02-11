@@ -3,6 +3,7 @@
 import numpy as np
 import astropy.units as u
 from astropy.constants import c
+from astropy.stats import sigma_clipped_stats
 import os
 import re
 
@@ -195,7 +196,9 @@ class Multi_Line_fit(Line_fit):
 
         #Get the line fluxes and their dispersion (used as noise).
         S = self.line_flux()
-        N = np.std(self.line_flux(MC=True),axis=1)
+        #For the dispersion do 3 sigma clipping. Should not do less than about 500 realizations.
+        #N = np.std(self.line_flux(MC=True),axis=1)
+        N = sigma_clipped_stats(self.line_flux(MC=True),axis=1)[2]
         return (S/N).to(1.)
 
     #Line flux or fluxes, depending on the case.
