@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 import warnings
 warnings.simplefilter("ignore")
@@ -17,7 +17,7 @@ x = cat.readline().split()
 
 spec = read_spec(x[0],float(x[1]),x[2],x[4:],grname=x[3])
 
-#line_fit = Multi_Line_fit("CIV",spec=spec)
+line_fit = Multi_Line_fit("CIV",spec=spec)
 
-#line_fit.run_fit()
-#line_fit.run_MC(100,Ncpu=7)
+line_fit.run_fit()
+line_fit.run_MC(100,Ncpu=7)
