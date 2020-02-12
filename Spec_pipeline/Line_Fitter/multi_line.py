@@ -505,12 +505,13 @@ class Multi_Line_fit(Line_fit):
     def print_header(self,MC=False):
         print_output = "{0:15s} {1:7s} ".format("Obj_ID","z_spec")
         print_output += "{0:10s} ".format("line_id")
-        print_output += "{0:10s} {1:10s} {2:10s} ".format("dv", "flam_line", "FWHM_v")
+        print_output += "{0:10s} {1:10s} {2:10s} {3:10s} ".format("dv", "flam_line", "FWHM_v", "lam_cen")
         if MC:
             print_output += "{0:10s} ".format("SNR")
             print_output += "{0:14s} {1:14s} ".format("dv_low","dv_hig")
             print_output += "{0:14s} {1:14s} ".format( "flam_line_low", "flam_line_hig")
             print_output += "{0:14s} {1:14s} ".format( "FWHM_v_low", "FWHM_v_hig")
+            print_output += "{0:14s} {1:14s} ".format( "lam_cen_low", "lam_cen_hig")
         print_output += "\n"
         return print_output
 
@@ -523,11 +524,12 @@ class Multi_Line_fit(Line_fit):
         for i in range(self.nlines):
             print_output += "{0:15s} {1:7.3f} ".format(spec.name, spec.zspec)
             print_output += "{0:10s} ".format(lname[i])
-            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value)
+            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f}".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]) )
             if MC:
                 print_output += "{0:10.3e} ".format(self.line_SNR[i])
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.dv_low[i].value, self.dv_hig[i].value)
                 print_output += "{0:14.3e} {1:14.3e} ".format( self.flam_line_low[i].value,self.flam_line_hig[i].value)
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.FWHM_v_low[i].value, self.FWHM_v_hig[i].value)
+                print_output += "{0:14.3f} {1:14.3f} ".format( self.line_center[i].value*(self.dv_low[i]/c).to(1.).value, self.line_center[i].value*(self.dv_hig[i]/c).to(1.).value)
             print_output += "\n"
         return print_output
