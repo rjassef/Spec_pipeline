@@ -503,24 +503,25 @@ class Multi_Line_fit(Line_fit):
         return print_output
 
     def print_header(self,MC=False):
-        print_output = "{0:10s} ".format("line_id")
+        print_output = "{0:15s} {1:7s} ".format("Obj_ID","z_spec")
+        print_output += "{0:10s} ".format("line_id")
         print_output += "{0:10s} {1:10s} {2:10s} ".format("dv", "flam_line", "FWHM_v")
         if MC:
             print_output += "{0:10s} ".format("SNR")
             print_output += "{0:14s} {1:14s} ".format("dv_low","dv_hig")
             print_output += "{0:14s} {1:14s} ".format( "flam_line_low", "flam_line_hig")
-            print_output += "{0:14s} {1:14s} ".format( "sigma_v_low", "sigma_v_hig")
+            print_output += "{0:14s} {1:14s} ".format( "FWHM_v_low", "FWHM_v_hig")
         print_output += "\n"
         return print_output
 
-    def print(self,MC=False):
+    def print(self,spec_use=None,MC=False):
+        spec = self.get_spec_use(spec_use)
         print_output = ""
+        lname = self.line_name.split("_")
         for i in range(self.nlines):
-            print_output += "{0:10s} ".format(self.line_name)
-            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} ".format(
-                self.dv_fit[i].value,
-                self.flam_line_fit[i].value,
-                self.FWHM_v[i].value)
+            print_output += "{0:15s} {1:7.3f} ".format(spec.name, spec.zspec)
+            print_output += "{0:10s} ".format(lname[i])
+            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value)
             if MC:
                 print_output += "{0:10.3e} ".format(self.line_SNR[i])
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.dv_low[i].value, self.dv_hig[i].value)

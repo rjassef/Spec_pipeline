@@ -45,11 +45,11 @@ def get_error(x,xbf,cf=68.3):
     try:
         xlow = xbf - np.percentile(x[x<xbf], 100.-cf)
     except IndexError:
-        xlow = xbf
+        xlow = 0.
     try:
         xhig = np.percentile(x[x>xbf], cf) - xbf
     except IndexError:
-        xhig = xbf
+        xhig = 0.
     return xlow, xhig
 
 
