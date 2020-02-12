@@ -66,7 +66,7 @@ def fit_func(spec, line_fitter, flam_resamp):
                                        x0_cont=x0_cont,
                                        x0_line=x0_line)
         output[i,:] = np.concatenate((xopt_line, xopt_cont))
-
+        del new_spec
     return output
 
 
