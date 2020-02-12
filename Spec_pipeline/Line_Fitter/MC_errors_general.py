@@ -42,8 +42,14 @@ def plot_MC_chain(chain,bf_par, err_low, err_hig):
 
 
 def get_error(x,xbf,cf=68.3):
-    xlow = xbf - np.percentile(x[x<xbf], 100.-cf)
-    xhig = np.percentile(x[x>xbf], cf) - xbf
+    try:
+        xlow = xbf - np.percentile(x[x<xbf], 100.-cf)
+    except IndexError:
+        xlow = xbf
+    try:
+        xhig = np.percentile(x[x>xbf], cf) - xbf
+    except IndexError:
+        xhig = xbf
     return xlow, xhig
 
 

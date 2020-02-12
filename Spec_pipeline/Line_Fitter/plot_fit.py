@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -43,7 +43,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
              color='xkcd:grey')
 
     #Velocity region for plotting the model.
-    lam_mod = spec.lam_rest[(spec.lam_rest>xmin*u.AA) & 
+    lam_mod = spec.lam_rest[(spec.lam_rest>xmin*u.AA) &
                             (spec.lam_rest<xmax*u.AA)]
 
     #Set the model
@@ -63,10 +63,10 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
             lam_mod_chain = np.tile(lam_use,chain_output.shape[0])
             flam_mod_chain = line_fitter.flam_model(lam_mod_chain,
                                                     chain_output=chain_output)
-            flam_mod_low1[k], flam_mod_hig1[k] = get_error(flam_mod_chain, 
+            flam_mod_low1[k], flam_mod_hig1[k] = get_error(flam_mod_chain,
                                                            flam_mod[k],
                                                            cf=68.3)
-            flam_mod_low2[k], flam_mod_hig2[k] = get_error(flam_mod_chain, 
+            flam_mod_low2[k], flam_mod_hig2[k] = get_error(flam_mod_chain,
                                                            flam_mod[k],
                                                            cf=95.4)
         plt.fill_between(lam_mod,
@@ -116,7 +116,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
         plt.show()
     else:
         plt.savefig(plot_fname,dpi=300)
-    plt.close()
+        plt.close()
 
 ####
 

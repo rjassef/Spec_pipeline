@@ -199,6 +199,7 @@ class Multi_Line_fit(Line_fit):
         #For the dispersion do 3 sigma clipping. Should not do less than about 500 realizations.
         #N = np.std(self.line_flux(MC=True),axis=1)
         N = sigma_clipped_stats(self.line_flux(MC=True),axis=1)[2]
+        print(sigma_clipped_stats(self.line_flux(MC=True),axis=1))
         return (S/N).to(1.)
 
     #Line flux or fluxes, depending on the case.
@@ -486,7 +487,6 @@ class Multi_Line_fit(Line_fit):
                 i+1,"sigma_v")
         return print_output
 
-
     @property
     def print_MC(self):
         print_output = ""
@@ -501,4 +501,31 @@ class Multi_Line_fit(Line_fit):
             print_output += "{0:.3f} {1:.3f} ".format(
                 self.FWHM_v_low[i].value,
                 self.FWHM_v_hig[i].value)
+        return print_output
+
+    def print_header(self,MC=False):
+        print_output = "{0:10s} ".format("line_id")
+        print_output += "{0:10s} {1:10s} {2:10s} ".format("dv", "flam_line", "FWHM_v")
+        if MC:
+            print_output += "{0:10s} ".format("SNR")
+            print_output += "{0:14s} {1:14s} ".format("dv_low","dv_hig")
+            print_output += "{0:14s} {1:14s} ".format( "flam_line_low", "flam_line_hig")
+            print_output += "{0:14s} {1:14s} ".format( "sigma_v_low", "sigma_v_hig")
+        print_output += "\n"
+        return print_output
+
+    def print(self,MC=False):
+        print_output = ""
+        for i in range(self.nlines):
+            print_output += "{0:10s} ".format(self.line_name)
+            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} ".format(
+                self.dv_fit[i].value,
+                self.flam_line_fit[i].value,
+                self.FWHM_v[i].value)
+            if MC:
+                print_output += "{0:10.3e} ".format(self.line_SNR[i])
+                print_output += "{0:14.3f} {1:14.3f} ".format( self.dv_low[i].value, self.dv_hig[i].value)
+                print_output += "{0:14.3e} {1:14.3e} ".format( self.flam_line_low[i].value,self.flam_line_hig[i].value)
+                print_output += "{0:14.3f} {1:14.3f} ".format( self.FWHM_v_low[i].value, self.FWHM_v_hig[i].value)
+            print_output += "\n"
         return print_output
