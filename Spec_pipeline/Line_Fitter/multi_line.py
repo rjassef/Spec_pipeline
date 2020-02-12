@@ -199,7 +199,6 @@ class Multi_Line_fit(Line_fit):
         #For the dispersion do 3 sigma clipping. Should not do less than about 500 realizations.
         #N = np.std(self.line_flux(MC=True),axis=1)
         N = sigma_clipped_stats(self.line_flux(MC=True),axis=1)[2]
-        print(sigma_clipped_stats(self.line_flux(MC=True),axis=1))
         return (S/N).to(1.)
 
     #Line flux or fluxes, depending on the case.
