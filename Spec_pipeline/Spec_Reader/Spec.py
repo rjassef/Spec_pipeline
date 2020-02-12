@@ -39,7 +39,7 @@ class Spec(object):
         else:
             self._lam_rest = None
         return self._lam_rest
-    
+
     def eps(self,sens=None,lam_obs=None,dlam=None):
         if sens is None:
             sens = self.sens
@@ -63,6 +63,7 @@ class Spec(object):
             cat = open(self.data_prefix+"/"+self.spec_err_name,"r")
             self._flam_err = np.loadtxt(cat,usecols=[1])
             self._flam_err = self._flam_err * u.erg/(u.s*u.cm**2*u.AA)
+            cat.close()
         except IOError:
             self._flam_err, self.K1, self.K2 = \
                                                get_error_spec(self,wd=15)
@@ -71,5 +72,3 @@ class Spec(object):
                            np.array([self.lam_obs,
                                      self._flam_err]).T)
         return self._flam_err
-
-

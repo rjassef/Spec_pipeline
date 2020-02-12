@@ -110,6 +110,7 @@ Args:
         self.texp = float(ff[0].header['EXPTIME'])*u.s
 
         self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
+        ff.close()
         return
 
     @property
