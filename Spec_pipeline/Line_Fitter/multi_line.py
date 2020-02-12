@@ -518,6 +518,8 @@ class Multi_Line_fit(Line_fit):
         spec = self.get_spec_use(spec_use)
         print_output = ""
         lname = self.line_name.split("_")
+        if len(lname)<self.nlines:
+            lname = [lname[0]]*self.nlines
         for i in range(self.nlines):
             print_output += "{0:15s} {1:7.3f} ".format(spec.name, spec.zspec)
             print_output += "{0:10s} ".format(lname[i])
