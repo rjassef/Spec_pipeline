@@ -4,6 +4,7 @@ import astropy.units as u
 import multiprocessing as mp
 from functools import partial
 import copy
+import psutil
 
 from . import fit_general as fit
 
@@ -55,6 +56,8 @@ def get_error(x,xbf,cf=68.3):
 
 def fit_func(spec, line_fitter, flam_resamp):
 
+    proc = psutil.Process()
+
     nrep_x = len(flam_resamp)
     output = np.zeros((nrep_x,line_fitter.npar_fit))
     for i in range(nrep_x):
@@ -67,6 +70,8 @@ def fit_func(spec, line_fitter, flam_resamp):
                                        x0_line=x0_line)
         output[i,:] = np.concatenate((xopt_line, xopt_cont))
         del new_spec
+        print(len(proc.open_files()),"files open during MC")
+
     return output
 
 
@@ -98,6 +103,7 @@ def MC_errors(nrep, spec, line_fitter,
         np.savetxt(save_chain,Output)
 
     #line_fitter.parse_chain_output(Output)
-
+    proc = psutil.Process()
+    print(len(proc.open_files()),"files open at the end of MC")
 
     return
