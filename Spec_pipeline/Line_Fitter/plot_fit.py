@@ -142,7 +142,8 @@ def plot_full_spec(lam_rest, flam, obj_id, plot_fname=None):
             continue
         x = line.split()
         plot_line(float(x[0]),r'${0:s}$'.format(x[1]))
-
+    lines_cat.close()
+    
     #Plot the spectrum.
     plt.plot(lam_rest,flam,linestyle='solid',color='xkcd:grey')
 

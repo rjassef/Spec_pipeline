@@ -4,10 +4,10 @@ from astropy.constants import c
 from astropy.io import fits
 import re
 
-def read_fits_spectrum1d(file_name, 
-                         dispersion_unit=u.dimensionless_unscaled, 
+def read_fits_spectrum1d(file_name,
+                         dispersion_unit=u.dimensionless_unscaled,
                          flux_unit = None):
-    
+
     try:
         s = fits.open(file_name)
     except IOError:
@@ -19,7 +19,7 @@ def read_fits_spectrum1d(file_name,
 
     #Declare the list.
     spec = []
-    
+
     #If only one axis, then we have a single spectrum, all is good.
     if NAXIS==1:
         spec.append(spectrum1d(None,s,dispersion_unit,flux_unit))
@@ -39,7 +39,7 @@ def read_fits_spectrum1d(file_name,
         spec1d = spectrum1d(it.multi_index,s,dispersion_unit,flux_unit)
         spec.append(spec1d)
         it.iternext()
-
+    s.close()
     return spec
 
 class spectrum1d(object):
@@ -53,7 +53,7 @@ class spectrum1d(object):
         self.load_spec(multi_index,s)
 
     def load_spec(self,multi_index,s):
-        
+
         #Put here the spectrum.
         if multi_index:
             self.data = s[0].data[multi_index]
@@ -62,7 +62,7 @@ class spectrum1d(object):
 
         #Save the header
         self.header = s[0].header
-            
+
         #Now, let's figure out the dispersion.  Not sure what is the
         #correct thing here, but this works for our spectra.
         if multi_index:
@@ -88,6 +88,3 @@ class spectrum1d(object):
         self.unit = u.Unit(s[0].header['BUNIT'])
 
         return
-
-    
-
