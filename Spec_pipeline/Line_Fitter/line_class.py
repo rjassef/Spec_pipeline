@@ -6,9 +6,7 @@ import numpy as np
 from scipy.special import betainc
 from astropy.constants import c
 
-#from . import MC_errors as MC
 from . import MC_errors_general as MC
-#from . import fit_chi2 as fit
 from . import fit_general as fit
 from . import plot_fit
 
