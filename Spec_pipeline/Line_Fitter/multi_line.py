@@ -134,7 +134,7 @@ class Multi_Line_fit(Line_fit):
                 k+=1
             else:
                 j = np.nonzero(self.fixed_ratio[:,i])[0]
-                x_line_use[i*3+1] = x_line_use[j*3+1]*self.fixed_ratio[j,i]
+                x_line_use[i*3+1] = x_line_use[j*3+1]/self.fixed_ratio[j,i]
 
             if self.joint_sigma[self.joint_sigma[:,i]>0,i].size==0:
                 x_line_use[i*3+2] = x_line_fit[k]
