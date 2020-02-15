@@ -49,6 +49,7 @@ Args:
         self.instrument = "LRIS"
         self.blue = blue
         self.red = red
+        self.edge_drop = 50.*u.AA
         self.__flam
         self.__flam_sky
         self.__sens
@@ -77,9 +78,11 @@ Args:
                 return
 
         if self.blue:
-            self.lam_obs = spec_b[0].dispersion
-            fnu = spec_b[0].data*spec_b[0].unit
             ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
+            dichroic_wave = float(ff[0].header['DICHNAME'])*u.nm
+            kuse = (spec_b[0].dispersion<dichroic_wave-self.edge_drop)
+            self.lam_obs = spec_b[0].dispersion[kuse]
+            fnu = spec_b[0].data[kuse]*spec_b[0].unit
             self.spec_err_name = "error."+self.fits_files[0]
 
             #https://www2.keck.hawaii.edu/inst/lris/detectors.html
@@ -91,9 +94,11 @@ Args:
             self.grism = "B"+grism_aux[1]
 
         elif self.red:
-            self.lam_obs = spec_r[0].dispersion
-            fnu = spec_r[0].data*spec_r[0].unit
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
+            dichroic_wave = float(ff[0].header['DICHNAME'])*u.nm
+            kuse = (spec_r[0].dispersion>dichroic_wave+self.edge_drop)
+            self.lam_obs = spec_r[0].dispersion[kuse]
+            fnu = spec_r[0].data[kuse]*spec_r[0].unit
             self.spec_err_name = "error."+self.fits_files[1]
 
             #https://www2.keck.hawaii.edu/inst/lris/detectors.html
