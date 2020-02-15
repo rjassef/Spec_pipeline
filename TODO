@@ -3,6 +3,12 @@
 
 - When that is done, setup the fitting such that a "default" spectrum can be loaded at the time when the fitting object is created. The fitting subroutines can still be called with an spec object in the call, but if no spec object is provided, then the default is used. The complication here is that now, for loading the spectrum, we need to provide the line that we want to fit so the correct side can be loaded. [Partially done, needs implementation of previous point still]
 
+- Include instrumental resolution in line widths.
+
+- For LRIS eliminate 50A in the borders to avoid dichroic issues. Instead, use dichroic.
+
+- First fit all lines. Use the one with the highest SNR (or all above SNR 25) to fix the velocity shift and only allow shifts of ~500km/s afterwards. This should stop the issues of having very broad, low peak flux emission lines fitting systematics in the continuum. 
+
 ####
 
 Done
