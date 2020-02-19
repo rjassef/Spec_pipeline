@@ -49,7 +49,8 @@ Args:
         self.instrument = "LRIS"
         self.blue = blue
         self.red = red
-        self.edge_drop = 50.*u.AA
+        #self.edge_drop = 50.*u.AA
+        self.edge_drop = 75.*u.AA
         self.__flam
         self.__flam_sky
         self.__sens
