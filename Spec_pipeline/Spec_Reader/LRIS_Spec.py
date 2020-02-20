@@ -80,42 +80,43 @@ Args:
 
         if self.blue:
 
-            #Figure out the dichroic and cut the wavelength range.
+            #Assign the blue spectrum to be used
+            spec_use = spec_b
+
+            #Open the fits file for the headers.
             ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
+
+            #Figure out the limits on which we can use the spectra.
             dichroic_wave = float(ff[0].header['DICHNAME'])*u.nm
-            kuse = (spec_b[0].dispersion<dichroic_wave-self.edge_drop)
+            kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
 
             #https://www2.keck.hawaii.edu/inst/lris/detectors.html
             #Use mean of amplifiers.
             self.RON = 3.82
 
-            #Find the grism and remove data outside the edges of the sensitivity curves.
+            #Find the grism
             grism_aux = re.search("^(.*?)/.*$",spec_b[0].header['GRISNAME'])
             self.grism = "B"+grism_aux[1]
-            sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                               "/Spec_pipeline/Sensitivity_Files/"+
-                               "Sens_LRIS_"+self.grism+".txt")
-            lam_sens = sens_temp[:,0]*u.AA
-            kuse = (kuse) & (spec_b[0].dispersion>np.min(lam_sens)) & \
-                (spec_b[0].dispersion<np.max(lam_sens))
+            grname = self.grism
 
             #Set the sky template. Remove data outisde the edges of the sky template.
             self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
             "/Spec_pipeline/Sky_Templates/template_sky_LRIS_b.dat"
-            sky_temp = np.loadtxt(self.sky_temp_fname)
-            lam_sky = sky_temp[:,0]*u.AA
-            kuse = (kuse) & (spec_b[0].dispersion>np.min(lam_sky)) & \
-                (spec_b[0].dispersion<np.max(lam_sky))
 
-            #Finally, assign the wavelength and flux to the object.
-            self.lam_obs = spec_b[0].dispersion[kuse]
-            fnu = spec_b[0].data[kuse]*spec_b[0].unit
+            #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[0]
 
         elif self.red:
+
+            #Assign the red spectrum to be used
+            spec_use = spec_r
+
+            #Open the fits file for the headers.
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
+
+            #Figure out the limits on which we can use the spectra.
             dichroic_wave = float(ff[0].header['DICHNAME'])*u.nm
-            kuse = (spec_r[0].dispersion>dichroic_wave+self.edge_drop)
+            kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
 
             #https://www2.keck.hawaii.edu/inst/lris/detectors.html
             #Use mean of amplifiers.
@@ -124,37 +125,47 @@ Args:
             #Find the Grating and remove data outside the edges of the sensitivity curves.
             grating_aux = re.search("^(.*?)/.*$",spec_r[0].header['GRANAME'])
             self.grating = "R"+grating_aux[1]
-            sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                               "/Spec_pipeline/Sensitivity_Files/"+
-                               "Sens_LRIS_"+self.grating+".txt")
-            lam_sens = sens_temp[:,0]*u.AA
-            kuse = (kuse) & (spec_r[0].dispersion>np.min(lam_sens)) & \
-                (spec_r[0].dispersion<np.max(lam_sens))
+            grname = self.grating
 
             #Set the sky template. Remove data outisde the edges of the sky template.
             self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
             "/Spec_pipeline/Sky_Templates/template_sky_LRIS_r.dat"
-            sky_temp = np.loadtxt(self.sky_temp_fname)
-            lam_sky = sky_temp[:,0]*u.AA
-            kuse = (kuse) & (spec_r[0].dispersion>np.min(lam_sky)) & \
-                (spec_r[0].dispersion<np.max(lam_sky))
 
-            #Finally, assign the wavelength and flux to the object.
-            self.lam_obs = spec_r[0].dispersion[kuse]
-            fnu = spec_r[0].data[kuse]*spec_r[0].unit
+            #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
 
 
-        lam_sky_min = np.min(sky_temp[:,0])*u.AA
-        lam_sky_max = np.max(sky_temp[:,0])*u.AA
+        #Find the grism and remove data outside the edges of the sensitivity curves.
+        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+                            "/Spec_pipeline/Sensitivity_Files/"+
+                            "Sens_LRIS_"+grname+".txt")
+        lam_sens = sens_temp[:,0]*u.AA
+        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
+                (spec_use[0].dispersion<np.max(lam_sens))
 
+        #Finally, figure out the sky template edges and trim the spectrum to that limit.
+        sky_temp = np.loadtxt(self.sky_temp_fname)
+        lam_sky = sky_temp[:,0]*u.AA
+        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sky)) & \
+                (spec_use[0].dispersion<np.max(lam_sky))
+
+        #Now, assign the wavelength and flux to the object.
+        self.lam_obs = spec_use[0].dispersion[kuse]
+        fnu = spec_use[0].data[kuse]*spec_use[0].unit
+
+        #In the error name, replace fits for txt, as we will write it in ASCII.
         self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
 
-        self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])#Mean lambda bin.
+        #Mean bin size and exposure time. Useful for error estimation.
+        self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
         self.texp = float(ff[0].header['EXPTIME'])*u.s
 
+        #Convert flam to fnu
         self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
+
+        #Close the fits file.
         ff.close()
+
         return
 
     @property
