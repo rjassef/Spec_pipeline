@@ -49,6 +49,7 @@ Args:
         self.instrument = "DBSP"
         self.blue = blue
         self.red  = red
+        self.edge_drop = 75.*u.AA
         self.__flam
         self.__flam_sky
         self.__sens
@@ -76,28 +77,87 @@ Args:
                 return
 
         if self.blue:
-            self.lam_obs = spec_b[0].dispersion
-            fnu = spec_b[0].data*spec_b[0].unit
+
+            #Assign the blue spectrum to be used
+            spec_use = spec_b
+
+            #Open the fits file for the headers.
             ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
+
+            #Figure out the limits on which we can use the spectra.
+            dichroic_wave = float(ff[0].header['DICHROIC'][1:])*100.*u.AA
+            kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
+
+            #Find the grism
+            grname = "B"
+
+            #Set the sky template
+            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
+                "/Spec_pipeline/Sky_Templates/template_sky_DBSP_b.dat"
+
+            #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[0]
+
         elif self.red:
-            self.lam_obs = spec_r[0].dispersion
-            fnu = spec_r[0].data*spec_r[0].unit
+
+            #Assign the red spectrum to be used
+            spec_use = spec_r
+
+            #Open the fits file for the headers.
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
+
+            #Figure out the limits on which we can use the spectra.
+            dichroic_wave = float(ff[0].header['DICHROIC'][1:])*100.*u.AA
+            kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
+
+            #Find the grism
+            grname = "R"
+
+            #Set the sky template
+            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
+                "/Spec_pipeline/Sky_Templates/template_sky_DBSP_r.dat"
+
+            #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
+
+        #Find the grism and remove data outside the edges of the sensitivity curves.
+        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+                            "/Spec_pipeline/Sensitivity_Files/"+
+                            "Sens_DBSP_"+grname+".txt")
+        lam_sens = sens_temp[:,0]*u.AA
+        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
+                (spec_use[0].dispersion<np.max(lam_sens))
+
+        #Finally, figure out the sky template edges and trim the spectrum to that limit.
+        sky_temp = np.loadtxt(self.sky_temp_fname)
+        lam_sky = sky_temp[:,0]*u.AA
+        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sky)) & \
+                (spec_use[0].dispersion<np.max(lam_sky))
+
+        #Now, assign the wavelength and flux to the object.
+        self.lam_obs = spec_use[0].dispersion[kuse]
+        fnu = spec_use[0].data[kuse]*spec_use[0].unit
+
+        #Change the .fits for .txt in the error file name as it will be saved in ASCII
         self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
 
-        self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])#Mean lambda bin.
+        #Mean bin size, exposure time and RON. Useful for error estimation.
+        self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
         self.texp = float(ff[0].header['EXPTIME'])*u.s
         self.RON  = float(ff[0].header['RON'])
 
+        #Convert fnu to flambda.
         self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
+
+        #Close the fits file.
+        ff.close()
+        
         return
 
     @property
     def __flam_sky(self):
 
-        #Figure out the spectrograph arm.
+        '''#Figure out the spectrograph arm.
         if self.blue:
             sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
                 "/Spec_pipeline/Sky_Templates/template_sky_DBSP_b.dat"
@@ -106,10 +166,10 @@ Args:
                 "/Spec_pipeline/Sky_Templates/template_sky_DBSP_r.dat"
         else:
             #print("Cannot find spectrograph arm flag")
-            return
+            return'''
 
         #Read the template
-        sky_temp = np.loadtxt(sky_temp_fname)
+        sky_temp = np.loadtxt(self.sky_temp_fname)
         lam_sky = sky_temp[:,0]*u.AA
         flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
 
