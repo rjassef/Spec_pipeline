@@ -1,0 +1,5 @@
+Requirements:
+
+- Numpy 1.18.1
+- Scipy 1.3.2
+- Astropy 4.0
