@@ -1,6 +1,8 @@
 - Combine OII into a single emission line at the average position of the doublet.
 
-- Include Halpha+NII. This is difficult, as there are really four components to keep track of: the two NII lines, narrow Halpha and broad Halpha. I guess we could just do a single Gaussian each with the correct NII ratio, and just assume a single Halpha. The width of NII would need to be limited to 1000 km/s, but not the width Halpha, to accommodate an offset broad Halpha emission. 
+- Include Halpha+NII. This is difficult, as there are really four components to keep track of: the two NII lines, narrow Halpha and broad Halpha. I guess we could just do a single Gaussian each with the correct NII ratio, and just assume a single Halpha. The width of NII would need to be limited to 1000 km/s, but not the width Halpha, to accommodate an offset broad Halpha emission.
+
+- Further in the future: could try to incorporate SPAMM into the mix to use all of those models. 
 
 ####
 
