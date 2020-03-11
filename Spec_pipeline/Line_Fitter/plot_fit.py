@@ -22,7 +22,14 @@ def plot_line(lam,label):
 
 ###
 
-def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
+def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
+
+    #Open the Figure. To not clash with figures already open, find the latest figure open, and open a new one.
+    if len(plt.get_fignums())==0:
+        nfig = 1
+    else :
+        nfig = plt.get_fignums()[-1]+1
+    plt.figure(nfig)
 
     #Set the plot x-axis limits.
     i_line = line_fitter.get_i_line(spec)
@@ -51,8 +58,11 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
     flam_cont_mod = line_fitter.flam_cont_model(lam_mod)
 
     #If a chain is provided, plot the 1-sigma regions.
-    if chain is not None:
-        chain_output  = np.loadtxt(chain)
+    if chain is not None or chain_file is not None:
+        if chain_file is not None:
+            chain_output  = np.loadtxt(chain_file)
+        else:
+            chain_output = chain
         #Unfortunately we'll have to go slowly about this to not
         #trigger a memory error.
         flam_mod_low1 = np.zeros(len(lam_mod))*line_fitter.flamunit
@@ -116,7 +126,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain=None):
         plt.show()
     else:
         plt.savefig(plot_fname,dpi=300)
-        plt.close()
+        plt.close(nfig)
 
 ####
 

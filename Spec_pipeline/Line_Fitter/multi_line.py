@@ -205,7 +205,7 @@ class Multi_Line_fit(Line_fit):
     @property
     def line_SNR(self):
         #Can only run if an MC chain exists.
-        if self.MC_output is None:
+        if self.MC_chain is None:
             print("Need to run an MC first")
             return None
 
@@ -220,7 +220,7 @@ class Multi_Line_fit(Line_fit):
     def line_flux(self,x_line=None,chain_output=None,MC=False):
 
         if MC:
-            chain_output = self.MC_output
+            chain_output = self.MC_chain
 
         if chain_output is not None:
             x_line = chain_output[:,:self.npar_line].T

@@ -31,8 +31,8 @@ class Line_fit(object):
         self.F = None
         self.p = None
 
-        #MC Output
-        self.MC_output = None
+        #MC Output chain
+        self.MC_chain = None
 
     def get_spec_use(self,spec):
         if spec is None:
@@ -80,11 +80,13 @@ class Line_fit(object):
         MC.MC_errors(nrep, spec, self, Ncpu=Ncpu, save_chain=save_chain)
         return
 
-    def plot(self,spec_use=None,plot_fname=None,chain=None):
+    def plot(self,spec_use=None,plot_fname=None,chain_file=None,chain=None):
         spec = self.get_spec_use(spec_use)
         if spec is None:
             return
-        plot_fit.plot_fit(spec,self,chain=chain,plot_fname=plot_fname)
+        if chain is None:
+            chain = self.MC_chain
+        plot_fit.plot_fit(spec,self,chain=chain,chain_file=chain_file,plot_fname=plot_fname)
 
     def run_Ftest(self,spec_use=None):
 

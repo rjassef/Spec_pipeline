@@ -93,7 +93,7 @@ def MC_errors(nrep, spec, line_fitter,
     Output = np.vstack(Output)
     Pool.close()
 
-    line_fitter.MC_output = Output
+    line_fitter.MC_chain = Output
 
     line_fitter.parse_chain_output(Output)
 
