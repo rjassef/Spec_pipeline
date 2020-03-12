@@ -30,6 +30,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
     else :
         nfig = plt.get_fignums()[-1]+1
     plt.figure(nfig)
+    #fig, ax = plt.subplots()
 
     #Set the plot x-axis limits.
     i_line = line_fitter.get_i_line(spec)
@@ -48,6 +49,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
     plt.plot(spec.lam_rest,spec.flam,
              linestyle='solid',linewidth=0.5,
              color='xkcd:grey')
+    plt.plot(spec.lam_rest,spec.flam_err,linestyle='dotted',linewidth=0.5,color='xkcd:grey')
 
     #Velocity region for plotting the model.
     lam_mod = spec.lam_rest[(spec.lam_rest>xmin*u.AA) &
@@ -78,7 +80,7 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
                                                            cf=68.3)
             flam_mod_low2[k], flam_mod_hig2[k] = get_error(flam_mod_chain,
                                                            flam_mod[k],
-                                                           cf=95.4)
+                                                           cf=99.1)#cf=95.4)
         plt.fill_between(lam_mod,
                          flam_mod-flam_mod_low2,
                          flam_mod+flam_mod_hig2,
@@ -120,7 +122,11 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
     #Labels
     plt.xlabel(r'$\lambda_{Rest}\ (\AA)$')
     plt.ylabel(r'$F_{\lambda}\ (erg/cm^2/s/\AA)$')
-    #plt.title("{0:s}  FWHM = {1:.1f}".format(spec.name,line_fitter.FWHM_v))
+    #print(spec.name,line_fitter.line_name,line_fitter.FWHM_v,line_fitter.line_SNR)
+    plt.title("{0:s} {1:.3f}".format(spec.name, spec.zspec))
+    #for i in range(line_fitter.nlines):
+    #    plt.text(0.6,0.8-0.1*i,"{0:s} {1:.1f} {2:.1f}".format(line_fitter.line_name,line_fitter.FWHM_v[i],line_fitter.line_SNR[i]),verticalalignment='center', transform=ax.transAxes)
+    #plt.title("{0:s} {1:s} FWHM = {2:.1f} SNR={3:.1f}".format(spec.name,line_fitter.line_name,line_fitter.FWHM_v,line_fitter.line_SNR))
 
     if plot_fname is None:
         plt.show()
