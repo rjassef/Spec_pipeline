@@ -6,6 +6,7 @@ from astropy.constants import c
 from astropy.stats import sigma_clipped_stats
 import os
 import re
+import sys
 
 from .line_class import Line_fit
 from .MC_errors_general import get_error
@@ -27,13 +28,18 @@ class Multi_Line_fit(Line_fit):
             lines_file = os.environ['SPEC_PIPE_LOC']+\
                    "/Spec_pipeline/Line_Fitter/multi_lines.txt"
         cat = open(lines_file,"r")
+        line_found = False
         for line in cat:
             if not line.strip():
                 continue
             x = line.split()
             if x[0]==_line_name:
+                line_found = True
                 break
         cat.close()
+        if not line_found:
+            print("Error: Line",_line_name,"not found in file",lines_file)
+            sys.exit()
         x[1:] = [float(ix) for ix in x[1:]]
 
         #Define all the fit control variables that might not get
