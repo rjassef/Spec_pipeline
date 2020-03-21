@@ -69,14 +69,24 @@ class spectrum1d(object):
             i = multi_index[0]+1
         else:
             i = 1
-        ctype = s[0].header['CTYPE{0:d}'.format(i)]
+        #ctype = s[0].header['CTYPE{0:d}'.format(i)]
+        #try:
+        #    s[0].header['CRVAL{0:d}'.format(i)]
+        #except:
+        #    i = 1
+        #crval = s[0].header['CRVAL{0:d}'.format(i)]
+        #cdii  = s[0].header['CD{0:d}_{0:d}'.format(i)]
+        #crpix = s[0].header['CRPIX{0:d}'.format(i)]
+
+        #Instead of doing the hack above, this is probably more correct. Try to load all of the header values needed, and if any of them fail, then do not load anything.
         try:
-            s[0].header['CRVAL{0:d}'.format(i)]
-        except:
-            i = 1
-        crval = s[0].header['CRVAL{0:d}'.format(i)]
-        cdii  = s[0].header['CD{0:d}_{0:d}'.format(i)]
-        crpix = s[0].header['CRPIX{0:d}'.format(i)]
+            ctype = s[0].header['CTYPE{0:d}'.format(i)]
+            crval = s[0].header['CRVAL{0:d}'.format(i)]
+            crval = s[0].header['CRVAL{0:d}'.format(i)]
+            cdii  = s[0].header['CD{0:d}_{0:d}'.format(i)]
+            crpix = s[0].header['CRPIX{0:d}'.format(i)]
+        except KeyError:
+            return
         if ctype=="LINEAR":
             l = np.array(range(1,len(self.data)+1))
             self.dispersion = crval + cdii*(l-crpix)
