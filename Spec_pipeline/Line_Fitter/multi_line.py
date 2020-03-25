@@ -235,8 +235,8 @@ class Multi_Line_fit(Line_fit):
         #For the dispersion do 3 sigma clipping. Should not do less than about 500 realizations.
         N = np.zeros(self.nlines)*S.unit
         for k in range(self.nlines):
-            N_low, N_hig = MC.get_error(self.line_flux(MC=True)[k],self.line_flux()[k])
-            N2_low, N2_hig = MC.get_error(self.line_flux(MC=True)[k],self.line_flux()[k],cf=95.4)
+            N_low, N_hig = get_error(self.line_flux(MC=True)[k],self.line_flux()[k])
+            N2_low, N2_hig = get_error(self.line_flux(MC=True)[k],self.line_flux()[k],cf=95.4)
             N = N2_low-N_low
         return (S/N).to(1.)
 
