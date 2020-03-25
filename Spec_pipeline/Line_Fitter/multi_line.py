@@ -553,6 +553,7 @@ class Multi_Line_fit(Line_fit):
         print_output += "{0:10s} {1:10s} {2:10s} {3:10s} ".format("dv", "flam_line", "FWHM_v", "lam_cen")
         if MC:
             print_output += "{0:10s} ".format("SNR")
+            print_output += "{0:10s} ".format("SNR_wing")
             print_output += "{0:14s} {1:14s} ".format("dv_low","dv_hig")
             print_output += "{0:14s} {1:14s} ".format( "flam_line_low", "flam_line_hig")
             print_output += "{0:14s} {1:14s} ".format( "FWHM_v_low", "FWHM_v_hig")
