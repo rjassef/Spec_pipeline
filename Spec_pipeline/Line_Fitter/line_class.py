@@ -7,7 +7,8 @@ from scipy.special import betainc
 from astropy.constants import c
 
 from . import MC_errors_general as MC
-from . import fit_general as fit
+#from . import fit_general as fit
+from . import new_fit_general as fit
 from . import plot_fit
 
 class Line_fit(object):

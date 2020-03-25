@@ -6,7 +6,8 @@ from functools import partial
 import copy
 import psutil
 
-from . import fit_general as fit
+#from . import fit_general as fit
+from . import new_fit_general as fit
 
 ####
 
