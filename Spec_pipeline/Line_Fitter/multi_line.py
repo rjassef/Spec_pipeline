@@ -222,6 +222,24 @@ class Multi_Line_fit(Line_fit):
         N = sigma_clipped_stats(self.line_flux(MC=True),axis=1)[2]
         return (S/N).to(1.)
 
+    #This implementation, instead of doing sigma clipping, estimates the noise using the steepness of the wings. Specifically, the noise is calculated as the 95.4% range - 68.3% range. For a Gaussian distribution, this should be equal to sigma.
+    @property
+    def line_SNR_wing(self):
+        #Can only run if an MC chain exists.
+        if self.MC_chain is None:
+            print("Need to run an MC first")
+            return None
+
+        #Get the line fluxes and their dispersion (used as noise).
+        S = self.line_flux()
+        #For the dispersion do 3 sigma clipping. Should not do less than about 500 realizations.
+        N = np.zeros(self.nlines)*S.unit
+        for k in range(self.nlines):
+            N_low, N_hig = MC.get_error(self.line_flux(MC=True)[k],self.line_flux()[k])
+            N2_low, N2_hig = MC.get_error(self.line_flux(MC=True)[k],self.line_flux()[k],cf=95.4)
+            N = N2_low-N_low
+        return (S/N).to(1.)
+
     #Line flux or fluxes, depending on the case.
     def line_flux(self,x_line=None,chain_output=None,MC=False):
 
@@ -554,6 +572,7 @@ class Multi_Line_fit(Line_fit):
             print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f}".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]) )
             if MC:
                 print_output += "{0:10.3e} ".format(self.line_SNR[i])
+                print_output += "{0:10.3e} ".format(self.line_SNR_wing[i])
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.dv_low[i].value, self.dv_hig[i].value)
                 print_output += "{0:14.3e} {1:14.3e} ".format( self.flam_line_low[i].value,self.flam_line_hig[i].value)
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.FWHM_v_low[i].value, self.FWHM_v_hig[i].value)
