@@ -2,12 +2,15 @@
 
 - Include Halpha+NII. This is difficult, as there are really four components to keep track of: the two NII lines, narrow Halpha and broad Halpha. I guess we could just do a single Gaussian each with the correct NII ratio, and just assume a single Halpha. The width of NII would need to be limited to 1000 km/s, but not the width Halpha, to accommodate an offset broad Halpha emission.
 
-
 - Add IGM absorption. A test version of this already implemented in the test fit module in the LRIS folder.
+
+- Include instrumental resolution in line widths.
 
 - Further in the future: could try to incorporate SPAMM into the mix to use all of those models and fit all (broad+narrow) lines simultaneously, the continuum and the iron emission.
 
-- Include instrumental resolution in line widths.
+- Implement DEIMOS reading module.
+
+- Change the rebin_spec code to not depend on pysynphot. It is the only place where that is used and it makes the load times slower and the code less portable.
 
 ####
 
@@ -76,4 +79,4 @@ Done
 
 - Modify the fitting function to fit continuum and emission line simultaneously (take it from the test fit module in LRIS folder.) DONE
 
-- Add the second way of measuring the SNR. DONE 
+- Add the second way of measuring the SNR. DONE
