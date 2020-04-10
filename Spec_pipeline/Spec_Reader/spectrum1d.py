@@ -3,9 +3,10 @@ import astropy.units as u
 from astropy.constants import c
 from astropy.io import fits
 import re
+import sys
 
 def read_fits_spectrum1d(file_name,
-                         dispersion_unit=u.dimensionless_unscaled,
+                         dispersion_unit=None, #u.dimensionless_unscaled,
                          flux_unit = None):
 
     try:
@@ -44,11 +45,13 @@ def read_fits_spectrum1d(file_name,
 
 class spectrum1d(object):
 
-    def __init__(self,multi_index,s,_dispersion_unit,_flux_unit):
+    def __init__(self,multi_index,s,dispersion_unit,flux_unit=None):
         self.data = None
         self.dispersion = None
-        self.dispersion_unit = _dispersion_unit
-        self.unit = _flux_unit
+        self.dispersion_unit = dispersion_unit
+        self.native_dispersion_unit = None
+        self.unit = flux_unit
+        self.native_unit = None
         self.header = None
         self.load_spec(multi_index,s)
 
@@ -78,6 +81,23 @@ class spectrum1d(object):
         #cdii  = s[0].header['CD{0:d}_{0:d}'.format(i)]
         #crpix = s[0].header['CRPIX{0:d}'.format(i)]
 
+        #Try reading the wavelength units from the header. If no units are found on the headers, assume that they native units are the units in which the output is requested. If no output units are requested, assume that the native units are requested.
+        try:
+            wav_unit = re.search("units=([^\s]*)",s[0].header['WAT1_001'])[1]
+            if wav_unit=="angstroms":
+                wav_unit = "Angstrom"
+            self.native_dispersion_unit = u.Unit(wav_unit)
+            if self.dispersion_unit is None:
+                self.dispersion_unit = self.native_dispersion_unit
+        except (KeyError, ValueError):
+            if self.dispersion_unit is not None:
+                self.native_dispersion_unit = self.dispersion_unit
+            else:
+                print("No WAT1_001 in headers and no output dispersion units provided.")
+                print("Using dimensionless_unscaled")
+                self.dispersion_unit = u.dimensionless_unscaled
+                self.native_dispersion_unit = u.dimensionless_unscaled
+
         #Instead of doing the hack above, this is probably more correct. Try to load all of the header values needed, and if any of them fail, then do not load anything.
         try:
             ctype = s[0].header['CTYPE{0:d}'.format(i)]
@@ -90,11 +110,28 @@ class spectrum1d(object):
         if ctype=="LINEAR":
             l = np.array(range(1,len(self.data)+1))
             self.dispersion = crval + cdii*(l-crpix)
-            self.dispersion = self.dispersion*self.dispersion_unit
+            self.dispersion = self.dispersion*self.native_dispersion_unit
+            self.dispersion = self.dispersion.to(self.dispersion_unit)
         else:
             print("Unknown CTYPE {0:s}".format(ctype))
 
-        #Finally, setup the units if there.
-        self.unit = u.Unit(s[0].header['BUNIT'])
+        #Finally, setup the flux units. If there are any in headers, do not assign any native units. If no requested units, then set the requested output units to the native flux units.
+        try:
+            self.native_unit = u.Unit(s[0].header['BUNIT'])
+        except KeyError:
+            print("No BUNIT in headers and no flux units provided.")
+            print("Using dimensionless_unscaled")
+            self.native_unit = u.dimensionless_unscaled
+
+        if self.unit is None:
+            self.unit = self.native_unit
+
+        #Check if units are equivalent. If they are, apply conversion factor if any. If not, crash.
+        try:
+            self.data *= self.native_unit.to(self.unit)
+        except u.UnitConversionError:
+            print("Error: Flux units requested not equivalent to flux units in header.")
+            sys.exit()
+
 
         return
