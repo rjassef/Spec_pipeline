@@ -50,3 +50,5 @@ LyA_NVred  2	1215.67    1240.81	0	0	-1      5000.  1260.   1360.
 #13 Line2-Line3 Fixed ratio: <0=no, any other number is the flux ratio.
 #14 Velocity region for the fit (km/s)
 #15 Continuum region(s) (AA)
+Ha_[NII]_[NII]        3  6562.8   6583.6   6548.1   0 0 1 0 0 1 -1 -1 2.96 10000. 6300. 6350. 6750. 6800.
+Ha_[NII]_[NII]_narrow 3  6562.8   6583.6   6548.1   1 1 1 1 1 1 -1 -1 2.96 10000. 6300. 6350. 6750. 6800.
