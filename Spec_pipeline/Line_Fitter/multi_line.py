@@ -145,29 +145,40 @@ class Multi_Line_fit(Line_fit):
     ###################
 
     #Complete model.
-    def flam_model(self,lam,x_line=None,x_cont=None,chain_output=None):
+    def flam_model(self,lam,x=None,chain_output=None):
 
         if chain_output is not None:
             x_line = chain_output[:,:self.npar_line].T
             x_cont = chain_output[:,self.npar_line:].T
-
-        if x_line is not None:
-            x_line_use = self.line_par_translator(x_line)
+        elif x is not None:
+            x_line = x[:self.npar_line]
+            x_cont = x[self.npar_line:]
         else:
-            x_line_use = None
+            x_line = None
+            x_cont = None
 
         flam_model = self.flam_cont_model(lam,x_cont)
-        for i in range(self.nlines):
-            flam_model += self.flam_line_model(lam,i,x_line_use)
+        flam_model += self.flam_line_model(lam,x_line)
 
         return flam_model
 
 
     #A Gaussian per line.
-    def flam_line_model(self,lam,i,x_line_use=None):
-        dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
-        v = c*(lam/self.line_center[i]-1.)
-        return flam_line * np.exp(-0.5*((v-dv)/sigma_v)**2)
+    def flam_line_model(self,lam,x_line=None):
+        x_line_use = None
+        if x_line is not None:
+            x_line_use = self.line_par_translator(x_line)
+
+        flam_line_model = None
+        for i in range(self.nlines):
+            dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
+            v = c*(lam/self.line_center[i]-1.)
+            if flam_line_model is None:
+                flam_line_model  = flam_line * np.exp(-0.5*((v-dv)/sigma_v)**2)
+            else:
+                flam_line_model += flam_line * np.exp(-0.5*((v-dv)/sigma_v)**2)
+
+        return flam_line_model
 
     #Continuum will be a straight line.
     def flam_cont_model(self,lam,x_cont=None):
@@ -261,6 +272,12 @@ class Multi_Line_fit(Line_fit):
     # Constraints
     #############
 
+    #Check if constraints are met.
+    def meet_constraints(self,x):
+        x_line = x[:self.npar_line]
+        x_cont = x[self.npar_line:]
+        return (self.meet_line_constraints(x_line) and self.meet_cont_constraints(x_cont))
+
     #Constraints on the continuum fit parameters.
     def meet_cont_constraints(self,x_cont):
         return True
@@ -306,6 +323,12 @@ class Multi_Line_fit(Line_fit):
     ##################
     # Index functions
     ##################
+
+    def get_i_fit(self,spec):
+        i_cont = self.get_i_cont(spec)
+        i_line = self.get_i_line(spec)
+        i_all  = np.unique(np.concatenate((i_cont,i_line)))
+        return i_all
 
     #This function is called to determine the indices of the spectrum
     #to be used for fitting the continuum.
@@ -389,6 +412,14 @@ class Multi_Line_fit(Line_fit):
     # Parameter setters. #
     ######################
 
+    def set_pars(self,x):
+        x_line = x[:self.npar_line]
+        x_cont = x[self.npar_line:]
+        self.set_line_pars(x_line)
+        self.set_cont_pars(x_cont)
+        return
+
+
     def set_line_pars(self,x_line):
 
         self.dv_fit        = np.zeros(self.nlines)*self.vunit
@@ -431,12 +462,6 @@ class Multi_Line_fit(Line_fit):
             if self.joint_dv[self.joint_dv[:,i]>0,i].size==0:
                 self.x0_line[k] = dv_0[i]
                 k+=1
-            # if self.joint_sigma[self.joint_sigma[:,i]>0,i].size==0:
-            #     self.x0_line[k] = flam_line_0[i]
-            #     k+=1
-            # if self.fixed_ratio[self.fixed_ratio[:,i]>0,i].size==0:
-            #     self.x0_line[k] = sigma_v_0[i]
-            #     k+=1
             if self.fixed_ratio[self.fixed_ratio[:,i]>0,i].size==0:
                 self.x0_line[k] = flam_line_0[i]
                 k+=1
@@ -444,14 +469,15 @@ class Multi_Line_fit(Line_fit):
                 self.x0_line[k] = sigma_v_0[i]
                 k+=1
 
-        #self.x0_cont = [1.,0.]
-
         i_cont = self.get_i_cont(spec)
         mean_cont = np.mean(spec.flam[i_cont]).to(self.flamunit)
         mean_lam  = np.mean(spec.lam_rest[i_cont]).to(self.waveunit)
         a0 = mean_cont.value/mean_lam.value
         b0 = 0.
         self.x0_cont = [a0,b0]
+
+        self.x0 = np.concatenate((self.x0_line,self.x0_cont))
+
         return
 
     def parse_chain_output(self,Output):

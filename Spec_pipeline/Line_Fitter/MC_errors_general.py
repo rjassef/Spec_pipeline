@@ -6,7 +6,6 @@ from functools import partial
 import copy
 import psutil
 
-#from . import fit_general as fit
 from . import new_fit_general as fit
 
 ####
@@ -62,12 +61,9 @@ def fit_func(spec, line_fitter, flam_resamp):
     for i in range(nrep_x):
         new_spec = copy.deepcopy(spec)
         new_spec.flam = flam_resamp[i]
-        x0_cont = line_fitter.xopt_cont
-        x0_line = line_fitter.xopt_line
-        xopt_line, xopt_cont = fit.fit(new_spec, line_fitter,
-                                       x0_cont=x0_cont,
-                                       x0_line=x0_line)
-        output[i,:] = np.concatenate((xopt_line, xopt_cont))
+        x0 = line_fitter.xopt
+        xopt = fit.fit(new_spec, line_fitter, x0=x0)
+        output[i,:] = xopt
         del new_spec
 
     return output
@@ -100,7 +96,5 @@ def MC_errors(nrep, spec, line_fitter,
 
     if save_chain is not None:
         np.savetxt(save_chain,Output)
-
-    #line_fitter.parse_chain_output(Output)
 
     return

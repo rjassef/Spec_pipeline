@@ -18,10 +18,8 @@ class Line_fit(object):
         self.default_spec = _default_spec
 
         #Fit arrays
-        self.x0_line = None
-        self.x0_cont = None
-        self.xopt_line = None
-        self.xopt_cont = None
+        self.x0 = None
+        self.xopt = None
 
         self.nlines = None
 
@@ -61,20 +59,19 @@ class Line_fit(object):
 
         #If no initial guesses have been set, set the default ones
         #here.
-        if self.x0_line is None or self.x0_cont is None:
+        if self.x0 is None:
             self.set_initial_fit_values(spec)
 
         #Run the fit.
-        self.xopt_line, self.xopt_cont = fit.fit(spec, self)
-        self.set_cont_pars(self.xopt_cont)
-        self.set_line_pars(self.xopt_line)
+        self.xopt = fit.fit(spec, self)
+        self.set_pars(self.xopt)
         return
 
     def run_MC(self,nrep,spec_use=None,Ncpu=None,save_chain=None):
         spec = self.get_spec_use(spec_use)
         if spec is None:
             return
-        if self.xopt_line is None:
+        if self.xopt is None:
             print("First run the line fit.")
             return
         MC.MC_errors(nrep, spec, self, Ncpu=Ncpu, save_chain=save_chain)
@@ -94,7 +91,7 @@ class Line_fit(object):
         if spec is None:
             return
 
-        if self.xopt_line is None:
+        if self.xopt is None:
             print("First fit the line")
             return
 
@@ -102,19 +99,12 @@ class Line_fit(object):
         iuse = self.get_i_line(spec)
 
         #With emission line.
-        self.chi2 = fit.chi2_line_fit(self.xopt_line,
-                                      spec, self,
-                                      iuse, self.xopt_cont,
-                                      check_constraints=False)
+        self.chi2 = fit.chi2_fit(self.xopt, spec, self, iuse, check_constraints=False)
 
         #Without emission line.
-        #x_noline = np.copy(self.xopt_line)
-        #x_noline[1] = 0.
-        x_noline = np.zeros(self.xopt_line.shape)
-        self.chi2_no_line = fit.chi2_line_fit(x_noline,
-                                              spec, self,
-                                              iuse, self.xopt_cont,
-                                              check_constraints=False)
+        x_noline = np.copy(self.xopt)
+        x_noline[:self.npar_line] = 0
+        self.chi2_no_line = fit.chi2_line_fit(x_noline, spec, self, iuse, check_constraints=False)
 
 
         #Get the degrees of freedom.
