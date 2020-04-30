@@ -23,6 +23,7 @@ class Line_fit(object):
         self.x0_cont = None
         self.xopt_line = None
         self.xopt_cont = None
+        self.xopt = None
 
         self.nlines = None
 
@@ -69,6 +70,7 @@ class Line_fit(object):
         self.xopt_line, self.xopt_cont = fit.fit(spec, self)
         self.set_cont_pars(self.xopt_cont)
         self.set_line_pars(self.xopt_line)
+        self.xopt = np.concatenate((self.xopt_line,self.xopt_cont))
         return
 
     def run_MC(self,nrep,spec_use=None,Ncpu=None,save_chain=None):
