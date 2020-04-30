@@ -1,7 +1,8 @@
-
 - Add IGM absorption. A test version of this already implemented in the test fit module in the LRIS folder.
 
 - Include instrumental resolution in line widths.
+
+- Remove the difference of continuum and non-continuum parameters from the line class and new_fit_general codes at let it be handled at the subclass level. This will provide flexibility needed for more complex line classes that can fit multiple lines simultaneously for example. Biggest complication is how to handle the F-test, but that should not be difficult, just pass all the parameters to both the continuum and the line modeling, and let those functions handle it from there. 
 
 - Further in the future: could try to incorporate SPAMM into the mix to use all of those models and fit all (broad+narrow) lines simultaneously, the continuum and the iron emission.
 
