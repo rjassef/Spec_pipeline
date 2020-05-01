@@ -32,6 +32,8 @@ class Line_fit(object):
         #MC Output chain
         self.MC_chain = None
 
+        return
+
     def get_spec_use(self,spec):
         if spec is None:
             if self.default_spec is None:
@@ -124,4 +126,34 @@ class Line_fit(object):
             nnu2 = float(nu)
             w = nnu1*self.F/(nnu1*self.F+nnu2)
             self.p = 1.-betainc(nnu1/2.,nnu2/2.,w)
+        return
+
+        ###
+        # In order for a subclass to work, a significant number of functions need to be defined within it. This function just checks that the subclass is ready to be used. Should only be called for debugging purposes.
+    def check_subclass_ready(self):
+
+        list_of_attibutes = [
+            'dv_fit',
+            'can_fit_be_run',
+            'set_initial_fit_values',
+            'set_pars',
+            'get_i_fit',
+            'get_i_line',
+            'get_i_cont',
+            'npar_fit',
+            'npar_line',
+            'meet_constraints',
+            'flam_model',
+            'flam_cont_model',
+            'parse_chain_output',
+            'ncont_reg',
+            'continuum_regions',
+            'flamunit'
+            ]
+
+        for att in list_of_attibutes:
+            try:
+                eval("self."+att)
+            except AttributeError as err:
+                print(err)
         return
