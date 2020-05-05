@@ -11,10 +11,10 @@ from .MC_errors_general import get_error
 
 #We will defferiate between broad and narrow emission lines. In this model, all narrow emission lines have the same width and systemic velocity shift, while this can be different for each of the broad emission lines.
 
-class Complex_Line(Line_fit):
+class Complex_Line_fit(Line_fit):
 
-    def __init__(self, line_name, spec=None):
-        super(Complex_Line).__init__(line_name, spec)
+    def __init__(self, line_name=None, spec=None):
+        super(Complex_Line_fit,self).__init__(line_name, spec)
         self.multi_line = []
         self.ntot_lines = 0
         self.n_multilines = 0
@@ -44,9 +44,9 @@ class Complex_Line(Line_fit):
             continuum_regions = np.concatenate((continuum_regions,self.multi_line[i].continuum_regions))
         return continuum_regions
 
-    @propety
+    @property
     def ncont_reg(self):
-        return len(continuum_regions)
+        return len(self.continuum_regions)
 
     def add_line(self,line_name,width_type=None):
 
@@ -56,14 +56,15 @@ class Complex_Line(Line_fit):
 
         #If broad, FWHM>=1000 km/s. If narrow, FWHM<=1000 km/s
         if width_type == 'broad':
-            self.multi_line[-1].sigma_v_min = 1000.*self.vunit /(2.*(2.*np.log(2.))**0.5)
+            self.multi_line[-1].sigma_v_min = np.ones(self.multi_line[-1].nlines)*1000.*self.vunit /(2.*(2.*np.log(2.))**0.5)
         elif width_type == 'narrow':
-            self.multi_line[-1].sigma_v_max = 1000.*self.vunit /(2.*(2.*np.log(2.))**0.5)
+            self.multi_line[-1].sigma_v_max = np.ones(self.multi_line[-1].nlines)*1000.*self.vunit /(2.*(2.*np.log(2.))**0.5)
+            self.multi_line[-1].sigma_v_0 = 300.*self.vunit
         elif width_type is not None:
             print("Unknown emission line type: ",width_type)
             print("Assuming full bounds for line ",line_name)
 
-        self.ntot_lines += multi_line[-1].nlines
+        self.ntot_lines += self.multi_line[-1].nlines
         self.n_multilines += 1
 
         return
@@ -119,7 +120,7 @@ class Complex_Line(Line_fit):
     # Continuum Model
 
     #For now, we define a linear continuum.
-    def flam_cont_model(lam,x_cont=None):
+    def flam_cont_model(self,lam,x_cont=None):
         a, b = self.cont_par_parser(x_cont)
         return a*lam+b
 
@@ -138,7 +139,8 @@ class Complex_Line(Line_fit):
         mean_lam  = np.mean(spec.lam_rest[i_cont]).to(self.waveunit)
         a0 = mean_cont.value/mean_lam.value
         b0 = 0.
-        self.x0_cont = [a0,b0]
+        x0_cont = [a0,b0]
+        return x0_cont
 
     @property
     def npar_cont(self):
@@ -169,24 +171,32 @@ class Complex_Line(Line_fit):
 
     def flam_line_model(self,lam,x_line=None):
 
+        if x_line is None:
+            x_line = self.xopt
+
         #Note that n_multilines counts the number of Multi_Line_fit objects, but each of those can be composed of more than 1 line.
         j1=0
-        flam_line_model = np.zeros(self.ntot_lines)*self.flamunit
-        dv_narrow = None #We'll set it to the width of the first narrow line.
+        flam_line_model = np.zeros((self.ntot_lines,len(lam)))*self.flamunit
+        sigma_v_narrow = None #We'll set it to the width of the first narrow line.
+        dv_narrow = None
         j1 = 0
-        for k,line in enumerate(self.multi_line):
+        k  = 0
+        for line in self.multi_line:
             j0=j1
             j1+=line.npar_line
             x_line_use = line.line_par_translator(x_line[j0:j1])
             for i in range(line.nlines):
                 dv, flam_line, sigma_v = line.line_par_parser(i,x_line_use)
                 if line.width_type == "narrow":
-                    if dv_narrow is not None:
-                        dv = dv_narrow
+                    if sigma_v_narrow is not None:
+                        sigma_v = sigma_v_narrow
+                        dv      = dv_narrow
                     else:
-                        dv_narrow = dv
+                        sigma_v_narrow = sigma_v
+                        dv_narrow      = dv
                 v = c*(lam/line.line_center[i]-1.)
-                flam_line_model[k+i] = flam_line * np.exp(-0.5*((v-dv)/sigma_v)**2)
+                flam_line_model[k] = flam_line * np.exp(-0.5*((v-dv)/sigma_v)**2)
+                k+=1
         return np.sum(flam_line_model,axis=0)
 
     def lines_initial_fit_values(self,spec):
@@ -210,27 +220,39 @@ class Complex_Line(Line_fit):
         self.sigma_v_fit   = np.zeros(self.ntot_lines)*self.vunit
 
         j1 = 0
-        for k,line in enumerate(self.multi_line):
+        k  = 0
+        sigma_v_narrow = None
+        dv_narrow = None
+        for line in self.multi_line:
             j0=j1
             j1+=line.npar_line
             x_line_use = line.line_par_translator(x_line[j0:j1])
             for i in range(line.nlines):
                 dv, flam_line, sigma_v = line.line_par_parser(i,x_line_use)
-                self.dv_fit[k+i] = dv
-                self.flam_line_fit[k+i] = flam_line
-                self.sigma_v_fit[k+i] = sigma_v
+                if line.width_type == "narrow":
+                    if sigma_v_narrow is not None:
+                        sigma_v = sigma_v_narrow
+                        dv      = dv_narrow
+                    else:
+                        sigma_v_narrow = sigma_v
+                        dv_narrow      = dv
+                self.dv_fit[k] = dv
+                self.flam_line_fit[k] = flam_line
+                self.sigma_v_fit[k] = sigma_v
+                k+=1
 
         return
 
     def get_i_line(self,spec):
         i_all = self.multi_line[0].get_i_line(spec)
         for i in range(1,self.n_multilines):
-            i_all = np.concat((i_all,self.multi_line[i].get_i_line(spec)))
+            i_all = np.concatenate((i_all,self.multi_line[i].get_i_line(spec)))
         return np.unique(i_all)
 
     def meet_line_constraints(self,x_line):
         j1=0
-        dv_narrow = None
+        sigma_v_narrow = None
+        dv_narrow      = None
         for k,line in enumerate(self.multi_line):
             j0=j1
             j1+=line.npar_line
@@ -238,10 +260,12 @@ class Complex_Line(Line_fit):
             for i in range(line.nlines):
                 dv, flam_line, sigma_v = line.line_par_parser(i,x_line_use)
                 if line.width_type == "narrow":
-                    if dv_narrow is not None:
-                        dv = dv_narrow
+                    if sigma_v_narrow is not None:
+                        sigma_v = sigma_v_narrow
+                        dv      = dv_narrow
                     else:
-                        dv_narrow = dv
+                        sigma_v_narrow = sigma_v
+                        dv_narrow      = dv
 
                 #Do no allow huge shifts on the line centers
                 if np.abs(dv)>line.dv_max[i]:
