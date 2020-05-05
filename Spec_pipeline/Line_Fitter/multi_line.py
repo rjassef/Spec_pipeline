@@ -88,8 +88,13 @@ class Multi_Line_fit(Line_fit):
 
         #Set the default constraints for the fitting.
         self.dv_max      = np.ones(self.nlines)*500.*u.km/u.s
-        self.sigma_v_min = np.ones(self.nlines)*100.*u.km/u.s
         self.sigma_v_max = np.ones(self.nlines)*5000.*u.km/u.s
+
+        #If default spectrum has been defined, then we should use its resolution to set sigma_v_min.
+        if spec is not None and spec.sigma_res is not None:
+            self.sigma_v_min = (spec.sigma_res/(self.line_center*(1+spec.zspec))* c).to(self.vunit)
+        else:
+            self.sigma_v_min = np.ones(self.nlines)*100.*u.km/u.s
 
         return
 
