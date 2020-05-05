@@ -51,7 +51,7 @@ class Complex_Line_fit(Line_fit):
     def add_line(self,line_name,width_type=None):
 
         #Setup the emission line.
-        self.multi_line.append(Multi_Line_fit(line_name))
+        self.multi_line.append(Multi_Line_fit(line_name,spec=self.default_spec))
         self.multi_line[-1].width_type = width_type
 
         #If broad, FWHM>=1000 km/s. If narrow, FWHM<=1000 km/s
