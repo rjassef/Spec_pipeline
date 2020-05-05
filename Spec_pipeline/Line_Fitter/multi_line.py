@@ -444,41 +444,47 @@ class Multi_Line_fit(Line_fit):
         if not self.can_fit_be_run(spec,verbose=False):
             return
 
+        self.x0_line = self.lines_initial_fit_values(spec)
+        self.x0_cont = self.cont_initial_fit_values(spec)
+
+        self.x0 = np.concatenate((self.x0_line,self.x0_cont))
+
+        return
+
+    def lines_initial_fit_values(self,spec):
+
         #Set up the initial values.
         dv_0      = np.zeros(self.nlines) #km/s
         sigma_v_0 = 1000.*np.ones(self.nlines) #km/s
 
         flam_line_0 = np.zeros(self.nlines)
         for i in range(self.nlines):
-            aux = np.max(
-                spec.flam[np.abs(spec.lam_rest-self.line_center[i])<3*u.AA]
-            )*0.5
+            aux = np.max(spec.flam[np.abs(spec.lam_rest-self.line_center[i])<3*u.AA])*0.5
             flam_line_0[i] = aux.value
 
-        self.x0_line = np.zeros(self.npar_line)
-        self.x0_line[:3] = [dv_0[0], flam_line_0[0], sigma_v_0[0]]
+        x0_line = np.zeros(self.npar_line)
+        x0_line[:3] = [dv_0[0], flam_line_0[0], sigma_v_0[0]]
         k = 3
         for i in range(1,self.nlines):
             if self.joint_dv[self.joint_dv[:,i]>0,i].size==0:
-                self.x0_line[k] = dv_0[i]
+                x0_line[k] = dv_0[i]
                 k+=1
             if self.fixed_ratio[self.fixed_ratio[:,i]>0,i].size==0:
-                self.x0_line[k] = flam_line_0[i]
+                x0_line[k] = flam_line_0[i]
                 k+=1
             if self.joint_sigma[self.joint_sigma[:,i]>0,i].size==0:
-                self.x0_line[k] = sigma_v_0[i]
+                x0_line[k] = sigma_v_0[i]
                 k+=1
+        return x0_line
 
+    def cont_initial_fit_values(self,spec):
         i_cont = self.get_i_cont(spec)
         mean_cont = np.mean(spec.flam[i_cont]).to(self.flamunit)
         mean_lam  = np.mean(spec.lam_rest[i_cont]).to(self.waveunit)
         a0 = mean_cont.value/mean_lam.value
         b0 = 0.
-        self.x0_cont = [a0,b0]
-
-        self.x0 = np.concatenate((self.x0_line,self.x0_cont))
-
-        return
+        x0_cont = [a0,b0]
+        return x0_cont
 
     def parse_chain_output(self,Output):
 
