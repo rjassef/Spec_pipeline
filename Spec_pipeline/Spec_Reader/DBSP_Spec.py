@@ -151,7 +151,7 @@ Args:
 
         #Close the fits file.
         ff.close()
-        
+
         return
 
     @property
@@ -198,3 +198,22 @@ Args:
         self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
 
         return
+
+    #For DBSP we always used the same setup: 600/4000 in the blue side, and 316/7150 in the red. Almost all observations were obtained after the red CCD was changed in 2017. We use the numbers here: https://www.astro.caltech.edu/palomar/observer/200inchResources/dbspoverview.html#grating . We'll assume that the dispersion numbers quoted are the FWHM (like for LRIS) and we'll assume a 1" slit, the same as we did for LRIS.
+    @property
+    def sigma_res(self):
+
+        slit_size = 1.0*u.arcsec
+
+        if self.blue:
+            res = 71.*u.AA/u.mm
+            pixel_size = 15*u.micron
+            plate_scale = 0.389*u.arcsec#/pixel
+        else:
+            res = 102 * u.AA/u.mm
+            pixel_size = 15*u.micron
+            plate_scale = 0.293*u.arcsec#/pixel
+
+        FWHM_res = (slit/plate_scale)*pixel_size * res
+        sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
+        return sigma_res.to(u.AA)

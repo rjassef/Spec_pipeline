@@ -212,3 +212,35 @@ Args:
         self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
 
         return
+
+
+    #Resolutions, taken from https://www2.keck.hawaii.edu/inst/lris/dispersive_elements.html. We'll assume the value for a 1" slit. We typically used larger ones, but the seeing was probably not much larger than 1". We will also take the minimum value, as this is meant to put a minimum limit in the velocity  widths.
+    @property
+    def sigma_res(self):
+        
+        if self.blue:
+            if self.grism=="B300":
+                FWHM_res = 8.4*u.AA
+            elif self.grism=="B400":
+                FWHM_res = 6.5*u.AA
+            elif self.grism=="B600":
+                FWHM_res = 3.8*u.AA
+            elif self.grism=="B1200":
+                FWHM_res = 1.56*u.AA
+            else:
+                return None
+
+        elif self.red:
+            if self.grating=="R300":
+                FWHM_res = 9.18*u.AA
+            elif self.grating=="R400":
+                FWHM_res = 6.9*u.AA
+            elif self.grating=="R600":
+                FWHM_res = 4.7*u.AA
+            else:
+                return None
+        else:
+            return None
+
+        sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
+        return sigma_res

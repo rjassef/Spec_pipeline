@@ -91,3 +91,17 @@ Args:
         self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
 
         return
+
+    #Values taken from https://www.gemini.edu/instrumentation/gmos/components#Gratings. We will assume the resolutions at the blaze. Note that those resolving powers are for a 0.5" slit. As with other instruments, we will assume a 1" slit (so we just multiply by 2). As with DBSP, we'll assume that it is the FWHM
+    @property
+    def sigma_res(self):
+
+        if self.grname=="B600":
+            FWHM_res = 4160./1688. * u.AA * 2.
+        elif self.grname=="R400":
+            FWHM_res = 7640./1918. * u.AA * 2.
+        else:
+            return None
+            
+        sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
+        return sigma_res
