@@ -23,6 +23,9 @@ class Multi_Line_fit(Line_fit):
         self.waveunit = u.AA
         self.vunit    = u.km/u.s
 
+        #Initial default guess value for line widths
+        self.sigma_v_0 = 1000. * self.vunit
+
         #Search the list for the line in question.
         if lines_file is None:
             lines_file = os.environ['SPEC_PIPE_LOC']+\
@@ -455,7 +458,7 @@ class Multi_Line_fit(Line_fit):
 
         #Set up the initial values.
         dv_0      = np.zeros(self.nlines) #km/s
-        sigma_v_0 = 1000.*np.ones(self.nlines) #km/s
+        sigma_v_0 = self.sigma_v_0.to(u.km/u.s).value*np.ones(self.nlines) #km/s
 
         flam_line_0 = np.zeros(self.nlines)
         for i in range(self.nlines):
