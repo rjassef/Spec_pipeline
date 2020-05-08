@@ -105,7 +105,8 @@ class spectrum1d(object):
             crval = s[0].header['CRVAL{0:d}'.format(i)]
             cdii  = s[0].header['CD{0:d}_{0:d}'.format(i)]
             crpix = s[0].header['CRPIX{0:d}'.format(i)]
-        except KeyError:
+        except KeyError as err:
+            print(err)
             return
         if ctype=="LINEAR":
             l = np.array(range(1,len(self.data)+1))
