@@ -102,7 +102,6 @@ class spectrum1d(object):
         try:
             ctype = s[0].header['CTYPE{0:d}'.format(i)]
             crval = s[0].header['CRVAL{0:d}'.format(i)]
-            crval = s[0].header['CRVAL{0:d}'.format(i)]
             cdii  = s[0].header['CD{0:d}_{0:d}'.format(i)]
             crpix = s[0].header['CRPIX{0:d}'.format(i)]
         except KeyError as err:
