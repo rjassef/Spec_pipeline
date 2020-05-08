@@ -47,7 +47,8 @@ class Line_fit(object):
         spec = self.get_spec_use(spec_use)
         if spec is None:
             return
-        return spec.zspec+self.dv_fit/c
+        #return spec.zspec+self.dv_fit/c
+        return (1+spec.zspec)*(1+self.dv_fit/c)-1
 
     def run_fit(self, spec_use=None):
 
