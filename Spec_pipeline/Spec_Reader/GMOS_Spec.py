@@ -32,8 +32,8 @@ Args:
 
    """
 
-    def __init__(self,_name,_zspec,_fits_files,_grname):
-        super(GMOS_Spec,self).__init__(_name,_zspec,_fits_files)
+    def __init__(self,_name,_zspec,_fits_files,_grname,show_err_plot=False):
+        super(GMOS_Spec,self).__init__(_name,_zspec,_fits_files,show_err_plot=show_err_plot)
         self.grname = _grname
         self.RT   = 4.0*u.m #Telescope radius.
         self.instrument = "GMOS"
@@ -102,6 +102,6 @@ Args:
             FWHM_res = 7640./1918. * u.AA * 2.
         else:
             return None
-            
+
         sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
         return sigma_res

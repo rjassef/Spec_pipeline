@@ -43,8 +43,8 @@ Args:
    """
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False):
-        super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files,_line_center)
+                 blue=False,red=False,show_err_plot=False):
+        super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
         self.RT   = 2.5*u.m #Telescope radius.
         self.instrument = "DBSP"
         self.blue = blue

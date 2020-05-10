@@ -43,8 +43,8 @@ Args:
    """
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False):
-        super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center)
+                 blue=False,red=False,show_err_plot=False):
+        super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
         self.RT   = 5.0*u.m #Telescope radius.
         self.instrument = "LRIS"
         self.blue = blue
@@ -217,7 +217,7 @@ Args:
     #Resolutions, taken from https://www2.keck.hawaii.edu/inst/lris/dispersive_elements.html. We'll assume the value for a 1" slit. We typically used larger ones, but the seeing was probably not much larger than 1". We will also take the minimum value, as this is meant to put a minimum limit in the velocity  widths.
     @property
     def sigma_res(self):
-        
+
         if self.blue:
             if self.grism=="B300":
                 FWHM_res = 8.4*u.AA

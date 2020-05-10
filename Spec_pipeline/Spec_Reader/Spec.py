@@ -11,7 +11,7 @@ from .obtain_error_spectrum import get_error_spec
 
 class Spec(object):
 
-    def __init__(self,_name,_zspec,_fits_files=None,_line_center=None):
+    def __init__(self,_name,_zspec,_fits_files=None,_line_center=None,show_err_plot=False):
         self.RT   = None
         self.instrument = None
         self.name  = _name
@@ -27,6 +27,7 @@ class Spec(object):
         self.K2 = None
         self.data_prefix = "data/"
         self.save_err = True
+        self.show_err_plot=show_err_plot
 
     @property
     def lam_rest(self):
@@ -66,7 +67,7 @@ class Spec(object):
             cat.close()
         except IOError:
             self._flam_err, self.K1, self.K2 = \
-                                               get_error_spec(self,wd=15)
+                                               get_error_spec(self,wd=15,show_plot=self.show_err_plot)
             if self.save_err:
                 np.savetxt(self.data_prefix+"/"+self.spec_err_name,
                            np.array([self.lam_obs,
