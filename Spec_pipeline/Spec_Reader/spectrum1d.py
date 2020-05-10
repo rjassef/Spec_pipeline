@@ -4,6 +4,7 @@ from astropy.constants import c
 from astropy.io import fits
 import re
 import sys
+from warnings import warn
 
 def read_fits_spectrum1d(file_name,
                          dispersion_unit=None, #u.dimensionless_unscaled,
@@ -72,14 +73,6 @@ class spectrum1d(object):
             i = multi_index[0]+1
         else:
             i = 1
-        #ctype = s[0].header['CTYPE{0:d}'.format(i)]
-        #try:
-        #    s[0].header['CRVAL{0:d}'.format(i)]
-        #except:
-        #    i = 1
-        #crval = s[0].header['CRVAL{0:d}'.format(i)]
-        #cdii  = s[0].header['CD{0:d}_{0:d}'.format(i)]
-        #crpix = s[0].header['CRPIX{0:d}'.format(i)]
 
         #Try reading the wavelength units from the header. If no units are found on the headers, assume that they native units are the units in which the output is requested. If no output units are requested, assume that the native units are requested.
         try:
@@ -104,8 +97,8 @@ class spectrum1d(object):
             crval = s[0].header['CRVAL{0:d}'.format(i)]
             cdii  = s[0].header['CD{0:d}_{0:d}'.format(i)]
             crpix = s[0].header['CRPIX{0:d}'.format(i)]
-        except KeyError as err:
-            print(err)
+        except KeyError:
+            warn("Could not read WCS headers for axis {0:d}".format(i))
             return
         if ctype=="LINEAR":
             l = np.array(range(1,len(self.data)+1))
