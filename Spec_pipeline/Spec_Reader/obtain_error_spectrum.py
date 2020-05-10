@@ -81,6 +81,12 @@ def smooth_errors(lam,flam,flam_sky,sens,wd):
 
 ###
 
+def flam_std_func(K1,K2,flam,flam_sky,RON,eps):
+    #return np.sqrt( K1*eps*(flam+K2*flam_sky) + RON**2 ) / (K1*eps)
+    return np.sqrt( K1*eps*(np.abs(flam)+K2*flam_sky) + RON**2 ) / (K1*eps)
+
+###
+
 def S_func(x,flam,flam_std,flam_sky,eps,RON):
 
     K1 = x[0]
@@ -89,7 +95,9 @@ def S_func(x,flam,flam_std,flam_sky,eps,RON):
     if K1<0. or K2<0.:
         return np.inf
 
-    flam_std_mod = np.sqrt( K1*eps*(flam+K2*flam_sky) + RON**2 ) / (K1*eps)
+    #flam_std_mod = K3*np.sqrt( K1*eps*(np.abs(flam)+K2*flam_sky) + RON**2 ) / (K1*eps)
+    flam_std_mod = flam_std_func(K1,K2,flam,flam_sky,RON,eps)
+    flam_std_mod.to(flam_std.unit)
 
     S = np.sum((flam_std-flam_std_mod)**2).value
     return S
@@ -97,27 +105,30 @@ def S_func(x,flam,flam_std,flam_sky,eps,RON):
 
 ###
 
-def get_error_pars(flam,SN_lam,flam_sky,eps,RON):
+def get_error_pars(flam,flam_std,flam_sky,eps,RON):
 
     #Both K1 and K2 should be around 1.0
     #K1_0 = 1e-3
     #K2_0 = 1e-3
-    K1_0 = 1.0
-    K2_0 = 1e-3
+    K1_0 = 1.0 #0.1
+    K2_0 = 1.e-3
     x0 = np.array([K1_0, K2_0])
-    xopt = fmin(S_func,x0  ,args=(flam,SN_lam,flam_sky,eps,RON),
+    #xopt = fmin(S_func,x0  ,args=(flam,flam_std,flam_sky,eps,RON))#,
+                                  #disp=False)
+    #xopt = fmin(S_func,xopt,args=(flam,flam_std,flam_sky,eps,RON))#,
+                                  #disp=False)
+    xopt = fmin(S_func,x0  ,args=(flam*eps,flam_std*eps,flam_sky*eps,1.0,RON),
                                   disp=False)
-    xopt = fmin(S_func,xopt,args=(flam,SN_lam,flam_sky,eps,RON),
+    xopt = fmin(S_func,xopt,args=(flam*eps,flam_std*eps,flam_sky*eps,1.0,RON),
                                   disp=False)
 
     K1 = xopt[0]
     K2 = xopt[1]
-
     return K1, K2
 
 ###
 
-def get_error_spec(spec, wd=15):
+def get_error_spec(spec, wd=15, show_plot=False):
 
     #Calculate the rolling mean and std of the spectrum in a window of
     #wd pixels.
@@ -131,7 +142,7 @@ def get_error_spec(spec, wd=15):
     #For this exercise, we need to not consider the Lyalpha forrest
     #region. Real IGM absorption appears as noise and throws
     #everything off the board.
-    kuse = np.where(lam_meanx>1300.*u.AA*(1.+spec.zspec))
+    kuse = np.argwhere(lam_meanx>1300.*u.AA*(1.+spec.zspec))
     lam_mean = lam_meanx[kuse]
     flam_mean = flam_meanx[kuse]
     flam_std = flam_stdx[kuse]
@@ -149,8 +160,18 @@ def get_error_spec(spec, wd=15):
                             eps_use,spec.RON)
 
     #Get the error spectrum
-    flam_err = np.sqrt(K1*spec.eps()*(np.abs(spec.flam)+
-                                    K2*spec.flam_sky) +
-                       spec.RON**2)/(K1*spec.eps())
+    #flam_err = K3*np.sqrt(K1*spec.eps()*(np.abs(spec.flam)+
+    #                                K2*spec.flam_sky) +
+    #                   spec.RON**2)/(K1*spec.eps())
+    flam_err = flam_std_func(K1,K2,spec.flam,spec.flam_sky,spec.RON,spec.eps())
+
+    if show_plot:
+        flamunit = u.erg/u.s/u.cm**2/u.AA
+        plt.plot(lam_mean,flam_std.to(flamunit),'-b')
+        #flam_std_mod = K3*np.sqrt( K1*eps_use*(flam_mean+K2*flam_sky_mean) + spec.RON**2 ) / (K1*eps_use)
+        flam_std_mod = flam_std_func(K1,K2,flam_mean,flam_sky_mean,spec.RON,eps_use)
+        plt.plot(lam_mean,flam_std_mod.to(flamunit),'-k')
+        plt.plot(spec.lam_obs,flam_err.to(flamunit),'-r')
+        plt.show()
 
     return flam_err.to(u.erg/(u.s*u.cm**2*u.AA)), K1, K2
