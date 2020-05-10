@@ -1,3 +1,7 @@
+- When calculating the flux of an emission line for the S/N, we should only use the regions within the spectrum.
+
+- It seems that although the procedure to determine the uncertainties is working OK, it still fails in some cases. This might be an inherent problem, not quite sure what is the best way to proceed. 
+
 - Add IGM absorption. A test version of this already implemented in the test fit module in the LRIS folder.
 
 
