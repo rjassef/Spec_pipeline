@@ -107,7 +107,7 @@ class Line_fit(object):
         #Without emission line.
         x_noline = np.copy(self.xopt)
         x_noline[:self.npar_line] = 0
-        self.chi2_no_line = fit.chi2_line_fit(x_noline, spec, self, iuse, check_constraints=False)
+        self.chi2_no_line = fit.chi2_fit(x_noline, spec, self, iuse, check_constraints=False)
 
 
         #Get the degrees of freedom.
