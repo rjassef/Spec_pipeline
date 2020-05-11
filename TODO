@@ -1,6 +1,8 @@
 - When calculating the flux of an emission line for the S/N, we should only use the regions within the spectrum.
 
-- It seems that although the procedure to determine the uncertainties is working OK, it still fails in some cases. This might be an inherent problem, not quite sure what is the best way to proceed. 
+- Need to modify SNR_wing to measure the noise from the median of the MC distribution rather than from the best-fit value, at least in the case where one or more of the best-fit parameters are at the edge of their allowed values. In particular for FWHM, this can result in lines that do not have lower fluxes than the best-fit in the MC.  
+
+- It seems that although the procedure to determine the uncertainties is working OK, it still fails in some cases. This might be an inherent problem, not quite sure what is the best way to proceed. - Solved. The issue was that the calculation of the error spectrum considered the smoothed measured flux directly, which could include negative values (that gave a nan when taking the square root), and that was biasing the fitted error spectrum to be very low. I changed it to now consider the absolute value of the flux. This is better than simply disregarding the wavelength bins with a negative flux, as a negative flux must imply a significant uncertainty. At most, then, the error may become a bit too large, which is better than too small.
 
 - Add IGM absorption. A test version of this already implemented in the test fit module in the LRIS folder.
 
