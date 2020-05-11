@@ -112,8 +112,8 @@ class Line_fit(object):
 
         #Get the degrees of freedom.
         n_datapoints = len(iuse)
-        nu = n_datapoints - self.npar_line
-        nu_no_line = n_datapoints
+        nu = n_datapoints - self.npar_fit
+        nu_no_line = n_datapoints - (self.npar_fit-self.npar_line)
         chi2_nu = self.chi2/float(nu)
         chi2_no_line_nu = self.chi2_no_line/float(nu_no_line)
 
