@@ -105,9 +105,19 @@ class Line_fit(object):
         self.chi2 = fit.chi2_fit(self.xopt, spec, self, iuse, check_constraints=False)
 
         #Without emission line.
-        x_noline = np.copy(self.xopt)
-        x_noline[:self.npar_line] = 0
-        self.chi2_no_line = fit.chi2_fit(x_noline, spec, self, iuse, check_constraints=False)
+        self.chi2_no_line = np.zeros(self.nlines)
+        flam_line_fit_back = np.copy(self.flam_line_fit)
+        for i in range(self.nlines):
+            self.flam_line_fit[i] = 0*self.flamunit
+            flam_mod = self.flam_model(spec.lam_rest[iuse])
+            diff = spec.flam[iuse]-flam_mod
+            flam_err_use = spec.flam_err[iuse]
+            self.chi2_no_line[i] = np.sum((diff/flam_err_use)**2)
+            self.flam_line_fit[i] = flam_line_fit_back[i]
+
+        #x_noline = np.copy(self.xopt)
+        #x_noline[:self.npar_line] = 0
+        #self.chi2_no_line = fit.chi2_fit(x_noline, spec, self, iuse, check_constraints=False)
 
 
         #Get the degrees of freedom.
@@ -120,13 +130,15 @@ class Line_fit(object):
         self.F = ((self.chi2_no_line-self.chi2)/float(nu_no_line-nu)) / \
                  (self.chi2/float(nu))
         self.F = self.F.value
-        if self.F<0.:
-            self.p = 1.0
-        else:
-            nnu1 = float(nu_no_line-nu)
-            nnu2 = float(nu)
-            w = nnu1*self.F/(nnu1*self.F+nnu2)
-            self.p = 1.-betainc(nnu1/2.,nnu2/2.,w)
+        self.p = np.zeros(self.nlines)
+        for i in range(self.nlines):
+            if self.F[i]<0.:
+                self.p[i] = 1.0
+            else:
+                nnu1 = float(nu_no_line-nu)
+                nnu2 = float(nu)
+                w = nnu1*self.F[i]/(nnu1*self.F[i]+nnu2)
+                self.p[i] = 1.-betainc(nnu1/2.,nnu2/2.,w)
         return
 
         ###
@@ -149,7 +161,8 @@ class Line_fit(object):
             'parse_chain_output',
             'ncont_reg',
             'continuum_regions',
-            'flamunit'
+            'flamunit',
+            'nlines'
             ]
 
         for att in list_of_attibutes:

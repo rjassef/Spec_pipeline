@@ -577,7 +577,7 @@ class Multi_Line_fit(Line_fit):
     def print_header(self,MC=False):
         print_output = "{0:15s} {1:7s} ".format("Obj_ID","z_spec")
         print_output += "{0:10s} ".format("line_id")
-        print_output += "{0:10s} {1:10s} {2:10s} {3:10s} ".format("dv", "flam_line", "FWHM_v", "lam_cen")
+        print_output += "{0:10s} {1:10s} {2:10s} {3:10s} {4:10s} ".format("dv", "flam_line", "FWHM_v", "lam_cen", "p")
         if MC:
             print_output += "{0:10s} ".format("SNR")
             print_output += "{0:10s} ".format("SNR_wing")
@@ -590,6 +590,7 @@ class Multi_Line_fit(Line_fit):
 
     def print(self,spec_use=None,MC=False):
         spec = self.get_spec_use(spec_use)
+        self.run_Ftest()
         print_output = ""
         lname = self.line_name.split("_")
         if len(lname)<self.nlines:
@@ -597,7 +598,7 @@ class Multi_Line_fit(Line_fit):
         for i in range(self.nlines):
             print_output += "{0:15s} {1:7.3f} ".format(spec.name, spec.zspec)
             print_output += "{0:10s} ".format(lname[i])
-            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f}".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]) )
+            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f} {4:10.3f} ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]), self.p[i])
             if MC:
                 print_output += "{0:10.3e} ".format(self.line_SNR[i])
                 print_output += "{0:10.3e} ".format(self.line_SNR_wing[i])
