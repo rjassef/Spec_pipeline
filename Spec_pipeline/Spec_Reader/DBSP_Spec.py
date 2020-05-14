@@ -214,6 +214,6 @@ Args:
             pixel_size = 15*u.micron
             plate_scale = 0.293*u.arcsec#/pixel
 
-        FWHM_res = (slit/plate_scale)*pixel_size * res
+        FWHM_res = (slit_size/plate_scale)*pixel_size * res
         sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
         return sigma_res.to(u.AA)
