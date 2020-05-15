@@ -121,10 +121,22 @@ class spectrum1d(object):
 
         #Check if units are equivalent. If they are, apply conversion factor if any. If not, crash.
         try:
-            self.data *= self.native_unit.to(self.unit)
+            self.native_unit.to(self.unit)
         except u.UnitConversionError:
-            print("Error: Flux units requested not equivalent to flux units in header.")
-            sys.exit()
-
+            #Try to see if it is in flam and we are requesting fnu.
+            try:
+                self.native.to(self.unit*u.Hz/u.AA)
+                self.data *= self.dispersion**2/c
+                self.data *= self.data *= self.native_unit.to(self.unit)
+            except u.UnitConversionError:
+                #Try the opposite. Maybe we are asking for flam and it is in fnu.
+                try:
+                    self.native.to(self.unit*u.AA/u.Hz)
+                    self.data *= c/self.dispersion**2
+                    self.data *= self.data *= self.native_unit.to(self.unit)
+                except u.UnitConversionError:
+                    print("Error: Flux units requested not equivalent to flux units in header.")
+                    sys.exit()
+        self.data *= self.native_unit.to(self.unit)
 
         return
