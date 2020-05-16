@@ -54,6 +54,9 @@ class Complex_Line_fit(Line_fit):
         self.multi_line.append(Multi_Line_fit(line_name,spec=self.default_spec))
         self.multi_line[-1].width_type = width_type
 
+        #Replace its continuum model with the local one.
+        self.multi_line[-1].flam_cont_model = self.flam_cont_model
+
         #If broad, FWHM>=1000 km/s. If narrow, FWHM<=1000 km/s
         if width_type == 'broad':
             self.multi_line[-1].sigma_v_min = np.ones(self.multi_line[-1].nlines)*1000.*self.vunit /(2.*(2.*np.log(2.))**0.5)
@@ -148,6 +151,9 @@ class Complex_Line_fit(Line_fit):
 
     def set_cont_pars(self,x_cont):
         self.a, self.b = self.cont_par_parser(x_cont)
+        for line in self.multi_line:
+            line.set_cont_pars(x_cont)
+        return
 
     #This function is called to determine the indices of the spectrum
     #to be used for fitting the continuum.
@@ -226,6 +232,7 @@ class Complex_Line_fit(Line_fit):
         for line in self.multi_line:
             j0=j1
             j1+=line.npar_line
+            line.set_line_pars(x_line[j0:j1])
             x_line_use = line.line_par_translator(x_line[j0:j1])
             for i in range(line.nlines):
                 dv, flam_line, sigma_v = line.line_par_parser(i,x_line_use)
@@ -299,6 +306,13 @@ class Complex_Line_fit(Line_fit):
         for k,line in enumerate(self.multi_line):
             j0 = j1
             j1 += line.npar_line
+
+            #Set the Chain locally to each line and parse it.
+            indexes = np.concatenate([np.arange(j0,j1), np.arange(self.npar_line,self.npar_fit)])
+            line.MC_chain = self.MC_chain[:,indexes]
+            line.parse_chain_output(self.MC_chain[:,indexes])
+
+            #Now, parse the local chain here. Not sure this really needed though, but keeping it for lecgacy with older codes I think.
             x_line_use = line.line_par_translator(x_line[j0:j1])
             for i in range(line.nlines):
                 dv, flam_line, sigma_v = line.line_par_parser(i,x_line_use)
