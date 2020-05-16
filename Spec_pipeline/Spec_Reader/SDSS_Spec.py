@@ -50,3 +50,10 @@ Args:
     @property
     def flam_err(self):
         return self._flam_err.to(u.erg/(u.cm**2*u.s*u.AA))
+
+    #From http://www.sdss3.org/dr9/spectro/spectro_basics.php. Resolution is about 2.5A at 3800A and about 3.5 at 9000A. We'll just set it to 2.5A since the main goal is to just set a lower limit for sigma_v.
+    @property
+    def sigma_res(self):
+        FWHM_res = 2.5*u.AA
+        sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
+        return sigma_res
