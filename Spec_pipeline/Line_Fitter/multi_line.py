@@ -276,6 +276,32 @@ class Multi_Line_fit(Line_fit):
         flux = flux.to(u.erg/u.s/u.cm**2)
         return flux
 
+    #Note that this expression for the EW is only valid for cases in which the continuum is either constant with wavelength or antisymmetric around the peak wavelength (such as the case for the linear continuum used here).
+    def EW(self,x=None,chain_output=None,MC=False):
+
+        if MC:
+            chain_output = self.MC_chain
+
+        if chain_output is not None:
+            x_line = chain_output[:,:self.npar_line].T
+            x_cont = chain_output[:,self.npar_line:].T
+        elif x is not None:
+            x_line = x[:self.npar_line]
+            x_cont = x[self.npar_line:]
+        else:
+            x_line = None
+            x_cont = None
+
+        Fline = self.line_flux(x_line,chain_output=chain_output)
+        if chain_output is not None:
+            flam_cont = np.zeros((self.nlines,len(chain_output)))*self.flamunit
+        else:
+            flam_cont = np.zeros(self.nlines)*self.flamunit
+        lam_peak = self.line_center*(1+self.dv_fit/c)
+        for i in range(self.nlines):
+            flam_cont[i] = self.flam_cont_model(lam_peak[i],x_cont)
+        return (-Fline/flam_cont).to(self.waveunit)
+
     #############
     # Constraints
     #############
