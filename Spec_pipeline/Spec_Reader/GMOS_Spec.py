@@ -49,8 +49,28 @@ Args:
         spec = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_files[0],
                                     dispersion_unit=u.AA,
                                     flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
-        self.lam_obs = spec[0].dispersion
-        fnu = spec[0].data * spec[0].unit
+
+        #Find the grism and remove data outside the edges of the sensitivity curves.
+        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+                            "/Spec_pipeline/Sensitivity_Files/"+
+                            "Sens_GMOS_"+self.grname+".txt")
+        lam_sens = sens_temp[:,0]*u.AA
+        kuse = (spec[0].dispersion>np.min(lam_sens)) & \
+                (spec[0].dispersion<np.max(lam_sens))
+
+        #Finally, figure out the sky template edges and trim the spectrum to that limit.
+        sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+                              "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
+        lam_sky = sky_temp[:,0]*u.AA
+        kuse = (kuse) & (spec[0].dispersion>np.min(lam_sky)) & \
+                (spec[0].dispersion<np.max(lam_sky))
+
+        #Now, assign the wavelength and flux to the object.
+        self.lam_obs = spec[0].dispersion[kuse]
+        fnu = spec[0].data[kuse]*spec[0].unit
+
+        # self.lam_obs = spec[0].dispersion
+        # fnu = spec[0].data * spec[0].unit
 
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])#Mean lambda bin.
         self.texp = ff[0].header['EXPTIME']*u.s
