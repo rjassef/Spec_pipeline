@@ -149,13 +149,14 @@ Args:
 
         return
 
-    #While we don't have the correct sky template, we'll use the one from GMOS.
     @property
     def __flam_sky(self):
 
         #Read the template
         sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                              "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
+                              "/Spec_pipeline/Sky_Templates/template_sky_DEIMOS.dat")
+        #sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+        #                      "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
         lam_sky = sky_temp[:,0]*u.AA
         flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
 
