@@ -42,33 +42,33 @@ def proc_LRIS_red_sky(outname):
     #proc_LRIS_DBSP("sky_keck_r.w.txt",outname,D_t)
 
 def proc_LRIS_new(sky_name, outname):
-    
+
     #Units are fnu in erg/s/cm**2/Hz
-    
+
     sky = np.loadtxt(sky_name)
     lam_sky = sky[:,0]*u.AA
     fnu_sky = sky[:,1]*u.erg/u.s/u.cm**2/u.Hz
-    
+
     flam_sky = (fnu_sky*c/lam_sky**2).to(u.erg/u.s/u.cm**2/u.AA)
 
     np.savetxt(outname,np.array([lam_sky.value, flam_sky.value]).T,
                fmt='%15.8e %15.8e')
 
-    
+
 
 def proc_DBSP_blue_sky(outname):
     D_t = 5*u.m #Telescope diameter
     proc_LRIS_DBSP("sky_palomar_b.w.txt",outname,D_t)
-    
+
 def proc_DBSP_red_sky(outname):
     D_t = 5*u.m #Telescope diameter
     proc_LRIS_DBSP("sky_palomar_r.w.txt",outname,D_t)
-        
+
 def proc_LRIS_DBSP(sky_name,outname,D_t):
 
     #Units are not clear, although not fundamental. We'll assume they
     #are counts.
-   
+
     #Read the sky spectrum.
     sky = np.loadtxt(sky_name)
     lam_sky = sky[:,0]*u.AA
@@ -97,11 +97,31 @@ def proc_LRIS_DBSP(sky_name,outname,D_t):
     np.savetxt(outname,np.array([lam_sky, flam_sky]).T,
                fmt='%15.8e %15.8e')
 
+    return
+
+def proc_DEIMOS_sky(outname):
+
+    #Read the sky spectrum.
+    sky = np.loadtxt("sky_deimos.dat")
+    lam_sky = sky[:,0]*u.AA
+    fnu_sky = sky[:,1]*u.erg/u.s/u.cm**2/u.Hz
+
+    #Calculate flam.
+    flam_sky = fnu_sky*c/lam_sky**2
+
+    #Write file. Strip the units.
+    lam_sky  = lam_sky.to(u.AA).value
+    flam_sky = flam_sky.to(u.erg/u.s/u.cm**2/u.AA).value
+    np.savetxt(outname,np.array([lam_sky, flam_sky]).T,
+               fmt='%15.8e %15.8e')
+
+    return
+
 ##
 
 #proc_geminis_sky("template_sky_GMOS.dat")
-proc_LRIS_blue_sky("template_sky_LRIS_b.dat")
-proc_LRIS_red_sky("template_sky_LRIS_r.dat")
+#proc_LRIS_blue_sky("template_sky_LRIS_b.dat")
+#proc_LRIS_red_sky("template_sky_LRIS_r.dat")
 #proc_DBSP_blue_sky("template_sky_DBSP_b.dat")
 #proc_DBSP_red_sky("template_sky_DBSP_r.dat")
-
+proc_DEIMOS_sky("template_sky_DEIMOS.dat")
