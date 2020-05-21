@@ -124,8 +124,10 @@ Args:
                 (spec_use[0].dispersion<np.max(lam_sens))
 
         #Finally, figure out the sky template edges and trim the spectrum to that limit.
+        #sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
+        #                      "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
         sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                              "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
+                              "/Spec_pipeline/Sky_Templates/template_sky_DEIMOS.dat")
         lam_sky = sky_temp[:,0]*u.AA
         kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sky)) & \
                 (spec_use[0].dispersion<np.max(lam_sky))
