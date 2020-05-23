@@ -50,38 +50,6 @@ def read_fits_spectrum1d(file_name,
 
 #####
 
-def parse_wat(i,header):
-
-    #Put together the whole WAT header.
-    aux = ""
-    k = 1
-    while k>0:
-        try:
-            aux += header['WAT{0:d}_{1:03d}'.format(i,k)]
-            #I don't like this, but there seems to be a bug in astropy.io.fits that removes a trailing space in the first line of the WAT2_001 header that is needed to reconstruct the proper values.
-            if len(header['WAT{0:d}_{1:03d}'.format(i,k)])<68:
-                aux += " "
-            k+=1
-        except KeyError:
-            break
-    #If the WAT0 header is not there, we'll end up here.
-    if k==1:
-        return None
-
-    #For the WAT2 or higher, we need to remove some certain unneeded spaces around equal signs.
-    aux = re.sub(" = ","=",aux)
-
-    #Assign all of the values found to a dictionary.
-    wat = dict()
-    for x in shlex.split(aux):
-        m = re.match("(.*)=(.*)",x)
-        wat[m.group(1)] = m.group(2)
-
-    return wat
-
-
-#####
-
 class spectrum1d(object):
 
     def __init__(self,multi_index,s,dispersion_unit,flux_unit=None):
@@ -111,33 +79,60 @@ class spectrum1d(object):
         #Load the wavelength dispersion
         lam = load_lam(i,s)
 
-        #Get the units from the WAT1 header. If not there, then we'll assume the requested units, although this should never be the case.
+        #Get the wavelength units from the WAT1 header. If not there, then we'll assume the requested units, although this should never be the case.
         wat1 = parse_wat(1,s[0].header)
-        try:
+        if 'units' in wat1:
             wav_unit = wat1['units']
             if wav_unit=='angstroms':
                 wav_unit = "Angstrom"
             self.native_dispersion_unit = u.Unit(wav_unit)
-            if self.dispersion_unit is None:
-                self.dispersion_unit = self.native_dispersion_unit
-        except (KeyError, ValueError, TypeError):
+
+        if self.native_dispersion_unit is not None:
+            self.dispersion = lam*self.native_dispersion_unit
             if self.dispersion_unit is not None:
-                self.native_dispersion_unit = self.dispersion_unit
+                self.dispersion = self.dispersion.to(self.dispersion_unit)
             else:
-                print("No WAT1 headers and no output dispersion units provided.")
-                print("Using dimensionless_unscaled")
-                self.dispersion_unit = u.dimensionless_unscaled
-                self.native_dispersion_unit = u.dimensionless_unscaled
-        self.dispersion = lam*self.native_dispersion_unit
-        self.dispersion = self.dispersion.to(self.dispersion_unit)
+                self.dispersion_unit = self.native_dispersion_unit
+        elif self.dispersion_unit is not None:
+            self.dispersion = lam*self.dispersion_unit
+        else:
+            print("No WAT1 headers and no output dispersion units provided.")
+            print("Using dimensionless_unscaled")
+            self.dispersion_unit = u.dimensionless_unscaled
+            self.dispersion = lam*self.dispersion_unit
+
+        # try:
+        #     wav_unit = wat1['units']
+        #     if wav_unit=='angstroms':
+        #         wav_unit = "Angstrom"
+        #     self.native_dispersion_unit = u.Unit(wav_unit)
+        #     if self.dispersion_unit is None:
+        #         self.dispersion_unit = self.native_dispersion_unit
+        # except (KeyError, ValueError, TypeError):
+        #     if self.dispersion_unit is not None:
+        #         self.native_dispersion_unit = self.dispersion_unit
+        #     else:
+        #         print("No WAT1 headers and no output dispersion units provided.")
+        #         print("Using dimensionless_unscaled")
+        #         self.dispersion_unit = u.dimensionless_unscaled
+        #         self.native_dispersion_unit = u.dimensionless_unscaled
+        # self.dispersion = lam*self.native_dispersion_unit
+        # self.dispersion = self.dispersion.to(self.dispersion_unit)
 
         #Finally, setup the flux units. If there are any in headers, do not assign any native units. If no requested units, then set the requested output units to the native flux units.
-        try:
+        if 'BUNIT' in s[0].header:
             self.native_unit = u.Unit(s[0].header['BUNIT'])
-        except KeyError:
+        else:
             print("No BUNIT in headers and no flux units provided.")
             print("Using dimensionless_unscaled")
             self.native_unit = u.dimensionless_unscaled
+
+        # try:
+        #     self.native_unit = u.Unit(s[0].header['BUNIT'])
+        # except KeyError:
+        #     print("No BUNIT in headers and no flux units provided.")
+        #     print("Using dimensionless_unscaled")
+        #     self.native_unit = u.dimensionless_unscaled
 
         if self.unit is None:
             self.unit = self.native_unit
@@ -213,14 +208,50 @@ def load_lam(i,s):
             lam = np.zeros(s[0].header['NAXIS1'])
             for nfunc in range(1,spN['nfuncs']+1):
 
-                #Chebyshev
-                if spN['ftype_{0:d}'.format(nfunc)]==1:
+                ftype = spN['ftype_{0:d}'.format(nfunc)]
+
+                #1. Chebyshev
+                if ftype==1:
                     pmin = spN['pmin_{0:d}'.format(nfunc)]
                     pmax = spN['pmax_{0:d}'.format(nfunc)]
                     n = (p - (pmax+pmin)/2.) / ((pmax-pmin) / 2.)
                     W = 0.
                     for i,coeff in enumerate(spN['coeffs_{0:d}'.format(nfunc)]):
                         W += coeff * cheby(i+1,n)
+
+                #2. Legendre - Untested
+                elif ftype==2:
+                    pmin = spN['pmin_{0:d}'.format(nfunc)]
+                    pmax = spN['pmax_{0:d}'.format(nfunc)]
+                    n = (p - (pmax+pmin)/2.) / ((pmax-pmin) / 2.)
+                    W = 0.
+                    for i,coeff in enumerate(spN['coeffs_{0:d}'.format(nfunc)]):
+                        W += coeff * legendre(i+1,n)
+
+                #3. Cubic Spline - Untested
+                elif ftype==3:
+                    warn("Cubic spline not implemented yet")
+                    W = np.zeros(len(lam))
+
+                #4. Linear Spline
+                elif ftype==4:
+                    warn("Linear spline not implemented yet")
+                    W = np.zeros(len(lam))
+
+                #5. Pixel Coordinate Array
+                elif ftype==5:
+                    warn("Pixel coordinate array not implemented yet")
+                    W = np.zeros(len(lam))
+
+                #6. Sampled Coordinate Array
+                elif ftype==6:
+                    warn("Sampled coordinate array not implemented yet")
+                    W = np.zeros(len(lam))
+
+                else:
+                    warn("Unrecognized value of ftype=",ftype)
+                    W = np.zeros(len(lam))
+
                 lam += spN['wt_{0:d}'.format(nfunc)] * (spN['w0_{0:d}'.format(nfunc)] + W) / (1.0+spN['z'])
 
     #If not WAT2, then we'll need to get the dispersion values from the standard WCS headers. Only implemented for LINEAR right now.
@@ -243,6 +274,37 @@ def load_lam(i,s):
 
     return lam
 
+#####
+
+def parse_wat(i,header):
+
+    #Put together the whole WAT header.
+    aux = ""
+    k = 1
+    while k>0:
+        try:
+            aux += header['WAT{0:d}_{1:03d}'.format(i,k)]
+            #I don't like this, but there seems to be a bug in astropy.io.fits that removes a trailing space in the first line of the WAT2_001 header that is needed to reconstruct the proper values.
+            if len(header['WAT{0:d}_{1:03d}'.format(i,k)])<68:
+                aux += " "
+            k+=1
+        except KeyError:
+            break
+    #If the WAT0 header is not there, we'll end up here.
+    if k==1:
+        return None
+
+    #For the WAT2 or higher, we need to remove some certain unneeded spaces around equal signs.
+    aux = re.sub(" = ","=",aux)
+
+    #Assign all of the values found to a dictionary.
+    wat = dict()
+    for x in shlex.split(aux):
+        m = re.match("(.*)=(.*)",x)
+        wat[m.group(1)] = m.group(2)
+
+    return wat
+
 #specN = ap beam dtype w1 dw nw z aplow aphigh [functions_i]
 #function_i =  wt_i w0_i ftype_i [parameters] [coefficients]
 def parse_specN(text):
@@ -258,17 +320,47 @@ def parse_specN(text):
     specN['aplow'] = x[7]
     specN['aphigh']= x[8]
     if specN['dtype']>=2:
+        j = 9
         i = 1
         while i>0:
-            j = i*9
             try:
                 specN['wt_{0:d}'.format(i)]    = x[j]
                 specN['w0_{0:d}'.format(i)]    = x[j+1]
                 specN['ftype_{0:d}'.format(i)] = int(x[j+2])
-                specN['order_{0:d}'.format(i)] = int(x[j+3])
-                specN['pmin_{0:d}'.format(i)]  = x[j+4]
-                specN['pmax_{0:d}'.format(i)]  = x[j+5]
-                specN['coeffs_{0:d}'.format(i)]= x[j+6:j+6+int(x[j+3])]
+
+                #Chebyshev or Legendre
+                if int(x[j+2])==1 or int(x[j+2])==2:
+                    specN['order_{0:d}'.format(i)] = int(x[j+3])
+                    specN['pmin_{0:d}'.format(i)]  = x[j+4]
+                    specN['pmax_{0:d}'.format(i)]  = x[j+5]
+                    specN['coeffs_{0:d}'.format(i)]= x[j+6:j+6+int(x[j+3])]
+                    j+= 6+int(x[j+3])
+                #Cubic splines.
+                elif int(x[j+2])==3:
+                    specN['npieces_{0:d}'.format(i)] = int(x[j+3])
+                    specN['pmin_{0:d}'.format(i)]  = x[j+4]
+                    specN['pmax_{0:d}'.format(i)]  = x[j+5]
+                    specN['coeffs_{0:d}'.format(i)]= x[j+6:j+6+int(x[j+3])+3]
+                    j+= 6+int(x[j+3])+3
+                #Linear splines.
+                elif int(x[j+2])==4:
+                    specN['npieces_{0:d}'.format(i)] = int(x[j+3])
+                    specN['pmin_{0:d}'.format(i)]  = x[j+4]
+                    specN['pmax_{0:d}'.format(i)]  = x[j+5]
+                    specN['coeffs_{0:d}'.format(i)]= x[j+6:j+6+int(x[j+3])+1]
+                    j+= 6+int(x[j+3])+1
+                #Pixel array.
+                elif int(x[j+2])==5:
+                    specN['ncoords_{0:d}'.format(i)] = int(x[j+3])
+                    specN['coeffs_{0:d}'.format(i)]= x[j+6:j+6+int(x[j+3])]
+                    j+= 6+int(x[j+3])
+                #Sampled array
+                elif int(x[j+2])==6:
+                    warn("Sampled array not implemented yet.")
+                    return specN
+                else:
+                    warn("Function type ",int(x[j+2]),"not implemented")
+                    return specN
                 i+=1
             except (KeyError,IndexError):
                 break
@@ -283,3 +375,11 @@ def cheby(i,n):
         return n
     else:
         return 2 * n * cheby(i-1,n) - cheby(i-2,n)
+
+def legendre(i,n):
+    if i==1:
+        return 1.0
+    elif i==2:
+        return n
+    else:
+        return ((2*i-3)*n*legendre(i-1,n)-(i-2)*legendre(i-2,n))/(i-1)
