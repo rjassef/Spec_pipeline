@@ -5,7 +5,7 @@ from astropy.constants import h,c
 import re
 import os
 
-from .spectrum1d import read_fits_spectrum1d
+#from .spectrum1d import read_fits_spectrum1d
 from .Spec import Spec
 from .rebin_spec import rebin_spec
 
