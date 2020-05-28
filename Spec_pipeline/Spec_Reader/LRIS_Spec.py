@@ -136,6 +136,10 @@ Args:
             self.spec_err_name = "error."+self.fits_files[1]
 
 
+        #Read the slit width
+        m = re.match("long_(.*)",spec_use[0].header['SLITNAME'])
+        self.slit_width = float(m.group(1)) * u.arcsec
+
         #Find the grism and remove data outside the edges of the sensitivity curves.
         sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
                             "/Spec_pipeline/Sensitivity_Files/"+
@@ -171,17 +175,6 @@ Args:
 
     @property
     def __flam_sky(self):
-
-        '''#Figure out the spectrograph arm.
-        if self.blue:
-            sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
-                "/Spec_pipeline/Sky_Templates/template_sky_LRIS_b.dat"
-        elif self.red:
-            sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
-                "/Spec_pipeline/Sky_Templates/template_sky_LRIS_r.dat"
-        else:
-            #print("Cannot find spectrograph arm flag")
-            return'''
 
         #Read the template
         sky_temp = np.loadtxt(self.sky_temp_fname)
