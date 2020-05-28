@@ -29,6 +29,9 @@ class Spec(object):
         self.save_err = True
         self.show_err_plot=show_err_plot
 
+        #If no slit width is given, assume 1.25" as discussed on telecon from 05/26/2020
+        self.slit_width = 1.25 * u.arcsec
+
     @property
     def lam_rest(self):
         try:
