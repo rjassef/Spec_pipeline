@@ -76,6 +76,19 @@ class spectrum1d(object):
         #Now, let's figure out the dispersion. Define i as the spectrum number.
         i = multi_index[0]+1
 
+        #See if we can get the extraction aperture size in pixel units from APNUM (perfered) or WAT2 headers.
+        apnum_i = "APNUM{0:d}".format(i)
+        if apnum_i in s[0].header:
+            apx = s[0].header[apnum_i].split()
+            s[0].header['apsize_pix'] = float(apx[3])-float(apx[2])
+        else:
+            wat2 = parse_wat(2,s[0].header)
+            spec_i = 'spec{0:d}'.format(i)
+            if wat2 is not None and spec_i in wat2:
+                spN = parse_specN(wat2[spec_i])
+                if 'aphigh' in spN and 'aplow' in spN:
+                    s[0].header['apsize_pix'] = spN['aphigh']-spN['aplow']
+
         #Load the wavelength dispersion
         lam = load_lam(i,s)
 
@@ -101,24 +114,6 @@ class spectrum1d(object):
             self.dispersion_unit = u.dimensionless_unscaled
             self.dispersion = lam*self.dispersion_unit
 
-        # try:
-        #     wav_unit = wat1['units']
-        #     if wav_unit=='angstroms':
-        #         wav_unit = "Angstrom"
-        #     self.native_dispersion_unit = u.Unit(wav_unit)
-        #     if self.dispersion_unit is None:
-        #         self.dispersion_unit = self.native_dispersion_unit
-        # except (KeyError, ValueError, TypeError):
-        #     if self.dispersion_unit is not None:
-        #         self.native_dispersion_unit = self.dispersion_unit
-        #     else:
-        #         print("No WAT1 headers and no output dispersion units provided.")
-        #         print("Using dimensionless_unscaled")
-        #         self.dispersion_unit = u.dimensionless_unscaled
-        #         self.native_dispersion_unit = u.dimensionless_unscaled
-        # self.dispersion = lam*self.native_dispersion_unit
-        # self.dispersion = self.dispersion.to(self.dispersion_unit)
-
         #Finally, setup the flux units. If there are any in headers, do not assign any native units. If no requested units, then set the requested output units to the native flux units.
         if 'BUNIT' in s[0].header:
             self.native_unit = u.Unit(s[0].header['BUNIT'])
@@ -126,13 +121,6 @@ class spectrum1d(object):
             print("No BUNIT in headers and no flux units provided.")
             print("Using dimensionless_unscaled")
             self.native_unit = u.dimensionless_unscaled
-
-        # try:
-        #     self.native_unit = u.Unit(s[0].header['BUNIT'])
-        # except KeyError:
-        #     print("No BUNIT in headers and no flux units provided.")
-        #     print("Using dimensionless_unscaled")
-        #     self.native_unit = u.dimensionless_unscaled
 
         if self.unit is None:
             self.unit = self.native_unit
