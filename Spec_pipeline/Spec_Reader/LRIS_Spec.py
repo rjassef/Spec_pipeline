@@ -94,6 +94,8 @@ Args:
             #https://www2.keck.hawaii.edu/inst/lris/detectors.html
             #Use mean of amplifiers.
             self.RON = 3.82
+            self.GAIN = 1.61
+            self.PIXSIZE = 0.135*u.arcsec
 
             #Find the grism
             grism_aux = re.search("^(.*?)/.*$",spec_b[0].header['GRISNAME'])
@@ -122,6 +124,8 @@ Args:
             #https://www2.keck.hawaii.edu/inst/lris/detectors.html
             #Use mean of amplifiers.
             self.RON = 4.64
+            self.GAIN = 1.197
+            self.PIXSIZE = 0.135*u.arcsec
 
             #Find the Grating and remove data outside the edges of the sensitivity curves.
             grating_aux = re.search("^(.*?)/.*$",spec_r[0].header['GRANAME'])
@@ -136,9 +140,16 @@ Args:
             self.spec_err_name = "error."+self.fits_files[1]
 
 
-        #Read the slit width
-        m = re.match("long_(.*)",spec_use[0].header['SLITNAME'])
-        self.slit_width = float(m.group(1)) * u.arcsec
+        #Read the slit width if available in the headers. Otherwise, we'll assume the default 1.25" size from the spec class.
+        if 'SLITNAME' in spec_use[0].header:
+            m = re.match("long_(.*)",spec_use[0].header['SLITNAME'])
+            self.slit_width = float(m.group(1)) * u.arcsec
+
+        #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
+        if 'apsize_pix' in spec_use[0].header:
+            self.apsize_pix = spec_use[0].['apsize_pix']
+        else:
+            self.apsize_pix = (self.slit_width/self.PIXSIZE).to(1.).value
 
         #Find the grism and remove data outside the edges of the sensitivity curves.
         sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
