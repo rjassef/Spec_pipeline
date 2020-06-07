@@ -81,13 +81,16 @@ def smooth_errors(lam,flam,flam_sky,sens,wd):
 
 ###
 
-def flam_std_func(K1,K2,flam,flam_sky,RON,eps):
+#Taken from Section 3 of http://www.ucolick.org/~bolte/AY257/s_n.pdf . We will neglect the Dark Noise. Note that the RON used here is an effective RON:
+#
+# RON_eff = ( (RON**2 + (GAIN/2.)**2) * extraction_aperture_pixels )**(0.5)
+def flam_std_func(K1,K2,flam,flam_sky,RON_eff,eps):
     #return np.sqrt( K1*eps*(flam+K2*flam_sky) + RON**2 ) / (K1*eps)
-    return np.sqrt( K1*eps*(np.abs(flam)+K2*flam_sky) + RON**2 ) / (K1*eps)
+    return np.sqrt( K1*eps*(np.abs(flam)+K2*flam_sky) + RON_eff**2 ) / (K1*eps)
 
 ###
 
-def S_func(x,flam,flam_std,flam_sky,eps,RON):
+def S_func(x,flam,flam_std,flam_sky,eps,RON_eff):
 
     K1 = x[0]
     K2 = x[1]
@@ -95,8 +98,7 @@ def S_func(x,flam,flam_std,flam_sky,eps,RON):
     if K1<0. or K2<0.:
         return np.inf
 
-    #flam_std_mod = K3*np.sqrt( K1*eps*(np.abs(flam)+K2*flam_sky) + RON**2 ) / (K1*eps)
-    flam_std_mod = flam_std_func(K1,K2,flam,flam_sky,RON,eps)
+    flam_std_mod = flam_std_func(K1,K2,flam,flam_sky,RON_eff,eps)
     flam_std_mod.to(flam_std.unit)
 
     S = np.sum((flam_std-flam_std_mod)**2).value
@@ -105,7 +107,7 @@ def S_func(x,flam,flam_std,flam_sky,eps,RON):
 
 ###
 
-def get_error_pars(flam,flam_std,flam_sky,eps,RON):
+def get_error_pars(flam,flam_std,flam_sky,eps,RON_eff):
 
     #Both K1 and K2 should be around 1.0
     #K1_0 = 1e-3
@@ -113,13 +115,9 @@ def get_error_pars(flam,flam_std,flam_sky,eps,RON):
     K1_0 = 1.0 #0.1
     K2_0 = 1.e-3
     x0 = np.array([K1_0, K2_0])
-    #xopt = fmin(S_func,x0  ,args=(flam,flam_std,flam_sky,eps,RON))#,
-                                  #disp=False)
-    #xopt = fmin(S_func,xopt,args=(flam,flam_std,flam_sky,eps,RON))#,
-                                  #disp=False)
-    xopt = fmin(S_func,x0  ,args=(flam*eps,flam_std*eps,flam_sky*eps,1.0,RON),
+    xopt = fmin(S_func,x0  , args=(flam*eps,flam_std*eps,flam_sky*eps,1.0,RON_eff),
                                   disp=False)
-    xopt = fmin(S_func,xopt,args=(flam*eps,flam_std*eps,flam_sky*eps,1.0,RON),
+    xopt = fmin(S_func,xopt, args=(flam*eps,flam_std*eps,flam_sky*eps,1.0,RON_eff),
                                   disp=False)
 
     K1 = xopt[0]
@@ -156,20 +154,22 @@ def get_error_spec(spec, wd=15, show_plot=False):
     eps_use = spec.eps(sens=sens_use,lam_obs=lam_mean,dlam=dlam_mean)
 
     #Fit the std array to the error parameters.
-    K1, K2 = get_error_pars(flam_mean,flam_std,flam_sky_mean,
-                            eps_use,spec.RON)
+    #K1, K2 = get_error_pars(flam_mean,flam_std,flam_sky_mean,eps_use,spec.RON)
+    RON_eff = ((spec.RON**2 + (spec.GAIN/2.)**2)*spec.apsize_pix)**0.5
+    K1, K2 = get_error_pars(flam_mean,flam_std,flam_sky_mean,eps_use,RON_eff)
 
     #Get the error spectrum
     #flam_err = K3*np.sqrt(K1*spec.eps()*(np.abs(spec.flam)+
     #                                K2*spec.flam_sky) +
     #                   spec.RON**2)/(K1*spec.eps())
-    flam_err = flam_std_func(K1,K2,spec.flam,spec.flam_sky,spec.RON,spec.eps())
+    #flam_err = flam_std_func(K1,K2,spec.flam,spec.flam_sky,spec.RON,spec.eps())
+    flam_err = flam_std_func(K1,K2,spec.flam,spec.flam_sky,RON_eff,spec.eps())
 
     if show_plot:
         flamunit = u.erg/u.s/u.cm**2/u.AA
         plt.plot(lam_mean,flam_std.to(flamunit),'-b')
         #flam_std_mod = K3*np.sqrt( K1*eps_use*(flam_mean+K2*flam_sky_mean) + spec.RON**2 ) / (K1*eps_use)
-        flam_std_mod = flam_std_func(K1,K2,flam_mean,flam_sky_mean,spec.RON,eps_use)
+        flam_std_mod = flam_std_func(K1,K2,flam_mean,flam_sky_mean,RON_eff,eps_use)
         plt.plot(lam_mean,flam_std_mod.to(flamunit),'-k')
         plt.plot(spec.lam_obs,flam_err.to(flamunit),'-r')
         plt.show()
