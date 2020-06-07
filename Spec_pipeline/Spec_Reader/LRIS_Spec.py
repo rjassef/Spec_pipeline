@@ -147,7 +147,7 @@ Args:
 
         #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
         if 'apsize_pix' in spec_use[0].header:
-            self.apsize_pix = spec_use[0].['apsize_pix']
+            self.apsize_pix = spec_use[0].header['apsize_pix']
         else:
             self.apsize_pix = (self.slit_width/self.PIXSIZE).to(1.).value
 
