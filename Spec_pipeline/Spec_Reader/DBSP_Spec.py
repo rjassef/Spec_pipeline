@@ -92,6 +92,9 @@ Args:
             #Find the grism
             grname = "B"
 
+            #Pixel scale
+            self.PIXSIZE = 0.389*u.arcsec
+
             #Set the sky template
             self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
                 "/Spec_pipeline/Sky_Templates/template_sky_DBSP_b.dat"
@@ -114,12 +117,24 @@ Args:
             #Find the grism
             grname = "R"
 
+            #Pixel scale
+            self.PIXSIZE = 0.293*u.arcsec
+
             #Set the sky template
             self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
                 "/Spec_pipeline/Sky_Templates/template_sky_DBSP_r.dat"
 
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
+
+        #Slit width
+        self.slit_width = float(spec_use[0].header['APERTURE']) * u.arcsec
+
+        #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
+        if 'apsize_pix' in spec_use[0].header:
+            self.apsize_pix = spec_use[0].header['apsize_pix']
+        else:
+            self.apsize_pix = (self.slit_width/self.PIXSIZE).to(1.).value
 
         #Find the grism and remove data outside the edges of the sensitivity curves.
         sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
@@ -142,10 +157,11 @@ Args:
         #Change the .fits for .txt in the error file name as it will be saved in ASCII
         self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
 
-        #Mean bin size, exposure time and RON. Useful for error estimation.
+        #Mean bin size, exposure time, RON and GAIN. Useful for error estimation.
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
         self.texp = float(ff[0].header['EXPTIME'])*u.s
         self.RON  = float(ff[0].header['RON'])
+        self.GAIN = float(ff[0].header['GAIN'])
 
         #Convert fnu to flambda.
         self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))

@@ -73,9 +73,22 @@ Args:
         # self.lam_obs = spec[0].dispersion
         # fnu = spec[0].data * spec[0].unit
 
+        #Pixel scale with 2x2 binning EEV detector: https://www.gemini.edu/instrumentation/gmos/capability#Imaging
+        self.PIXSIZE = 2  * 0.073 * u.arcsec
+
+        #No slit information in the headers. We'll assume the default 1.25" size from the spec class. This should not matter as the extraction aperture should be there in all the GMOS headers.
+
+        #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
+        if 'apsize_pix' in spec[0].header:
+            self.apsize_pix = spec[0].header['apsize_pix']
+        else:
+            self.apsize_pix = (self.slit_width/self.PIXSIZE).to(1.).value
+
+
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])#Mean lambda bin.
         self.texp = ff[0].header['EXPTIME']*u.s
         self.RON  = ff[0].header['RDNOISE']
+        self.GAIN = ff[0].header['GAINMULT']
         self.spec_err_name = "error."+self.fits_files[0]
         self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
 
