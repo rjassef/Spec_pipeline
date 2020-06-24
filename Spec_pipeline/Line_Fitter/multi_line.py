@@ -361,7 +361,10 @@ class Multi_Line_fit(Line_fit):
     def get_i_fit(self,spec):
         i_cont = self.get_i_cont(spec)
         i_line = self.get_i_line(spec)
+        i_ban  = self.get_i_ban(spec)
         i_all  = np.unique(np.concatenate((i_cont,i_line)))
+        if len(i_ban)>0:
+            i_all = i_all[i_all!=i_ban]
         return i_all
 
     #This function is called to determine the indices of the spectrum
@@ -401,6 +404,14 @@ class Multi_Line_fit(Line_fit):
 
         return i_line
 
+    #This function is called to get the indices of wavelengths ranges that should be excised from the any fit. The first obvious regions to be omitted are the atmospheric A-band and B-band absorption lines. Taken from Smette et al. (2015), section 2.
+    def get_i_ban(self,spec):
+        #A-band
+        i_banA = np.argwhere((spec.lam_obs>=7590.*u.AA) & (spec.lam_obs<=7720.*u.AA))
+        #B-band
+        i_banB = np.argwhere((spec.lam_obs>=6860.*u.AA) & (spec.lam_obs<=6950.*u.AA))
+        i_ban = np.concatenate([i_banA.flatten(),i_banB.flatten()])
+        return i_ban
 
     #####################
     # Useful properties.
