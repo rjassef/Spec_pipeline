@@ -102,3 +102,7 @@ Done
 - Add n_pix term to RON. DONE
 
 - Assume 1.25" slits are used at all times. DONE
+
+- Add the rest of the Balmer series emission lines. DONE.
+
+- Do not use the A-band and B-band absorption regions in fits. 
