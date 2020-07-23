@@ -141,6 +141,7 @@ def get_error_spec(spec, wd=15, show_plot=False):
     #region. Real IGM absorption appears as noise and throws
     #everything off the board.
     kuse = np.argwhere(lam_meanx>1300.*u.AA*(1.+spec.zspec))
+    #kuse = np.argwhere(lam_meanx>0.*u.AA) #1300.*u.AA*(1.+spec.zspec))
     lam_mean = lam_meanx[kuse]
     flam_mean = flam_meanx[kuse]
     flam_std = flam_stdx[kuse]
@@ -167,7 +168,8 @@ def get_error_spec(spec, wd=15, show_plot=False):
 
     if show_plot:
         flamunit = u.erg/u.s/u.cm**2/u.AA
-        plt.plot(lam_mean,flam_std.to(flamunit),'-b')
+        #plt.plot(lam_mean,flam_std.to(flamunit),'-b')
+        plt.plot(lam_meanx,flam_stdx.to(flamunit),'-b')
         #flam_std_mod = K3*np.sqrt( K1*eps_use*(flam_mean+K2*flam_sky_mean) + spec.RON**2 ) / (K1*eps_use)
         flam_std_mod = flam_std_func(K1,K2,flam_mean,flam_sky_mean,RON_eff,eps_use)
         plt.plot(lam_mean,flam_std_mod.to(flamunit),'-k')
