@@ -41,6 +41,8 @@ Args:
                          it should be indicated whether the blue side or the
                          red side spectrum should be loaded.
 
+   show_err_plot (boolean) : Show plot of the error fit if it is carried out.
+
    """
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
