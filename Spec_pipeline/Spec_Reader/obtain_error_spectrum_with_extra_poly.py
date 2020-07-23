@@ -203,6 +203,19 @@ def get_error_spec(spec, wd=15, show_plot=False):
         plt.plot(lam_mean,flam_std_mod.to(flamunit),'-k')
         plt.plot(spec.lam_obs,flam_err.to(flamunit),'-r')
         plt.plot(spec.lam_obs,flam_err_2.to(flamunit),'-m')
-        plt.show()
+        iduse = spec.name
+        if spec.instrument in ["LRIS","DBSP"]:
+            if spec.blue:
+                iduse += "_blue"
+            else:
+                iduse += "_red"
+        plt.title("{0:s} z={1:.3f}".format(iduse,spec.zspec))
+        plt.ylabel("Error Spectrum (erg/s/cm^2/A)")
+        plt.xlabel("Observed Wavelength (A)")
+        if spec.print_err_plot:
+            plt.savefig(iduse+".err.png")
+            plt.close()
+        else:
+            plt.show()
 
     return flam_err.to(u.erg/(u.s*u.cm**2*u.AA)), K1, K2

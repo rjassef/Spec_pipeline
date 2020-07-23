@@ -29,6 +29,7 @@ class Spec(object):
         self.data_prefix = "data/"
         self.save_err = True
         self.show_err_plot=show_err_plot
+        self.print_err_plot=False
 
         #If no slit width is given, assume 1.25" as discussed on telecon from 05/26/2020
         self.slit_width = 1.25 * u.arcsec
