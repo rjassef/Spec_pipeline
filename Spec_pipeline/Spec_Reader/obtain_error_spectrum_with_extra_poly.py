@@ -120,7 +120,7 @@ def get_error_pars(flam,flam_std,flam_sky,lam,eps,RON_eff):
                                   disp=False)
     xopt = fmin(S_func,xopt, args=(flam,flam_std,flam_sky,lam,eps,RON_eff),
                                   disp=False)
-    print(xopt)
+    #print(xopt)
     K1 = xopt[0]
     K2 = xopt[1]
     Ap = xopt[2]
