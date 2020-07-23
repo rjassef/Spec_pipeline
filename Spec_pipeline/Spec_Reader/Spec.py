@@ -7,7 +7,8 @@ import numpy as np
 import astropy.units as u
 from astropy.constants import h,c
 
-from .obtain_error_spectrum import get_error_spec
+#from .obtain_error_spectrum import get_error_spec
+from .obtain_error_spectrum_with_extra_poly import get_error_spec
 
 class Spec(object):
 
