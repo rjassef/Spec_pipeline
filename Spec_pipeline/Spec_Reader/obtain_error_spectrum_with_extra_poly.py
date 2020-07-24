@@ -109,13 +109,16 @@ def S_func(x,flam,flam_std,flam_sky,lam,eps,RON_eff):
 
 ###
 
-def get_error_pars(flam,flam_std,flam_sky,lam,eps,RON_eff):
+def get_error_pars(flam,flam_std,flam_sky,lam,eps,RON_eff,fit_blue_exp):
 
     K1_0 = 1.0
     K2_0 = 1.e-3
-    Ap_0 = 0.
-    Bp_0 = -10.
-    x0 = np.array([K1_0, K2_0, Ap_0, Bp_0])
+    if fit_blue_exp:
+        Ap_0 = 0.
+        Bp_0 = -10.
+        x0 = np.array([K1_0, K2_0, Ap_0, Bp_0])
+    else:
+        x0 = np.array([K1_0,K2_0])
     xopt = fmin(S_func,x0  , args=(flam,flam_std,flam_sky,lam,eps,RON_eff),
                                   disp=False)
     xopt = fmin(S_func,xopt, args=(flam,flam_std,flam_sky,lam,eps,RON_eff),
@@ -123,29 +126,17 @@ def get_error_pars(flam,flam_std,flam_sky,lam,eps,RON_eff):
     #print(xopt)
     K1 = xopt[0]
     K2 = xopt[1]
-    Ap = xopt[2]
-    Bp = xopt[3]
+    if fit_blue_exp:
+        Ap = xopt[2]
+        Bp = xopt[3]
+    else:
+        Ap = 0
+        Bp = 0
     return K1, K2, Ap, Bp
 
 ###
 
-def get_error_pars_orig(flam,flam_std,flam_sky,lam,eps,RON_eff):
-
-    K1_0 = 1.0
-    K2_0 = 1.e-3
-    x0 = np.array([K1_0, K2_0])
-    xopt = fmin(S_func,x0  , args=(flam,flam_std,flam_sky,lam,eps,RON_eff),
-                                  disp=False)
-    xopt = fmin(S_func,xopt, args=(flam,flam_std,flam_sky,lam,eps,RON_eff),
-                                  disp=False)
-    #print(xopt)
-    K1 = xopt[0]
-    K2 = xopt[1]
-    return K1, K2
-
-###
-
-def get_error_spec(spec, wd=15, show_plot=False):
+def get_error_spec(spec, wd=15, show_plot=False, fit_blue_exp=True):
 
     #Calculate the rolling mean and std of the spectrum in a window of
     #wd pixels.
@@ -156,49 +147,55 @@ def get_error_spec(spec, wd=15, show_plot=False):
                                         spec.flam_sky,spec.sens,wd)
 
 
-    #For this exercise, we need to not consider the Lyalpha forrest
-    #region. Real IGM absorption appears as noise and throws
-    #everything off the board.
-    #kuse = np.argwhere(lam_meanx>1300.*u.AA*(1.+spec.zspec))
-    kuse = np.argwhere(lam_meanx>0.*u.AA) #1300.*u.AA*(1.+spec.zspec))
+    #Unless we are consering the extra blue exponential component, for this exercise we need to not consider the Lyalpha forest region. Real IGM absorption appears as noise and throws everything off the board in comparison to the sky template.
+    if fit_blue_exp:
+        kuse = np.argwhere(lam_meanx>0.*u.AA)
+    else:
+        kuse = np.argwhere(lam_meanx>1300.*u.AA*(1.+spec.zspec))
     lam_mean = lam_meanx[kuse]
     flam_mean = flam_meanx[kuse]
     flam_std = flam_stdx[kuse]
     flam_sky_mean = flam_sky_meanx[kuse]
     sens_use = sens_usex[kuse]
 
-    kuse = np.argwhere(lam_meanx>1300.*u.AA*(1.+spec.zspec))
-    lam_mean_2 = lam_meanx[kuse]
-    flam_mean_2 = flam_meanx[kuse]
-    flam_std_2 = flam_stdx[kuse]
-    flam_sky_mean_2 = flam_sky_meanx[kuse]
-    sens_use_2 = sens_usex[kuse]
-
     #Estimate the size of the new wavelength bin.
     dlam_mean = np.mean(lam_mean[1:]-lam_mean[:-1])
-    dlam_mean_2 = np.mean(lam_mean_2[1:]-lam_mean_2[:-1])
 
     #Get the eps factor to use.
     eps_use = spec.eps(sens=sens_use,lam_obs=lam_mean,dlam=dlam_mean)
-    eps_use_2 = spec.eps(sens=sens_use_2,lam_obs=lam_mean_2,dlam=dlam_mean_2)
-
 
     #Fit the std array to the error parameters.
-    #K1, K2 = get_error_pars(flam_mean,flam_std,flam_sky_mean,eps_use,spec.RON)
     RON_eff = ((spec.RON**2 + (spec.GAIN/2.)**2)*spec.apsize_pix)**0.5
-    K1, K2, Ap, Bp = get_error_pars(flam_mean,flam_std,flam_sky_mean,lam_mean,eps_use,RON_eff)
-
-    K1_2, K2_2 = get_error_pars_orig(flam_mean_2,flam_std_2,flam_sky_mean_2,lam_mean_2,eps_use_2,RON_eff)
+    K1, K2, Ap, Bp = get_error_pars(flam_mean,flam_std,flam_sky_mean,lam_mean,eps_use,RON_eff, fit_blue_exp)
 
     #Get the error spectrum
     flam_err = flam_std_func(K1,K2,Ap,Bp,spec.flam,spec.flam_sky,spec.lam_obs,RON_eff,spec.eps())
-    flam_err_2 = flam_std_func(K1_2,K2_2,0.,0.,spec.flam,spec.flam_sky,spec.lam_obs,RON_eff,spec.eps())
+
+    #If we are fitting the error with the blue exponential and we are making diagnostic plots, we also want to get the error without that term so that we can compare them.
+    if fit_blue_exp and show_plot:
+        kuse2 = np.argwhere(lam_meanx>1300.*u.AA*(1.+spec.zspec))
+        lam_mean2 = lam_meanx[kuse2]
+        flam_mean2 = flam_meanx[kuse2]
+        flam_std2 = flam_stdx[kuse2]
+        flam_sky_mean2 = flam_sky_meanx[kuse2]
+        sens_use2 = sens_usex[kuse2]
+
+        #Estimate the size of the new wavelength bin.
+        dlam_mean2 = np.mean(lam_mean2[1:]-lam_mean2[:-1])
+
+        #Get the eps factor to use.
+        eps_use2 = spec.eps(sens=sens_use2,lam_obs=lam_mean2,dlam=dlam_mean2)
+
+        #Fit the std array to the error parameters.
+        RON_eff = ((spec.RON**2 + (spec.GAIN/2.)**2)*spec.apsize_pix)**0.5
+        K1_2, K2_2, Ap_2, Bp_2 = get_error_pars(flam_mean2,flam_std2,flam_sky_mean2,lam_mean2,eps_use2,RON_eff, fit_blue_exp=False)
+
+        flam_err_2 = flam_std_func(K1_2,K2_2,0.,0.,spec.flam,spec.flam_sky,spec.lam_obs,RON_eff,spec.eps())
 
     if show_plot:
         flamunit = u.erg/u.s/u.cm**2/u.AA
-        #plt.plot(lam_mean,flam_std.to(flamunit),'-b')
-        plt.plot(lam_meanx,flam_stdx.to(flamunit),'-b')
-        #flam_std_mod = K3*np.sqrt( K1*eps_use*(flam_mean+K2*flam_sky_mean) + spec.RON**2 ) / (K1*eps_use)
+        plt.plot(lam_mean,flam_std.to(flamunit),'--b')
+        plt.plot(lam_mean2,flam_std2.to(flamunit),'-g')
         flam_std_mod = flam_std_func(K1,K2,Ap,Bp,flam_mean,flam_sky_mean,lam_mean,RON_eff,eps_use)
         plt.plot(lam_mean,flam_std_mod.to(flamunit),'-k')
         plt.plot(spec.lam_obs,flam_err.to(flamunit),'-r')
@@ -218,4 +215,4 @@ def get_error_spec(spec, wd=15, show_plot=False):
         else:
             plt.show()
 
-    return flam_err.to(u.erg/(u.s*u.cm**2*u.AA)), K1, K2
+    return flam_err.to(u.erg/(u.s*u.cm**2*u.AA)), K1, K2, Ap, Bp
