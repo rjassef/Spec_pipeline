@@ -262,9 +262,9 @@ class Multi_Line_fit(Line_fit):
             x_line_use = None
 
         if chain_output is not None:
-            integrated_flux = np.zeros((self.nlines,len(chain_output)))*u.erg/u.cm**2/u.s
+            integrated_flux = np.zeros((self.nlines,len(chain_output)))*self.flux_unit
         else:
-            integrated_flux = np.zeros(self.nlines)*u.erg/u.cm**2/u.s
+            integrated_flux = np.zeros(self.nlines)*self.flux_unit
         for i in range(self.nlines):
             integrated_flux[i] = self._get_line_flux(i,x_line_use)
 
@@ -661,7 +661,7 @@ class Multi_Line_fit(Line_fit):
         for i in range(self.nlines):
             print_output += "{0:15s} {1:7.3f} ".format(spec.name, spec.zspec)
             print_output += "{0:10s} ".format(lname[i])
-            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f} {4:10.3f} {5:10.3f} {6:10.3f}  ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]), self.line_flux()[i].value, self.EW()[i].value, self.p[i])
+            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f} {4:10.3f} {5:10.3e} {6:10.3f}  ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]), self.line_flux()[i].value, self.EW()[i].value, self.p[i])
             if MC:
                 print_output += "{0:10.3e} ".format(self.line_SNR[i])
                 print_output += "{0:10.3e} ".format(self.line_SNR_wing[i])
@@ -669,7 +669,7 @@ class Multi_Line_fit(Line_fit):
                 print_output += "{0:14.3e} {1:14.3e} ".format( self.flam_line_low[i].value,self.flam_line_hig[i].value)
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.FWHM_v_low[i].value, self.FWHM_v_hig[i].value)
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.line_center[i].value*(self.dv_low[i]/c).to(1.).value, self.line_center[i].value*(self.dv_hig[i]/c).to(1.).value)
-                print_output += "{0:14.3f} {1:14.3f} ".format( self.line_flux_low[i].value, self.line_flux_hig[i].value)
+                print_output += "{0:14.3e} {1:14.3e} ".format( self.line_flux_low[i].value, self.line_flux_hig[i].value)
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.EW_low[i].value, self.EW_hig[i].value)
             print_output += "\n"
         return print_output
