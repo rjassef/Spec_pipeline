@@ -661,7 +661,7 @@ class Multi_Line_fit(Line_fit):
         for i in range(self.nlines):
             print_output += "{0:15s} {1:7.3f} ".format(spec.name, spec.zspec)
             print_output += "{0:10s} ".format(lname[i])
-            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f} {4:10.3f} {5:10.3f} {6:10.3f}  ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]), self.line_flux()[i], self.EW()[i], self.p[i])
+            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f} {4:10.3f} {5:10.3f} {6:10.3f}  ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]), self.line_flux()[i].value, self.EW()[i].value, self.p[i])
             if MC:
                 print_output += "{0:10.3e} ".format(self.line_SNR[i])
                 print_output += "{0:10.3e} ".format(self.line_SNR_wing[i])
