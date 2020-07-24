@@ -206,11 +206,11 @@ def get_error_spec(spec, wd=15, show_plot=False):
         iduse = spec.name
         if spec.instrument in ["LRIS","DBSP"]:
             if spec.blue:
-                iduse += "_blue"
+                iduse += ".blue"
             else:
-                iduse += "_red"
+                iduse += ".red"
         plt.title("{0:s} z={1:.3f}".format(iduse,spec.zspec))
-        plt.ylabel("Error Spectrum (erg/s/cm^2/A)")
+        plt.ylabel("Error Spectrum (erg/s/cm2/A)")
         plt.xlabel("Observed Wavelength (A)")
         if spec.print_err_plot:
             plt.savefig(iduse+".err.png")
