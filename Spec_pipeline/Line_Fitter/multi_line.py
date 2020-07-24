@@ -22,6 +22,7 @@ class Multi_Line_fit(Line_fit):
         self.flamunit = u.erg/(u.s*u.cm**2*u.AA)
         self.waveunit = u.AA
         self.vunit    = u.km/u.s
+        self.flux_unit = u.erg/(u.s*u.cm**2)
 
         #Initial default guess value for line widths
         self.sigma_v_0 = 1000. * self.vunit
@@ -273,7 +274,7 @@ class Multi_Line_fit(Line_fit):
         dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
         flux = flam_line * self.line_center[i]*(2.*np.pi)**0.5 * \
                sigma_v/c
-        flux = flux.to(u.erg/u.s/u.cm**2)
+        flux = flux.to(self.flux_unit)
         return flux
 
     #Note that this expression for the EW is only valid for cases in which the continuum is either constant with wavelength or antisymmetric around the peak wavelength (such as the case for the linear continuum used here).
@@ -554,8 +555,8 @@ class Multi_Line_fit(Line_fit):
                 self.sigma_v_hig[i] = get_error(sigma_v,
                                                 self.sigma_v_fit[i])
 
-        self.line_flux_low = np.zeros(self.nlines)*self.waveunit
-        self.line_flux_hig = np.zeros(self.nlines)*self.waveunit
+        self.line_flux_low = np.zeros(self.nlines)*self.flux_unit
+        self.line_flux_hig = np.zeros(self.nlines)*self.flux_unit
         line_flux_MC = self.line_flux(MC=True)
         line_flux_fit = self.line_flux()
         self.EW_hig = np.zeros(self.nlines)*self.waveunit
