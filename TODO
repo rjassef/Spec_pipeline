@@ -1,3 +1,5 @@
+- Remove places of known emission lines and telluric absorption from the error-fit range. Alternative, could put a 3-5 sigma clipping iteration.
+
 - Assuming a single setup for DEIMOS, not sure this is correct though, and not sure which one it is. We'll assume 600ZD for now.
 
 - No Dichroich information in DEIMOS data headers. From the data of W0757 we will assume 640nm.
