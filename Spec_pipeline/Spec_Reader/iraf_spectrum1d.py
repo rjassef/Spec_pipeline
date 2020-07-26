@@ -162,11 +162,11 @@ def load_lam(i,s):
     elif wat0['system']=='multispec':
         iuse = i
 
-    #Now, we need to reconstruct the wavelength axis. We first try to find the entry for speci in WAT2. If WAT2 is not there, we'll check CTYPEi.
+    #Now, we need to reconstruct the wavelength axis. We first try to find the entry for speci in WAT2. If WAT2 and spec_1 are not there, we'll check CTYPEi.
     wat2 = parse_wat(2,s[0].header)
     spec_i = 'spec{0:d}'.format(iuse)
     spec_1 = 'spec{0:d}'.format(1)
-    if wat2 is not None:
+    if wat2 is not None and spec_1 in wat2:
 
         #If spec_i is not there, but spec_1 is, we can assume that they have the same dispersion.
         if spec_i not in wat2:
