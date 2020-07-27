@@ -141,8 +141,8 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
         textbox += "\n$\Delta v$ = {0:.1f}".format(line_fitter.dv_fit[i])
         if line_fitter.MC_chain is not None:
             textbox += "\nSNR = {0:.1f}".format(line_fitter.line_SNR[i])
-            if line_fitter.p is not None:
-                textbox += "\np   = {0:.3f}".format(line_fitter.p[i])
+        if line_fitter.p is not None:
+            textbox += "\np   = {0:.3f}".format(line_fitter.p[i])
     plt.text(0.05, 0.95, textbox, transform=ax.transAxes, fontsize=10,
         verticalalignment='top', horizontalalignment='left', bbox=props)
 
