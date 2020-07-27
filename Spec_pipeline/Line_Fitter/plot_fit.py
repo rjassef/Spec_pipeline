@@ -2,9 +2,13 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import rc
+rc('text',usetex=True)
+
 import astropy.units as u
 from astropy.constants import c
 from scipy.signal import savgol_filter
+import re
 
 from .MC_errors_general import get_error
 
@@ -29,7 +33,8 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
         nfig = 1
     else :
         nfig = plt.get_fignums()[-1]+1
-    plt.figure(nfig)
+    fig = plt.figure(nfig)
+    ax = fig.add_subplot(111)
     #fig, ax = plt.subplots()
 
     #Set the plot x-axis limits.
@@ -85,16 +90,16 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
                          flam_mod-flam_mod_low2,
                          flam_mod+flam_mod_hig2,
                          color='xkcd:cyan',
-                         alpha=1.0)
+                         alpha=1.0, label="1$\sigma$")
         plt.fill_between(lam_mod,
                          flam_mod-flam_mod_low1,
                          flam_mod+flam_mod_hig1,
                          color='xkcd:orange',
-                         alpha=1.0)
+                         alpha=1.0, label="3$\sigma$")
 
     #Plot the model.
-    plt.plot(lam_mod,flam_cont_mod,'--r')
-    plt.plot(lam_mod,flam_mod,'-b')
+    plt.plot(lam_mod,flam_cont_mod,'--r',label="Continuum")
+    plt.plot(lam_mod,flam_mod,'-b',label="Best-fit")
 
     #Set the y-axis limits
     flam_min = np.min(flam_mod).value
@@ -122,11 +127,24 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
     #Labels
     plt.xlabel(r'$\lambda_{Rest}\ (\AA)$')
     plt.ylabel(r'$F_{\lambda}\ (erg/cm^2/s/\AA)$')
-    #print(spec.name,line_fitter.line_name,line_fitter.FWHM_v,line_fitter.line_SNR)
-    plt.title("{0:s} {1:.3f}".format(spec.name, spec.zspec))
-    #for i in range(line_fitter.nlines):
-    #    plt.text(0.6,0.8-0.1*i,"{0:s} {1:.1f} {2:.1f}".format(line_fitter.line_name,line_fitter.FWHM_v[i],line_fitter.line_SNR[i]),verticalalignment='center', transform=ax.transAxes)
-    #plt.title("{0:s} {1:s} FWHM = {2:.1f} SNR={3:.1f}".format(spec.name,line_fitter.line_name,line_fitter.FWHM_v,line_fitter.line_SNR))
+    plt.title("{0:s} z={1:.3f} {2:s}".format(spec.name, spec.zspec, re.sub("_","\_",line_fitter.line_name)))
+    plt.legend(loc='upper right')
+
+    #Textbox with fit results.
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    textbox = ""
+    for i in range(line_fitter.nlines):
+        if i>0:
+            textbox += "\n"
+        textbox += "Line {0:d}".format(i+1)
+        textbox += "\nFWHM = {0:.0f}".format(line_fitter.FWHM_v[i])
+        textbox += "\n$\Delta v$ = {0:.1f}".format(line_fitter.dv_fit[i])
+        if line_fitter.MC_chain is not None:
+            textbox += "\nSNR = {0:.1f}".format(line_fitter.line_SNR[i])
+            if line_fitter.p is not None:
+                textbox += "\np   = {0:.3f}".format(line_fitter.p[i])
+    plt.text(0.05, 0.95, textbox, transform=ax.transAxes, fontsize=10,
+        verticalalignment='top', horizontalalignment='left', bbox=props)
 
     if plot_fname is None:
         plt.show()
