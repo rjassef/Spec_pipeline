@@ -48,6 +48,7 @@ Args:
         super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
         self.RT   = 2.5*u.m #Telescope radius.
         self.instrument = "DBSP"
+        self.dual_spec = True
         self.blue = blue
         self.red  = red
         self.edge_drop = 75.*u.AA

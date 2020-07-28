@@ -50,6 +50,7 @@ Args:
         super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
         self.RT   = 5.0*u.m #Telescope radius.
         self.instrument = "LRIS"
+        self.dual_spec = True
         self.blue = blue
         self.red = red
         #self.edge_drop = 50.*u.AA
