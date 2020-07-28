@@ -24,13 +24,12 @@ class Spec(object):
         self.texp = None
         self.RON  = None
         self.spec_err_name = None
-        self.K1 = None
-        self.K2 = None
+        self.Kp = None
         self.data_prefix = "data/"
         self.save_err = True
         self.show_err_plot=show_err_plot
         self.print_err_plot=False
-        self.error_fit_blue_exp=True
+        self.dual_spec=False
 
         #If no slit width is given, assume 1.25" as discussed on telecon from 05/26/2020
         self.slit_width = 1.25 * u.arcsec
@@ -72,8 +71,7 @@ class Spec(object):
             self._flam_err = self._flam_err * u.erg/(u.s*u.cm**2*u.AA)
             cat.close()
         except IOError:
-            self._flam_err, self.K1, self.K2, self.Ap, self.Bp = \
-                                               get_error_spec(self, wd=15, show_plot=self.show_err_plot, fit_blue_exp=self.error_fit_blue_exp)
+            self._flam_err, self.Kp = get_error_spec(self, wd=15, show_plot=self.show_err_plot)
             if self.save_err:
                 np.savetxt(self.data_prefix+"/"+self.spec_err_name,
                            np.array([self.lam_obs,
