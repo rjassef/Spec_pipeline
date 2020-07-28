@@ -315,6 +315,11 @@ class Multi_Line_fit(Line_fit):
 
     #Constraints on the continuum fit parameters.
     def meet_cont_constraints(self,x_cont):
+        #Require continuum to be non-negative over the entire range. Since it is just a straight line, it is enough to check the edges of the regions.
+        a, b = self.cont_par_parser(x_cont)
+        edge_fluxes = a*self.continuum_regions.flatten()+b
+        if len(edge_fluxes[edge_fluxes<0])>0:
+            return False
         return True
 
     #Constraints on the emission line fit parameters.
