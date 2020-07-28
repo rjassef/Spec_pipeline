@@ -301,7 +301,7 @@ class Multi_Line_fit(Line_fit):
         lam_peak = self.line_center*(1+self.dv_fit/c)
         for i in range(self.nlines):
             flam_cont[i] = self.flam_cont_model(lam_peak[i],x_cont)
-        return (-Fline/flam_cont).to(self.waveunit)
+        return (Fline/flam_cont).to(self.waveunit)
 
     #############
     # Constraints
