@@ -90,12 +90,12 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
                          flam_mod-flam_mod_low2,
                          flam_mod+flam_mod_hig2,
                          color='xkcd:cyan',
-                         alpha=1.0, label="1$\sigma$")
+                         alpha=1.0, label="3$\sigma$")
         plt.fill_between(lam_mod,
                          flam_mod-flam_mod_low1,
                          flam_mod+flam_mod_hig1,
                          color='xkcd:orange',
-                         alpha=1.0, label="3$\sigma$")
+                         alpha=1.0, label="1$\sigma$")
 
     #Plot the model.
     plt.plot(lam_mod,flam_cont_mod,'--r',label="Continuum")
