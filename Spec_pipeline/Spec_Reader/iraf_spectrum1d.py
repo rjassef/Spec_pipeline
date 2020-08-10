@@ -80,7 +80,8 @@ class spectrum1d(object):
         apnum_i = "APNUM{0:d}".format(i)
         if apnum_i in s[0].header:
             apx = s[0].header[apnum_i].split()
-            s[0].header['apsize_pix'] = float(apx[3])-float(apx[2])
+            if len(apx)>=4:
+                s[0].header['apsize_pix'] = float(apx[3])-float(apx[2])
         else:
             wat2 = parse_wat(2,s[0].header)
             spec_i = 'spec{0:d}'.format(i)
@@ -96,7 +97,7 @@ class spectrum1d(object):
         wat1 = parse_wat(1,s[0].header)
         if 'units' in wat1:
             wav_unit = wat1['units']
-            if wav_unit=='angstroms':
+            if wav_unit=='angstroms' or wav_unit=='Angstroms':
                 wav_unit = "Angstrom"
             self.native_dispersion_unit = u.Unit(wav_unit)
 
