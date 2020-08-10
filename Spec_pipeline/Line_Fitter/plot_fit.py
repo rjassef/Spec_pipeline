@@ -130,37 +130,26 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
     plt.title("{0:s} z={1:.3f} {2:s}".format(spec.name, spec.zspec, re.sub("_","\_",line_fitter.line_name)))
     plt.legend(loc='upper right')
 
-    #Textbox with fit results.
-    # props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    # textbox = ""
+    try:
+        line_fitter.line_legends(ax)
+    except AttributeError:
+        pass
+
+    # #Textbox with fit results. We will use one box per emission line, below the spectrum. We have up to three emission lines.
+    # line_name = re.sub("red","",line_fitter.line_name)
+    # lname = line_name.split("_")
+    # if len(lname)<line_fitter.nlines:
+    #     lname = [lname[0]]*line_fitter.nlines
+    # props = dict(boxstyle='round', facecolor='white', alpha=0.75)
     # for i in range(line_fitter.nlines):
-    #     if i>0:
-    #         textbox += "\n"
-    #     textbox += "Line {0:d}".format(i+1)
+    #     textbox = "{0:s}".format(lname[i])
     #     textbox += "\nFWHM = {0:.0f}".format(line_fitter.FWHM_v[i])
     #     textbox += "\n$\Delta v$ = {0:.1f}".format(line_fitter.dv_fit[i])
     #     if line_fitter.MC_chain is not None:
     #         textbox += "\nSNR = {0:.1f}".format(line_fitter.line_SNR[i])
     #     if line_fitter.p is not None:
     #         textbox += "\np   = {0:.3f}".format(line_fitter.p[i])
-    # plt.text(0.05, 0.95, textbox, transform=ax.transAxes, fontsize=10,
-    #     verticalalignment='top', horizontalalignment='left', bbox=props)
-
-    #Textbox with fit results. We will use one box per emission line, below the spectrum. We have up to three emission lines.
-    line_name = re.sub("red","",line_fitter.line_name)
-    lname = line_name.split("_")
-    if len(lname)<line_fitter.nlines:
-        lname = [lname[0]]*line_fitter.nlines
-    props = dict(boxstyle='round', facecolor='white', alpha=0.75)
-    for i in range(line_fitter.nlines):
-        textbox = "{0:s}".format(lname[i])
-        textbox += "\nFWHM = {0:.0f}".format(line_fitter.FWHM_v[i])
-        textbox += "\n$\Delta v$ = {0:.1f}".format(line_fitter.dv_fit[i])
-        if line_fitter.MC_chain is not None:
-            textbox += "\nSNR = {0:.1f}".format(line_fitter.line_SNR[i])
-        if line_fitter.p is not None:
-            textbox += "\np   = {0:.3f}".format(line_fitter.p[i])
-        plt.text(0.025+i/3., 0.025, textbox, transform=ax.transAxes, fontsize=10, verticalalignment='bottom', horizontalalignment='left', bbox=props)
+    #     plt.text(0.025+i/3., 0.025, textbox, transform=ax.transAxes, fontsize=10, verticalalignment='bottom', horizontalalignment='left', bbox=props)
 
 
     if plot_fname is None:
