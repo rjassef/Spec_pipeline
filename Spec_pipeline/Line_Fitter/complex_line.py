@@ -1,6 +1,7 @@
 import numpy  as np
 import astropy.units as u
 from astropy.constants import c
+import re
 
 from .multi_line import Multi_Line_fit
 from .line_class import Line_fit
@@ -342,3 +343,33 @@ class Complex_Line_fit(Line_fit):
         for line in self.multi_line:
             can_all = can_all and line.can_fit_be_run(spec)
         return can_all
+
+    ##########
+    # Plotting
+    ##########
+
+    #Textbox with fit results. We will use one box per emission line, below the spectrum. We have up to three emission lines.
+    def line_legends(self, ax):
+
+        import matplotlib.pyplot as plt
+
+        xloc = 0.025
+        yloc = 0.025
+        for k, line in enumerate(self.multi_line):
+            line_name = re.sub("red","",line.line_name)
+            lname = line_name.split("_")
+            if len(lname)<line.nlines:
+                lname = [lname[0]]*line.nlines
+            props = dict(boxstyle='round', facecolor='white', alpha=0.75)
+            for i in range(line.nlines):
+                textbox = "{0:s}".format(lname[i])
+                textbox += "\nFWHM = {0:.0f}".format(line.FWHM_v[i])
+                textbox += "\n$\Delta v$ = {0:.1f}".format(line.dv_fit[i])
+                if self.MC_chain is not None:
+                    textbox += "\nSNR = {0:.1f}".format(line.line_SNR[i])
+                if self.p is not None:
+                    textbox += "\np   = {0:.3f}".format(line.p[i])
+                plt.text(xloc, yloc, textbox, transform=ax.transAxes, fontsize=10, verticalalignment='bottom', horizontalalignment='left', bbox=props)
+                xloc += 1./3.
+
+        return

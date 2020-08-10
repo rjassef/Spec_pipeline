@@ -583,6 +583,32 @@ class Multi_Line_fit(Line_fit):
         return
 
     ##########
+    # Plotting
+    ##########
+
+    #Textbox with fit results. We will use one box per emission line, below the spectrum. We have up to three emission lines.
+    def line_legends(self, ax):
+
+        import matplotlib.pyplot as plt
+
+        line_name = re.sub("red","",self.line_name)
+        lname = line_name.split("_")
+        if len(lname)<self.nlines:
+            lname = [lname[0]]*self.nlines
+        props = dict(boxstyle='round', facecolor='white', alpha=0.75)
+        for i in range(self.nlines):
+            textbox = "{0:s}".format(lname[i])
+            textbox += "\nFWHM = {0:.0f}".format(self.FWHM_v[i])
+            textbox += "\n$\Delta v$ = {0:.1f}".format(self.dv_fit[i])
+            if self.MC_chain is not None:
+                textbox += "\nSNR = {0:.1f}".format(self.line_SNR[i])
+            if self.p is not None:
+                textbox += "\np   = {0:.3f}".format(self.p[i])
+            plt.text(0.025+i/3., 0.025, textbox, transform=ax.transAxes, fontsize=10, verticalalignment='bottom', horizontalalignment='left', bbox=props)
+
+        return
+
+    ##########
     # Printing
     ##########
 
