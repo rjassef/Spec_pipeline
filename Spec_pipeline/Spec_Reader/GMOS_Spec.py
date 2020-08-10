@@ -33,11 +33,13 @@ Args:
 
    """
 
-    def __init__(self,_name,_zspec,_fits_files,_grname,show_err_plot=False):
+    def __init__(self,_name,_zspec,_fits_files,_grname,show_err_plot=False,local_sky_files=None,local_sens_files=None):
         super(GMOS_Spec,self).__init__(_name,_zspec,_fits_files,show_err_plot=show_err_plot)
         self.grname = _grname
         self.RT   = 4.0*u.m #Telescope radius.
         self.instrument = "GMOS"
+        self.local_sky_files = local_sky_files
+        self.local_sens_files = local_sens_files
         self.__flam
         self.__flam_sky
         self.__sens
@@ -52,16 +54,21 @@ Args:
                                     flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
 
         #Find the grism and remove data outside the edges of the sensitivity curves.
-        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                            "/Spec_pipeline/Sensitivity_Files/"+
-                            "Sens_GMOS_"+self.grname+".txt")
+        if self.local_sens_files is None:
+            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sensitivity_Files/Sens_GMOS_"+self.grname+".txt"
+        else:
+            self.sens_temp_fname = self.local_sens_files[0]
+        sens_temp = np.loadtxt(self.sens_temp_fname)
         lam_sens = sens_temp[:,0]*u.AA
         kuse = (spec[0].dispersion>np.min(lam_sens)) & \
                 (spec[0].dispersion<np.max(lam_sens))
 
         #Finally, figure out the sky template edges and trim the spectrum to that limit.
-        sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                              "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
+        if self.local_sky_files is None:
+            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat"
+        else:
+            self.sky_temp_fname = self.local_sky_files[0]
+        sky_temp = np.loadtxt(self.sky_temp_fname)
         lam_sky = sky_temp[:,0]*u.AA
         kuse = (kuse) & (spec[0].dispersion>np.min(lam_sky)) & \
                 (spec[0].dispersion<np.max(lam_sky))
@@ -99,8 +106,7 @@ Args:
     def __flam_sky(self):
 
         #Read the template
-        sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                              "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
+        sky_temp = np.loadtxt(self.sky_temp_fname)
         lam_sky = sky_temp[:,0]*u.AA
         flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
 
@@ -115,9 +121,7 @@ Args:
     def __sens(self):
 
         #Read the sensitivity curve.
-        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                               "/Spec_pipeline/Sensitivity_Files/"+
-                               "Sens_GMOS_"+self.grname+".txt")
+        sens_temp = np.loadtxt(self.sens_temp_fname)
         lam_sens = sens_temp[:,0]*u.AA
         sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
 

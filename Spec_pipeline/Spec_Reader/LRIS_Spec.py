@@ -46,7 +46,7 @@ Args:
    """
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False,show_err_plot=False):
+                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None):
         super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
         self.RT   = 5.0*u.m #Telescope radius.
         self.instrument = "LRIS"
@@ -55,6 +55,8 @@ Args:
         self.red = red
         #self.edge_drop = 50.*u.AA
         self.edge_drop = 75.*u.AA
+        self.local_sky_files = local_sky_files
+        self.local_sens_files = local_sens_files
         self.__flam
         self.__flam_sky
         self.__sens
@@ -106,8 +108,10 @@ Args:
             grname = self.grism
 
             #Set the sky template. Remove data outisde the edges of the sky template.
-            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
-            "/Spec_pipeline/Sky_Templates/template_sky_LRIS_b.dat"
+            if self.local_sky_files is None:
+                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_LRIS_b.dat"
+            else:
+                self.sky_temp_fname = self.local_sky_files[0]
 
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[0]
@@ -136,8 +140,10 @@ Args:
             grname = self.grating
 
             #Set the sky template. Remove data outisde the edges of the sky template.
-            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
-            "/Spec_pipeline/Sky_Templates/template_sky_LRIS_r.dat"
+            if self.local_sky_files is None:
+                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_LRIS_r.dat"
+            else:
+                self.sky_temp_fname = self.local_sky_files[1]
 
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
@@ -155,9 +161,14 @@ Args:
             self.apsize_pix = (self.slit_width/self.PIXSIZE).to(1.).value
 
         #Find the grism and remove data outside the edges of the sensitivity curves.
-        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                            "/Spec_pipeline/Sensitivity_Files/"+
-                            "Sens_LRIS_"+grname+".txt")
+        if self.local_sens_files is None:
+            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sensitivity_Files/Sens_LRIS_"+grname+".txt"
+        else:
+            if self.blue:
+                self.sens_temp_fname = self.local_sens_files[0]
+            else:
+                self.sens_temp_fname = self.local_sens_files[1]
+        sens_temp = np.loadtxt(self.sens_temp_fname)
         lam_sens = sens_temp[:,0]*u.AA
         kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
                 (spec_use[0].dispersion<np.max(lam_sens))
@@ -204,15 +215,13 @@ Args:
     def __sens(self):
 
         #Read the sensitivity curve.
-        if self.blue:
-            grname = self.grism
-        elif self.red:
-            grname = self.grating
-        else:
-            return
-        sens_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-                               "/Spec_pipeline/Sensitivity_Files/"+
-                               "Sens_LRIS_"+grname+".txt")
+        # if self.blue:
+        #     grname = self.grism
+        # elif self.red:
+        #     grname = self.grating
+        # else:
+        #     return
+        sens_temp = np.loadtxt(self.sens_temp_fname)
         lam_sens = sens_temp[:,0]*u.AA
         sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
 

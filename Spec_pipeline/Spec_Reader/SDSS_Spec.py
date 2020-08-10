@@ -28,10 +28,12 @@ Args:
 
    """
 
-    def __init__(self,_name,_zspec,_fits_files):
+    def __init__(self,_name,_zspec,_fits_files,local_sky_files=None,local_sens_files=None):
         super(SDSS_Spec,self).__init__(_name,_zspec,_fits_files)
         self.RT   = 1.25*u.m #Telescope radius.
         self.instrument = "SDSS"
+        self.local_sky_files = local_sky_files
+        self.local_sens_files = local_sens_files
         self.__flam
 
     @property
