@@ -374,7 +374,7 @@ class Multi_Line_fit(Line_fit):
         i_ban  = self.get_i_ban(spec)
         i_all  = np.unique(np.concatenate((i_cont,i_line)))
         if len(i_ban)>0:
-            i_all = i_all[i_all!=i_ban]
+            i_all = i_all[~np.in1d(i_all,i_ban)]
         return i_all
 
     #This function is called to determine the indices of the spectrum
