@@ -35,6 +35,8 @@ Args:
 
     def __init__(self,_name,_zspec,_fits_files,_grname,show_err_plot=False,local_sky_files=None,local_sens_files=None):
         super(GMOS_Spec,self).__init__(_name,_zspec,_fits_files,show_err_plot=show_err_plot)
+        self.blue = True #Treat all GMOS spectra like blue spectra.
+        self.dual_spec = True
         self.grname = _grname
         self.RT   = 4.0*u.m #Telescope radius.
         self.instrument = "GMOS"
