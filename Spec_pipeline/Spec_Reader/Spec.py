@@ -30,6 +30,8 @@ class Spec(object):
         self.show_err_plot=show_err_plot
         self.print_err_plot=False
         self.dual_spec=False
+        self.red=False
+        self.blue=False
 
         #If no slit width is given, assume 1.25" as discussed on telecon from 05/26/2020
         self.slit_width = 1.25 * u.arcsec
