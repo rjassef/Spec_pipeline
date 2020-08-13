@@ -184,9 +184,9 @@ class Complex_Line_fit(Line_fit):
         return i_cont
 
     def meet_cont_constraints(self,x_cont):
-        a = x_cont[0]
-        b = x_cont[1]
-        cont_fluxes = a*self.__lam_fit+b
+        a = x_cont[0]*self.flamunit/self.waveunit
+        b = x_cont[1]*self.flamunit
+        cont_fluxes = (a*self.__lam_fit+b).to(self.flamunit).value
         if len(cont_fluxes[cont_fluxes<0])>0:
             return False
         return True
