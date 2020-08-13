@@ -1,4 +1,6 @@
-- Add capacity of different setups to DBSP.
+- For Lyalpha, the continuum is allowed to be negative under the emission line. This is a generic problem for emission lines with only one continuum region. Solve this by requiring that the continuum is also non-negative below the emission line, not just in the continuum regions. 
+
+- Add capacity of different setups to DBSP. - May not be necessary in the end, I added the possibility of using local sky and sensitivity files.
 
 - Remove places of known emission lines and telluric absorption from the error-fit range. Alternative, could put a 3-5 sigma clipping iteration.
 
