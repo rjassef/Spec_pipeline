@@ -96,6 +96,9 @@ Args:
             #Web page says a maximum of 2.64e - https://www2.keck.hawaii.edu/inst/deimos/deimos_detector_data.html
             self.RON  = 2.64
 
+            #We'll also assume a gain of 1.2 from the same web page.
+            self.GAIN = 1.20
+
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[0]
 
@@ -114,9 +117,15 @@ Args:
             #Web page says a maximum of 2.64e - https://www2.keck.hawaii.edu/inst/deimos/deimos_detector_data.html
             self.RON  = 2.64
 
+            #We'll also assume a gain of 1.2 from the same web page.
+            self.GAIN = 1.20
+
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
 
+
+        #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
+        self.apsize_pix = spec_use[0].header['apsize_pix']
 
         #Find the grism and remove data outside the edges of the sensitivity curves.
         if self.local_sens_files is None:
