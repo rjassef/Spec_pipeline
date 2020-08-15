@@ -89,7 +89,9 @@ Args:
             ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
 
             #Figure out the limits on which we can use the spectra.
-            dichroic_wave = float(ff[0].header['DICHROIC'][1:])*100.*u.AA
+            self.dichroic = ff[0].header['DICHROIC']
+            dichroic_wave = float(self.dichroic[1:])*100.*u.AA
+            #dichroic_wave = float(ff[0].header['DICHROIC'][1:])*100.*u.AA
             kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
 
             #Find the grism
@@ -100,7 +102,7 @@ Args:
 
             #Set the sky template
             if self.local_sky_files is None:
-                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DBSP_b.dat"
+                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DBSP_{0:s}_b.dat".format(self.dichroic)
             else:
                 self.sky_temp_fname = self.local_sky_files[0]
 
@@ -116,7 +118,9 @@ Args:
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
 
             #Figure out the limits on which we can use the spectra.
-            dichroic_wave = float(ff[0].header['DICHROIC'][1:])*100.*u.AA
+            self.dichroic = ff[0].header['DICHROIC']
+            dichroic_wave = float(self.dichroic[1:])*100.*u.AA
+            #dichroic_wave = float(ff[0].header['DICHROIC'][1:])*100.*u.AA
             kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
 
             #Find the grism
@@ -127,7 +131,7 @@ Args:
 
             #Set the sky template
             if self.local_sky_files is None:
-                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DBSP_r.dat"
+                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DBSP_{0:s}_r.dat".format(self.dichroic)
             else:
                 self.sky_temp_fname = self.local_sky_files[1]
 
