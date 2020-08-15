@@ -56,13 +56,23 @@ def proc_LRIS_new(sky_name, outname):
 
 
 
-def proc_DBSP_blue_sky(outname):
+def proc_DBSP_blue_sky(outname,dichroic):
     D_t = 5*u.m #Telescope diameter
-    proc_LRIS_DBSP("sky_palomar_b.w.txt",outname,D_t)
+    if dichroic=="D55":
+        proc_LRIS_DBSP("sky_palomar_{0:s}_b.w.txt".format(dichroic),outname,D_t)
+    elif dichroic=="D68":
+        proc_LRIS_new("sky_palomar_{0:s}_b.w.txt".format(dichroic),outname)
+    else:
+        print("Dichroic {0:s} not recognized".format(dichroic))
 
-def proc_DBSP_red_sky(outname):
+def proc_DBSP_red_sky(outname,dichroic):
     D_t = 5*u.m #Telescope diameter
-    proc_LRIS_DBSP("sky_palomar_r.w.txt",outname,D_t)
+    if dichroic=="D55":
+        proc_LRIS_DBSP("sky_palomar_{0:s}_r.w.txt".format(dichroic),outname,D_t)
+    elif dichroic=="D68":
+        proc_LRIS_new("sky_palomar_{0:s}_r.w.txt".format(dichroic),outname)
+    else:
+        print("Dichroic {0:s} not recognized".format(dichroic))
 
 def proc_LRIS_DBSP(sky_name,outname,D_t):
 
@@ -124,4 +134,8 @@ def proc_DEIMOS_sky(outname):
 #proc_LRIS_red_sky("template_sky_LRIS_r.dat")
 #proc_DBSP_blue_sky("template_sky_DBSP_b.dat")
 #proc_DBSP_red_sky("template_sky_DBSP_r.dat")
-proc_DEIMOS_sky("template_sky_DEIMOS.dat")
+#proc_DEIMOS_sky("template_sky_DEIMOS.dat")
+proc_DBSP_blue_sky("template_sky_DBSP_D55_b.dat","D55")
+proc_DBSP_red_sky("template_sky_DBSP_D55_r.dat","D55")
+proc_DBSP_blue_sky("template_sky_DBSP_D68_b.dat","D68")
+proc_DBSP_red_sky("template_sky_DBSP_D68_r.dat","D68")
