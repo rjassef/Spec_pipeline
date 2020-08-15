@@ -1,6 +1,6 @@
-- For Lyalpha, the continuum is allowed to be negative under the emission line. This is a generic problem for emission lines with only one continuum region. Solve this by requiring that the continuum is also non-negative below the emission line, not just in the continuum regions. 
+- For Lyalpha, the continuum is allowed to be negative under the emission line. This is a generic problem for emission lines with only one continuum region. Solve this by requiring that the continuum is also non-negative below the emission line, not just in the continuum regions.
 
-- Add capacity of different setups to DBSP. - May not be necessary in the end, I added the possibility of using local sky and sensitivity files.
+- Add capacity of different setups to DBSP. - May not be necessary in the end, I added the possibility of using local sky and sensitivity files. - Actually, this causes a problem with the wavelength coverage from the sky template. A solution is to spline the two sides together to just create a single sky spectrum. This would likely work OK, but it is not ideal. 
 
 - Remove places of known emission lines and telluric absorption from the error-fit range. Alternative, could put a 3-5 sigma clipping iteration.
 
