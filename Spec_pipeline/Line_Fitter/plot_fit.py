@@ -124,6 +124,21 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
     plt.plot([lam_line_fit_min,lam_line_fit_min],[flam_min,flam_max],'--b')
     plt.plot([lam_line_fit_max,lam_line_fit_max],[flam_min,flam_max],'--b')
 
+    #Shade the regions banned because of sky absorption.
+    try:
+        i_ban = line_fitter.get_i_ban(spec)
+        di_ban1 = np.zeros(len(i_ban),dtype=np.int32)
+        di_ban1[1:-1] = i_ban[2:]-i_ban[1:-1]
+        di_ban2 = np.zeros(len(i_ban),dtype=np.int32)
+        di_ban2[1:-1] = i_ban[1:-1]-i_ban[:-2]
+        i_ban_edges = i_ban[(di_ban1!=1) & (di_ban2!=1)] #Must have an even number of elements.
+        i_ban_edges = np.sort(i_ban_edges)
+        for k in range(int(len(i_ban_edges)/2)):
+            lam_ban = spec.lam_rest[i_ban_edges[2*k]:i_ban_edges[2*k+1]]
+            plt.fill_between(lam_ban.value, flam_min, flam_max, facecolor='red', alpha=0.2)
+    except AttributeError:
+        pass
+
     #Labels
     plt.xlabel(r'$\lambda_{Rest}\ (\AA)$')
     plt.ylabel(r'$F_{\lambda}\ (erg/cm^2/s/\AA)$')
@@ -134,23 +149,6 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
         line_fitter.line_legends(ax)
     except AttributeError:
         pass
-
-    # #Textbox with fit results. We will use one box per emission line, below the spectrum. We have up to three emission lines.
-    # line_name = re.sub("red","",line_fitter.line_name)
-    # lname = line_name.split("_")
-    # if len(lname)<line_fitter.nlines:
-    #     lname = [lname[0]]*line_fitter.nlines
-    # props = dict(boxstyle='round', facecolor='white', alpha=0.75)
-    # for i in range(line_fitter.nlines):
-    #     textbox = "{0:s}".format(lname[i])
-    #     textbox += "\nFWHM = {0:.0f}".format(line_fitter.FWHM_v[i])
-    #     textbox += "\n$\Delta v$ = {0:.1f}".format(line_fitter.dv_fit[i])
-    #     if line_fitter.MC_chain is not None:
-    #         textbox += "\nSNR = {0:.1f}".format(line_fitter.line_SNR[i])
-    #     if line_fitter.p is not None:
-    #         textbox += "\np   = {0:.3f}".format(line_fitter.p[i])
-    #     plt.text(0.025+i/3., 0.025, textbox, transform=ax.transAxes, fontsize=10, verticalalignment='bottom', horizontalalignment='left', bbox=props)
-
 
     if plot_fname is None:
         plt.show()
