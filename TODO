@@ -1,6 +1,8 @@
+- We are considering OVI as a single emission line at 1033.82 A (vacuum) following the SDSS list of emission lines. However, NIST lists it as a doublet, at 1031.912A and 1037.613A (vacuum). Here, http://astronomy.nmsu.edu/drewski/tableofemissionlines.html, it is also listed as a doublet. Perhaps we should be fitting it as a doublet to not affect the redshift determinations, yet this is unlikely to be too much of an issue. Also, we would need to know the line ratio too. 
+
 - For Lyalpha, the continuum is allowed to be negative under the emission line. This is a generic problem for emission lines with only one continuum region. Solve this by requiring that the continuum is also non-negative below the emission line, not just in the continuum regions.
 
-- Add capacity of different setups to DBSP. - May not be necessary in the end, I added the possibility of using local sky and sensitivity files. - Actually, this causes a problem with the wavelength coverage from the sky template. A solution is to spline the two sides together to just create a single sky spectrum. This would likely work OK, but it is not ideal. 
+- Add capacity of different setups to DBSP. - May not be necessary in the end, I added the possibility of using local sky and sensitivity files. - Actually, this causes a problem with the wavelength coverage from the sky template. A solution is to spline the two sides together to just create a single sky spectrum. This would likely work OK, but it is not ideal.
 
 - Remove places of known emission lines and telluric absorption from the error-fit range. Alternative, could put a 3-5 sigma clipping iteration.
 
