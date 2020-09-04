@@ -1,51 +1,52 @@
-##
 #Single Emission lines.
 #
 # 1 Line name
-# 2 Line center (AA)
+# 2 Line 1 name
 # 3 Velocity region for the fit (km/s)
 # 4- Continuum region(s) (AA)
-LyA       1   1215.67   10000.   1260.   1360.
-SiIV-OIV] 1  	1399.80	  10000.   1300.   1350.   1425. 1470.
-CIV	      1	  1549.48   10000.   1425.   1470.   1680. 1705.
-HeII	    1	  1640.40	  10000.   1425.   1470.   1680. 1705.
-CIII]	    1	  1908.734  10000.   1800.   1850.   1950. 2000.
-CII]	    1	  2326.0	  10000.   2250.   2300.   2350. 2400.
-NeIV	    1	  2439.5	  10000.   2350.   2400.   2475. 2525.
-MgII 	    1	  2799.117  10000.   2700.   2750.   2850. 2900.
-[NeIII]	  1	  3868.74	  10000.   3775.   3825.   3900. 3950.
-Ha        1   6562.8    10000.   6300.   6350.   6750. 6800.
-Hb   	    1	  4861.333  10000.   4750.   4800.   5050. 5100.
-Hgamma    1   4340.46   10000.   4280.   4330.   4350. 4400.
-Hdelta    1   4101.73   10000.   4030.   4080.   4280. 4330.
-Hepsilon  1   3970.07   10000.   3900.   3950.   4030. 4080.
-Hzeta     1   3889.05   10000.   3775.   3825.   3900. 3950.
+Lyalpha   1   Lyalpha   10000.   1260.   1360.
+SiIV-OIV] 1   SiIV-OIV]	10000.   1300.   1350.   1425. 1470.
+CIV	      1	  CIV	      10000.   1425.   1470.   1680. 1705.
+HeII	    1	  HeII	    10000.   1425.   1470.   1680. 1705.
+CIII]	    1	  CIII]	    10000.   1800.   1850.   1950. 2000.
+CII]	    1	  CII]	    10000.   2250.   2300.   2350. 2400.
+NeIV	    1	  NeIV	    10000.   2350.   2400.   2475. 2525.
+MgII 	    1	  MgII 	    10000.   2700.   2750.   2850. 2900.
+[NeIII]	  1	  [NeIII]	  10000.   3775.   3825.   3900. 3950.
+HeI       1   HeI       10000.   3775.   3825.   3900. 3950.
+Hzeta     1   Hzeta     10000.   3775.   3825.   3900. 3950.
+Hepsilon  1   Hepsilon  10000.   3900.   3950.   4030. 4080.
+Hdelta    1   Hdelta    10000.   4030.   4080.   4280. 4330.
+Hgamma    1   Hgamma    10000.   4280.   4330.   4350. 4400.
+Hbeta	    1	  Hbeta	    10000.   4750.   4800.   5050. 5100.
+Halpha    1   Halpha    10000.   6300.   6350.   6750. 6800.
 
 ##
 # Dual Lines
 #
 # 1 Line complex name
-# 2 Line 1 center (AA)
-# 3 Line 2 center (AA)
+# 2 Line 1 name
+# 3 Line 2 name
 # 4 Line1-Line2 Joint velocity displacement: 1=yes, 0=no
 # 5 Line1-Line2 Joint line widths: 1=yes, 0=no
 # 6 Line1-Line2 Fixed ratio: <0=no, any other number is the flux ratio.
 # 7 Velocity region for the fit (km/s)
 # 8 Continuum region(s) (AA)
-Lyb_OVI    2  1025.72	   1033.82	0	0	-1      5000.   950.   1000.   1100. 1150.
-LyA_NV     2	1215.67    1240.81	0	0	-1      5000.  1150.   1200.   1260. 1360.
-LyA_NVred  2	1215.67    1240.81	0	0	-1      5000.  1260.   1360.
-[OII]	     2	3726.16	   3728.91	1	1	1.0	    5000.  3650.   3700.   3750. 3800.
-[OIII]	   2	5006.84	   4958.91	1	1	2.98	  5000.  4750.   4800.   5050. 5100.
-[SII]      2  6716.42    6730.78  1 1 -1      5000.  6300.   6350.   6750. 6800.
-[NeIII]_Hzeta	   2  3868.74	   3889.05  0 0 -1      5000.  3775.   3825.   3900. 3950.
+Lyb_OVI    2  Lybeta	   OVI	      0	0	-1      5000.   950.   1000.   1100. 1150.
+LyA_NV     2	Lyalpha    NV	        0	0	-1      5000.  1150.   1200.   1260. 1360.
+LyA_NVred  2	Lyalpha	   NV         0	0	-1      5000.  1260.   1360.
+[OII]	     2	[OII]3726  [OII]3728 	1	1	1.0	    5000.  3650.   3700.   3750. 3800.
+[OIII]	   2	[OIII]5007 [OIII]4959 1	1	2.98	  5000.  4750.   4800.   5050. 5100.
+[SII]      2  [SII]6716  [SII]6730  1 1 -1      5000.  6300.   6350.   6750. 6800.
+[NeIII]_Hzeta	2 [NeIII]	 Hzeta      0 0 -1      5000.  3775.   3825.   3900. 3950.
+[NeIII]_HeI   2 [NeIII]	 HeI        0 0 -1      5000.  3775.   3825.   3900. 3950.
 ##
 # Triple Lines
 #
 # 1 Line complex name
-# 2 Line 1 center (AA)
-# 3 Line 2 center (AA)
-# 4 Line 3 center (AA)
+# 2 Line 1 name
+# 3 Line 2 name
+# 4 Line 3 name
 # 5 Line1-Line2 Joint velocity displacement: 1=yes, 0=no
 # 6 Line1-Line3 Joint velocity displacement: 1=yes, 0=no
 # 7 Line2-Line3 Joint velocity displacement: 1=yes, 0=no
@@ -57,5 +58,5 @@ LyA_NVred  2	1215.67    1240.81	0	0	-1      5000.  1260.   1360.
 #13 Line2-Line3 Fixed ratio: <0=no, any other number is the flux ratio.
 #14 Velocity region for the fit (km/s)
 #15 Continuum region(s) (AA)
-Ha_[NII]_[NII]        3  6562.8   6583.6   6548.1   0 0 1 0 0 1 -1 -1 2.96 10000. 6300. 6350. 6750. 6800.
-Ha_[NII]_[NII]_narrow 3  6562.8   6583.6   6548.1   1 1 1 1 1 1 -1 -1 2.96 10000. 6300. 6350. 6750. 6800.
+Ha_[NII]_[NII]        3  Halpha   [NII]6584  [NII]6548 0 0 1 0 0 1 -1 -1 2.96 10000. 6300. 6350. 6750. 6800.
+Ha_[NII]_[NII]_narrow 3  Halpha   [NII]6584  [NII]6548 1 1 1 1 1 1 -1 -1 2.96 10000. 6300. 6350. 6750. 6800.

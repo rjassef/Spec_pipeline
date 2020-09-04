@@ -13,7 +13,7 @@ from .MC_errors_general import get_error
 
 class Multi_Line_fit(Line_fit):
 
-    def __init__(self,_line_name,lines_file=None,spec=None):
+    def __init__(self,_line_name,lines_file=None,lines_center_file=None,spec=None):
 
         #Load the main class.
         super(Multi_Line_fit,self).__init__(_line_name,spec)
@@ -26,6 +26,18 @@ class Multi_Line_fit(Line_fit):
 
         #Initial default guess value for line widths
         self.sigma_v_0 = 1000. * self.vunit
+
+        #First, read the line centers.
+        if lines_center_file is None:
+            lines_center_file = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Line_Fitter/line_centers.txt"
+        line_centers = dict()
+        cat = open(lines_center_file,"r")
+        for line in cat:
+            if line[0]=="#":
+                continue
+            x = line.split()
+            line_centers[x[0]] = float(x[1])
+        cat.close()
 
         #Search the list for the line in question.
         if lines_file is None:
@@ -44,7 +56,7 @@ class Multi_Line_fit(Line_fit):
         if not line_found:
             print("Error: Line",_line_name,"not found in file",lines_file)
             sys.exit()
-        x[1:] = [float(ix) for ix in x[1:]]
+        #x[1:] = [float(ix) for ix in x[1:]]
 
         #Define all the fit control variables that might not get
         #defined later.
@@ -53,11 +65,25 @@ class Multi_Line_fit(Line_fit):
         self.fixed_ratio = None
 
         #Parse the data
-        self.nlines = int(x[1])
+        self.nlines = int(float(x[1]))
 
         #Assign parameters for the fit
-        self.line_center = np.array(x[2:2+self.nlines*1])*self.waveunit
+        #Line centers - the lines file could provide the name of the line or its central wavelength.
+        #self.line_center = np.array(x[2:2+self.nlines*1])*self.waveunit
+        self.line_center = np.zeros(self.nlines)*self.waveunit
+        for j,jj in enumerate(range(2,2+self.nlines*1)):
+            try:
+                self.line_center[j] = float(x[jj])*self.waveunit
+            except:
+                if x[jj] in line_centers.keys():
+                    self.line_center[j] = line_centers[x[jj]]*self.waveunit
+                else:
+                    print("Warning: Line",x[jj],"not found in line centers file")
+                    return
+
+        #Joint constraints
         k = 2+self.nlines
+        x[k:] = [float(ix) for ix in x[k:]]
         if self.nlines>1:
             self.joint_dv = np.zeros((self.nlines,self.nlines),dtype=np.int32)
             for i in range(self.nlines-1):
@@ -79,6 +105,7 @@ class Multi_Line_fit(Line_fit):
                 self.fixed_ratio[i][i+1:] = x[j1:j2]
             k+= np.sum(np.arange(self.nlines))
 
+        #Fit regions.
         self.line_velocity_region = x[k]*u.km/u.s
         self.ncont_reg = int((len(x)-(k+1))/2)
         self.continuum_regions = np.zeros((self.ncont_reg,2))
