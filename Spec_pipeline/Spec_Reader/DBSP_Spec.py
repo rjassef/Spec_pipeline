@@ -80,76 +80,71 @@ Args:
                 print("Line not within spectral ranges")
                 return
 
+
         if self.blue:
 
             #Assign the blue spectrum to be used
             spec_use = spec_b
-
-            #Open the fits file for the headers.
-            ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
-
-            #Figure out the limits on which we can use the spectra.
-            self.dichroic = ff[0].header['DICHROIC']
-            dichroic_wave = float(self.dichroic[1:])*100.*u.AA
-            #dichroic_wave = float(ff[0].header['DICHROIC'][1:])*100.*u.AA
-            kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
-
-            #Find the grism
-            grname = "B"
-
-            #Pixel scale
-            self.PIXSIZE = 0.389*u.arcsec
-
-            #Set the sky template
-            if self.local_sky_files is None:
-                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DBSP_{0:s}_b.dat".format(self.dichroic)
-            else:
-                self.sky_temp_fname = self.local_sky_files[0]
-
+            #Set the channel
+            channel = 'b'
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[0]
 
         elif self.red:
-
             #Assign the red spectrum to be used
             spec_use = spec_r
-
-            #Open the fits file for the headers.
-            ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
-
-            #Figure out the limits on which we can use the spectra.
-            self.dichroic = ff[0].header['DICHROIC']
-            dichroic_wave = float(self.dichroic[1:])*100.*u.AA
-            #dichroic_wave = float(ff[0].header['DICHROIC'][1:])*100.*u.AA
-            kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
-
-            #Find the grism
-            grname = "R"
-
-            #Pixel scale
-            self.PIXSIZE = 0.293*u.arcsec
-
-            #Set the sky template
-            if self.local_sky_files is None:
-                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DBSP_{0:s}_r.dat".format(self.dichroic)
-            else:
-                self.sky_temp_fname = self.local_sky_files[1]
-
+            #Set the channel
+            channel = 'r'
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
 
+        #Find some important aspects of the observations.
+        #Dichroic
+        self.dichroic = spec_use[0].header['DICHROIC']
+        self.dichroic = re.sub("-","",self.dichroic)
+        dichroic_wave = float(self.dichroic[1:])*100.*u.AA
+        if self.blue:
+            kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
+        else:
+            kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
+
+        #Detector
+        self.detector = spec_use[0].header['DETNAM']
+        if self.detector == 'CCD44-82':
+            self.plate_scale = 0.389*u.arcsec
+            self.pixel_size = 15.*u.micron
+        elif self.detector == 'LBNL_4Kx2K':
+            self.plate_scale = 0.293*u.arcsec
+            self.pixel_size = 15.*u.micron
+        elif self.detector == 'Site424':
+            self.plate_scale = 0.293*u.arcsec * 24./15.
+            self.pixel_size = 24.*u.micron
+            #HACK--FIX THIS
+            self.detector = 'LBNL_4Kx2K'
+        else:
+            print("Detector ",self.detector,"not recognized")
+            return
+
+        #Grating - there is a grating called sometimes 316/7150 and sometimes 316/7500, but it is the same grating with the same blaze as confirmed by the Palomar Observatory staff. We will alwayd use 316/7500.
+        self.grating  = spec_use[0].header['GRATING']
+        self.grating  = re.sub("7150","7500",self.grating)
+        self.grating  = re.sub("/","-",self.grating)
+        if self.grating == "3167500":
+            self.grating = "316-7500"
+
         #Slit width
         self.slit_width = float(spec_use[0].header['APERTURE']) * u.arcsec
+
 
         #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
         if 'apsize_pix' in spec_use[0].header:
             self.apsize_pix = spec_use[0].header['apsize_pix']
         else:
-            self.apsize_pix = (self.slit_width/self.PIXSIZE).to(1.).value
+            self.apsize_pix = (self.slit_width/self.plate_scale).to(1.).value
 
         #Find the grism and remove data outside the edges of the sensitivity curves.
         if self.local_sens_files is None:
-            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sensitivity_Files/Sens_DBSP_"+grname+".txt"
+            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_DBSP_{0:s}_{1:s}_{2:s}.txt".format(self.detector, self.grating, self.dichroic)
         else:
             if self.blue:
                 self.sens_temp_fname = self.local_sens_files[0]
@@ -158,14 +153,36 @@ Args:
         sens_temp = np.loadtxt(self.sens_temp_fname)
 
         lam_sens = sens_temp[:,0]*u.AA
-        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
+        kuse_sens = (spec_use[0].dispersion>np.min(lam_sens)) & \
                 (spec_use[0].dispersion<np.max(lam_sens))
+
+        #kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
+        #        (spec_use[0].dispersion<np.max(lam_sens))
+
+        #Set the sky template to use.
+        if self.local_sky_files is None:
+            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DBSP_{0:s}_{1:s}.dat".format(self.dichroic,channel)
+        else:
+            if self.blue:
+                self.sky_temp_fname = self.local_sky_files[0]
+            else:
+                self.sky_temp_fname = self.local_sky_files[1]
 
         #Finally, figure out the sky template edges and trim the spectrum to that limit.
         sky_temp = np.loadtxt(self.sky_temp_fname)
         lam_sky = sky_temp[:,0]*u.AA
-        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sky)) & \
+        kuse_sky = (spec_use[0].dispersion>np.min(lam_sky)) & \
                 (spec_use[0].dispersion<np.max(lam_sky))
+        #kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sky)) & \
+        #        (spec_use[0].dispersion<np.max(lam_sky))
+
+        #Display a warning if we are missing any range because of the sensitivity curve or the sky template.
+        lam = spec_use[0].dispersion[kuse]
+        if np.min(lam)<np.min(lam_sens) or np.max(lam)>np.max(lam_sens):
+            print("Wavelength range for object {0:s} limited because of sensitivity template".format(self.name))
+        if np.min(lam)<np.min(lam_sky) or np.max(lam)>np.max(lam_sky):
+            print("Wavelength range for object {0:s} limited because of sky template".format(self.name))
+        kuse = (kuse) & (kuse_sens) & (kuse_sky)
 
         #Now, assign the wavelength and flux to the object.
         self.lam_obs = spec_use[0].dispersion[kuse]
@@ -176,31 +193,17 @@ Args:
 
         #Mean bin size, exposure time, RON and GAIN. Useful for error estimation.
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
-        self.texp = float(ff[0].header['EXPTIME'])*u.s
-        self.RON  = float(ff[0].header['RON'])
-        self.GAIN = float(ff[0].header['GAIN'])
+        self.texp = float(spec_use[0].header['EXPTIME'])*u.s
+        self.RON  = float(spec_use[0].header['RON'])
+        self.GAIN = float(spec_use[0].header['GAIN'])
 
         #Convert fnu to flambda.
         self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
-
-        #Close the fits file.
-        ff.close()
 
         return
 
     @property
     def __flam_sky(self):
-
-        '''#Figure out the spectrograph arm.
-        if self.blue:
-            sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
-                "/Spec_pipeline/Sky_Templates/template_sky_DBSP_b.dat"
-        elif self.red:
-            sky_temp_fname = os.environ['SPEC_PIPE_LOC']+\
-                "/Spec_pipeline/Sky_Templates/template_sky_DBSP_r.dat"
-        else:
-            #print("Cannot find spectrograph arm flag")
-            return'''
 
         #Read the template
         sky_temp = np.loadtxt(self.sky_temp_fname)
@@ -215,13 +218,6 @@ Args:
     @property
     def __sens(self):
 
-        #Read the sensitivity curve.
-        # if self.blue:
-        #     grname = "B"
-        # elif self.red:
-        #     grname = "R"
-        # else:
-        #     return
         sens_temp = np.loadtxt(self.sens_temp_fname)
         lam_sens = sens_temp[:,0]*u.AA
         sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
@@ -231,21 +227,34 @@ Args:
 
         return
 
-    #For DBSP we always used the same setup: 600/4000 in the blue side, and 316/7150 in the red. Almost all observations were obtained after the red CCD was changed in 2017. We use the numbers here: https://www.astro.caltech.edu/palomar/observer/200inchResources/dbspoverview.html#grating . We'll assume that the dispersion numbers quoted are the FWHM (like for LRIS) and we'll assume a 1" slit, the same as we did for LRIS.
+    #We use the numbers here: https://www.astro.caltech.edu/palomar/observer/200inchResources/dbspoverview.html#grating . We'll assume that the dispersion numbers quoted are the FWHM (like for LRIS) and we'll assume a 1" slit, the same as we did for LRIS, since really what matters here is the minimum between the seeing and the slit size, and we want to be conservative.
     @property
     def sigma_res(self):
 
         slit_size = 1.0*u.arcsec
 
-        if self.blue:
-            res = 71.*u.AA/u.mm
-            pixel_size = 15*u.micron
-            plate_scale = 0.389*u.arcsec#/pixel
-        else:
-            res = 102 * u.AA/u.mm
-            pixel_size = 15*u.micron
-            plate_scale = 0.293*u.arcsec#/pixel
+        #Array that holds all information about the gratings.
+        res_page = dict()
+        res_page['158-7560']  = [135.,201.]
+        res_page['300-3990']  = [140.,'-' ]
+        res_page['316-7500']  = ['-' ,102.]
+        res_page['600-4000']  =	[ 71., '-']
+        res_page['600-10000'] =	['-' , 54.]
+        res_page['1200-4700'] =	[ 36., '-']
+        res_page['1200-7100'] =	[ 36., 27.]
+        res_page['1200-9400'] =	[ 35., 26.]
 
-        FWHM_res = (slit_size/plate_scale)*pixel_size * res
+        #Get the resolution.
+        if self.grating in res_page.keys():
+            if self.blue:
+                res = res_page[self.grating][0] * u.AA/u.mm
+            else:
+                res = res_page[self.grating][1] * u.AA/u.mm
+        else:
+            print(self.grating,"not found in page")
+            print("Using minimum of 0.1 A ")
+            return 0.1*u.AA
+
+        FWHM_res = (slit_size/self.plate_scale)*self.pixel_size * res
         sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
         return sigma_res.to(u.AA)
