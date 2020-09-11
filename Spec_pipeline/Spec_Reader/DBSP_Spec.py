@@ -161,7 +161,7 @@ Args:
 
         #Set the sky template to use.
         if self.local_sky_files is None:
-            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DBSP_{0:s}_{1:s}.dat".format(self.dichroic,channel)
+            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_DBSP_{0:s}_{1:.2f}arcsec_{2:s}.txt".format(self.grating,self.slit_width.to(u.arcsec).value,channel)
         else:
             if self.blue:
                 self.sky_temp_fname = self.local_sky_files[0]
@@ -169,7 +169,11 @@ Args:
                 self.sky_temp_fname = self.local_sky_files[1]
 
         #Finally, figure out the sky template edges and trim the spectrum to that limit.
-        sky_temp = np.loadtxt(self.sky_temp_fname)
+        try:
+            sky_temp = np.loadtxt(self.sky_temp_fname)
+        except IOError:
+            print("Could not open sky file ",self.sky_temp_fname)
+            return
         lam_sky = sky_temp[:,0]*u.AA
         kuse_sky = (spec_use[0].dispersion>np.min(lam_sky)) & \
                 (spec_use[0].dispersion<np.max(lam_sky))
