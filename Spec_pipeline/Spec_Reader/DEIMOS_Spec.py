@@ -51,7 +51,7 @@ Args:
         self.blue = blue
         self.red = red
         #self.edge_drop = 50.*u.AA
-        self.edge_drop = 75.*u.AA
+        #self.edge_drop = 75.*u.AA
         self.local_sky_files = local_sky_files
         self.local_sens_files = local_sens_files
         self.__flam
@@ -90,8 +90,8 @@ Args:
             ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
 
             #Figure out the limits on which we can use the spectra.
-            dichroic_wave = 640*u.nm
-            kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
+            #dichroic_wave = 640*u.nm
+            #kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
 
             #Web page says a maximum of 2.64e - https://www2.keck.hawaii.edu/inst/deimos/deimos_detector_data.html
             self.RON  = 2.64
@@ -111,8 +111,8 @@ Args:
             ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
 
             #Figure out the limits on which we can use the spectra.
-            dichroic_wave = 640*u.nm
-            kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
+            #dichroic_wave = 640*u.nm
+            #kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
 
             #Web page says a maximum of 2.64e - https://www2.keck.hawaii.edu/inst/deimos/deimos_detector_data.html
             self.RON  = 2.64
