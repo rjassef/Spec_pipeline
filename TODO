@@ -1,4 +1,6 @@
-- We are considering OVI as a single emission line at 1033.82 A (vacuum) following the SDSS list of emission lines. However, NIST lists it as a doublet, at 1031.912A and 1037.613A (vacuum). Here, http://astronomy.nmsu.edu/drewski/tableofemissionlines.html, it is also listed as a doublet. Perhaps we should be fitting it as a doublet to not affect the redshift determinations, yet this is unlikely to be too much of an issue. Also, we would need to know the line ratio too. 
+- Add extrapolation from sensitivity curves to match extracted spectral range.
+
+- We are considering OVI as a single emission line at 1033.82 A (vacuum) following the SDSS list of emission lines. However, NIST lists it as a doublet, at 1031.912A and 1037.613A (vacuum). Here, http://astronomy.nmsu.edu/drewski/tableofemissionlines.html, it is also listed as a doublet. Perhaps we should be fitting it as a doublet to not affect the redshift determinations, yet this is unlikely to be too much of an issue. Also, we would need to know the line ratio too.
 
 - For Lyalpha, the continuum is allowed to be negative under the emission line. This is a generic problem for emission lines with only one continuum region. Solve this by requiring that the continuum is also non-negative below the emission line, not just in the continuum regions.
 
