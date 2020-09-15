@@ -7,6 +7,7 @@ import astropy.units as u
 from astropy.constants import h,c
 import re
 import os
+from scipy.interpolate import interp1d
 
 #from .spectrum1d import read_fits_spectrum1d
 from .iraf_spectrum1d import read_fits_spectrum1d
@@ -86,7 +87,7 @@ Args:
             #Assign the blue spectrum to be used
             spec_use = spec_b
             #Set the channel
-            channel = 'b'
+            self.channel = 'b'
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[0]
 
@@ -94,7 +95,7 @@ Args:
             #Assign the red spectrum to be used
             spec_use = spec_r
             #Set the channel
-            channel = 'r'
+            self.channel = 'r'
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
 
@@ -119,8 +120,6 @@ Args:
         elif self.detector == 'Site424':
             self.plate_scale = 0.293*u.arcsec * 24./15.
             self.pixel_size = 24.*u.micron
-            #HACK--FIX THIS
-            self.detector = 'LBNL_4Kx2K'
         else:
             print("Detector ",self.detector,"not recognized")
             return
@@ -144,24 +143,24 @@ Args:
 
         #Find the grism and remove data outside the edges of the sensitivity curves.
         if self.local_sens_files is None:
-            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_DBSP_{0:s}_{1:s}_{2:s}.txt".format(self.detector, self.grating, self.dichroic)
+            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_DBSP_{0:s}_{1:s}_{2:s}_{3:s}.txt".format(self.detector, self.grating, self.dichroic, self.channel)
         else:
             if self.blue:
                 self.sens_temp_fname = self.local_sens_files[0]
             else:
                 self.sens_temp_fname = self.local_sens_files[1]
-        sens_temp = np.loadtxt(self.sens_temp_fname)
-
-        lam_sens = sens_temp[:,0]*u.AA
-        kuse_sens = (spec_use[0].dispersion>np.min(lam_sens)) & \
-                (spec_use[0].dispersion<np.max(lam_sens))
+        # sens_temp = np.loadtxt(self.sens_temp_fname)
+        #
+        # lam_sens = sens_temp[:,0]*u.AA
+        # kuse_sens = (spec_use[0].dispersion>np.min(lam_sens)) & \
+        #         (spec_use[0].dispersion<np.max(lam_sens))
 
         #kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
         #        (spec_use[0].dispersion<np.max(lam_sens))
 
         #Set the sky template to use.
         if self.local_sky_files is None:
-            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_DBSP_{0:s}_{1:.2f}arcsec_{2:s}.txt".format(self.grating,self.slit_width.to(u.arcsec).value,channel)
+            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_DBSP_{0:s}_{1:.2f}arcsec_{2:s}.txt".format(self.grating,self.slit_width.to(u.arcsec).value,self.channel)
         else:
             if self.blue:
                 self.sky_temp_fname = self.local_sky_files[0]
@@ -182,11 +181,16 @@ Args:
 
         #Display a warning if we are missing any range because of the sensitivity curve or the sky template.
         lam = spec_use[0].dispersion[kuse]
-        if np.min(lam)<np.min(lam_sens) or np.max(lam)>np.max(lam_sens):
-            print("Wavelength range for object {0:s} limited because of sensitivity template".format(self.name))
+        # if np.min(lam)<np.min(lam_sens) or np.max(lam)>np.max(lam_sens):
+        #     print("Wavelength range for object {0:s} limited because of sensitivity template".format(self.name))
+        #     print("Spec-range: {0:.1f} - {1:.2f}".format(np.min(lam),np.max(lam)))
+        #     print("Sens-range: {0:.1f} - {1:.2f}".format(np.min(lam_sens),np.max(lam_sens)))
         if np.min(lam)<np.min(lam_sky) or np.max(lam)>np.max(lam_sky):
             print("Wavelength range for object {0:s} limited because of sky template".format(self.name))
-        kuse = (kuse) & (kuse_sens) & (kuse_sky)
+            print("Spec-range: {0:.1f} - {1:.2f}".format(np.min(lam),np.max(lam)))
+            print("Sky-range: {0:.1f} - {1:.2f}".format(np.min(lam_sky),np.max(lam_sky)))
+        #kuse = (kuse) & (kuse_sens) & (kuse_sky)
+        kuse = (kuse) & (kuse_sky)
 
         #Now, assign the wavelength and flux to the object.
         self.lam_obs = spec_use[0].dispersion[kuse]
@@ -227,7 +231,11 @@ Args:
         sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
 
         #Rebin the template to the object spectrum.
-        self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
+        #self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
+
+        #Interpolate the sensitivity template to the object spectrum. Extrapolate if needed, which is OK as it is a smooth function of wavelegnth for the most part.
+        f = interp1d(lam_sens, sens_orig, kind='linear', fill_value='extrapolate')
+        self.sens = f(self.lam_obs)
 
         return
 
