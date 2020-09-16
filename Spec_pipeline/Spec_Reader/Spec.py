@@ -6,6 +6,7 @@
 import numpy as np
 import astropy.units as u
 from astropy.constants import h,c
+import os
 
 #from .obtain_error_spectrum import get_error_spec
 from .obtain_error_spectrum_with_extra_poly import get_error_spec
@@ -79,3 +80,33 @@ class Spec(object):
                            np.array([self.lam_obs,
                                      self._flam_err]).T)
         return self._flam_err
+
+
+    def load_detector_properties(self):
+        #Load the detectors file.
+        dets = np.genfromtxt(os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Configurations/{0:s}_detectors.txt".format(self.instrument),dtype=str)
+
+        if self.detector in dets[:,0]:
+            det_use = dets[dets[:,0]==self.detector,:]
+            self.plate_scale = float(det_use[0,1])*u.arcsec
+            self.pixel_size  = float(det_use[0,2])*u.micron
+        else:
+            print("Warning: Detector {0:s} not found.".format(self.detector))
+
+        return
+
+    def load_grating_properties(self):
+
+        #Load the detectors file.
+        if self.dual_spec:
+            grts = np.genfromtxt(os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Configurations/{0:s}_gratings_{1:s}.txt".format(self.instrument,self.channel),dtype=str)
+        else:
+            grts = np.genfromtxt(os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Configurations/{0:s}_gratings.txt".format(self.instrument),dtype=str)
+
+        if self.grating in grts[:,0]:
+            grt_use = grts[grts[:,0]==self.grating,:]
+            self.grating_dispersion = float(grt_use[0,1])*u.AA/u.mm
+        else:
+            print("Warning: Grating {0:s} not found.".format(self.grating))
+
+        return
