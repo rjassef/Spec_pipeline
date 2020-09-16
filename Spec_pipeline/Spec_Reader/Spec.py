@@ -7,6 +7,7 @@ import numpy as np
 import astropy.units as u
 from astropy.constants import h,c
 import os
+import re
 
 #from .obtain_error_spectrum import get_error_spec
 from .obtain_error_spectrum_with_extra_poly import get_error_spec
@@ -108,5 +109,93 @@ class Spec(object):
             self.grating_dispersion = float(grt_use[0,1])*u.AA/u.mm
         else:
             print("Warning: Grating {0:s} not found.".format(self.grating))
+
+        return
+
+    def load_keyword_headers(self, spec, keywords):
+
+        for key in keywords.keys():
+            if (not hasattr(self,key)) or (getattr(self,key) is None):
+                if keywords[key] in spec[0].header.keys():
+                    setattr(self,key, spec[0].header[keywords[key]])
+                else:
+                    print("Warning: {0:s} keyword not found.".format(keywords[key]))
+                    setattr(self,key, None)
+
+    def run_setup(self, spec_use):
+
+        #Cut the edges close to the dichroic.
+        if (hasattr(self,'dichroic')) and (self.dichroic is not None):
+            if self.blue:
+                kuse = (spec_use[0].dispersion<self.dichroic_wave-self.edge_drop)
+            else:
+                kuse = (spec_use[0].dispersion>self.dichroic_wave+self.edge_drop)
+        else:
+            kuse = (spec_use[0].dispersion>0*u.AA)
+
+        #Load the detector properties.
+        if (hasattr(self,'detector')) and (self.detector is not None):
+            self.load_detector_properties()
+
+        #Load the grating properties.
+        if (hasattr(self,'grating')) and (self.grating is not None):
+            self.load_grating_properties()
+
+        #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
+        if self.apsize_pix is None:
+            try:
+                self.apsize_pix = (self.slit_width/self.plate_scale).to(1.).value
+            except TypeError:
+                pass
+
+        #Set the sensitivity template.
+        if self.local_sens_files is None:
+            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_{0:s}_{1:s}_{2:s}_{3:s}_{4:s}.txt".format(self.instrument, self.detector, self.grating, self.dichroic, self.channel)
+        else:
+            if self.blue:
+                self.sens_temp_fname = self.local_sens_files[0]
+            else:
+                self.sens_temp_fname = self.local_sens_files[1]
+
+        #Set the sky template to use.
+        if self.local_sky_files is None:
+            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_{0:s}_{1:s}_{2:.2f}arcsec_{3:s}.txt".format( self.instrument, self.grating, self.slit_width.to(u.arcsec).value, self.channel)
+        else:
+            if self.blue:
+                self.sky_temp_fname = self.local_sky_files[0]
+            else:
+                self.sky_temp_fname = self.local_sky_files[1]
+
+        #Finally, figure out the sky template edges and trim the spectrum to that limit.
+        try:
+            sky_temp = np.loadtxt(self.sky_temp_fname)
+        except IOError:
+            print("Could not open sky file ",self.sky_temp_fname)
+            return
+        lam_sky = sky_temp[:,0]*u.AA
+        kuse_sky = (spec_use[0].dispersion>np.min(lam_sky)) & \
+                (spec_use[0].dispersion<np.max(lam_sky))
+
+        #Display a warning if we are missing any range because of the sensitivity curve or the sky template.
+        lam = spec_use[0].dispersion[kuse]
+        if np.min(lam)<np.min(lam_sky) or np.max(lam)>np.max(lam_sky):
+            print("Wavelength range for object {0:s} limited because of sky template".format(self.name))
+            print("Spec-range: {0:.1f} - {1:.2f}".format(np.min(lam),np.max(lam)))
+            print("Sky-range: {0:.1f} - {1:.2f}".format(np.min(lam_sky),np.max(lam_sky)))
+        kuse = (kuse) & (kuse_sky)
+
+        #Now, assign the wavelength and flux to the object.
+        self.lam_obs = spec_use[0].dispersion[kuse]
+        fnu = spec_use[0].data[kuse]*spec_use[0].unit
+
+        #Change the .fits for .txt in the error file name as it will be saved in ASCII
+        self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
+
+        #Mean bin size, exposure time, RON and GAIN. Useful for error estimation.
+        self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
+        self.texp = np.float(self.texp) * u.s
+
+        #Convert fnu to flambda.
+        self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
 
         return
