@@ -22,7 +22,7 @@ from .rebin_spec import rebin_spec
 class DBSP_Spec(Spec):
 
     """
-Module that read a DBSP spectrum and returns a spec object.
+Module that reads a DBSP spectrum and returns a spec object.
 
 Args:
    _name (string)      : Object name or ID.
@@ -42,10 +42,33 @@ Args:
                          it should be indicated whether the blue side or the
                          red side spectrum should be loaded.
 
+   show_err_plot (boolean)    : Optional. True if error-fit plot is to be
+                                displayed.
+
+   local_sky_files (list)     : Optional. List of sky files if the default ones
+                                are not to be used.
+
+   local_sens_files (list)    : Optional. List of sensitivity files if the
+                                default ones are not to be used.
+
+   dichroic (string)          : Optional.
+
+   grating (string)           : Optional.
+
+   grating_dispersion (float) : Optional. In astropy units of AA/mm
+
+   detector (string)          : Optional.
+
+   plate_scale (float)        : Optional. In astropy units of arcsec.
+
+   pixel_size (float)         : Optional. In astropy units of microns.
+
+   slit_width (float)         : Optional. In astropy units of arcsec.
+
    """
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None):
+                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, dichroic=None, grating=None, grating_dispersion=None, detector=None, plate_scale=None, pixel_size=None, slit_width=None):
         super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
         self.RT   = 2.5*u.m #Telescope radius.
         self.instrument = "DBSP"
@@ -55,6 +78,17 @@ Args:
         self.edge_drop = 75.*u.AA
         self.local_sky_files = local_sky_files
         self.local_sens_files = local_sens_files
+
+        self.dichroic = dichroic
+        self.grating = grating
+        self.grating_dispersion = grating_dispersion
+        self.detector = detector
+        self.plate_scale = plate_scale
+        self.pixel_size = pixel_size
+        self.slit_width = slit_width
+
+        self._sigma_res = None
+
         self.__flam
         self.__flam_sky
         self.__sens
@@ -83,7 +117,6 @@ Args:
 
 
         if self.blue:
-
             #Assign the blue spectrum to be used
             spec_use = spec_b
             #Set the channel
@@ -101,38 +134,53 @@ Args:
 
         #Find some important aspects of the observations.
         #Dichroic
-        self.dichroic = spec_use[0].header['DICHROIC']
-        self.dichroic = re.sub("-","",self.dichroic)
-        dichroic_wave = float(self.dichroic[1:])*100.*u.AA
-        if self.blue:
-            kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
+        if self.dichroic is None:
+            if 'DICHROIC' in spec_use[0].header.keys():
+                self.dichroic = spec_use[0].header['DICHROIC']
+                self.dichroic = re.sub("-","",self.dichroic)
+            else:
+                print("Warning: DICHROIC keyword not found. No dichroic set")
+
+        if self.dichroic is not None:
+            dichroic_wave = float(self.dichroic[1:])*100.*u.AA
+            if self.blue:
+                kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
+            else:
+                kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
         else:
-            kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
+            kuse = (spec_use[0].dispersion>0*u.AA)
+
 
         #Detector
-        self.detector = spec_use[0].header['DETNAM']
-        if self.detector == 'CCD44-82':
-            self.plate_scale = 0.389*u.arcsec
-            self.pixel_size = 15.*u.micron
-        elif self.detector == 'LBNL_4Kx2K':
-            self.plate_scale = 0.293*u.arcsec
-            self.pixel_size = 15.*u.micron
-        elif self.detector == 'Site424':
-            self.plate_scale = 0.293*u.arcsec * 24./15.
-            self.pixel_size = 24.*u.micron
-        else:
-            print("Detector ",self.detector,"not recognized")
-            return
+        if self.detector is None:
+            if 'DETNAM' in spec_use[0].header.keys():
+                self.detector = spec_use[0].header['DETNAM']
+            else:
+                print("Warning: DETNAM keyword not found. No detector set")
+
+        if self.detector is not None:
+            self.load_detector_properties()
 
         #Grating - there is a grating called sometimes 316/7150 and sometimes 316/7500, but it is the same grating with the same blaze as confirmed by the Palomar Observatory staff. We will alwayd use 316/7500.
-        self.grating  = spec_use[0].header['GRATING']
-        self.grating  = re.sub("7150","7500",self.grating)
-        self.grating  = re.sub("/","-",self.grating)
-        if self.grating == "3167500":
-            self.grating = "316-7500"
+        if self.grating is None:
+            if 'GRATING' in spec_use[0].header.keys():
+                self.grating  = spec_use[0].header['GRATING']
+                self.grating  = re.sub("7150","7500",self.grating)
+                self.grating  = re.sub("/","-",self.grating)
+                if self.grating == "3167500":
+                    self.grating = "316-7500"
+            else:
+                print("Warning: GRATING keyword not found. No grating set")
+
+        if self.grating is not None:
+            self.load_grating_properties()
 
         #Slit width
-        self.slit_width = float(spec_use[0].header['APERTURE']) * u.arcsec
+        if self.slit_width is None:
+            if 'APERTURE' in spec_use[0].header.keys():
+                self.slit_width = float(spec_use[0].header['APERTURE']) * u.arcsec
+            else:
+                print("Warning: APERTURE keyword not found. No slit width set")
 
 
         #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
@@ -141,7 +189,7 @@ Args:
         else:
             self.apsize_pix = (self.slit_width/self.plate_scale).to(1.).value
 
-        #Find the grism and remove data outside the edges of the sensitivity curves.
+        #Set the sensitivity template.
         if self.local_sens_files is None:
             self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_DBSP_{0:s}_{1:s}_{2:s}_{3:s}.txt".format(self.detector, self.grating, self.dichroic, self.channel)
         else:
@@ -149,14 +197,6 @@ Args:
                 self.sens_temp_fname = self.local_sens_files[0]
             else:
                 self.sens_temp_fname = self.local_sens_files[1]
-        # sens_temp = np.loadtxt(self.sens_temp_fname)
-        #
-        # lam_sens = sens_temp[:,0]*u.AA
-        # kuse_sens = (spec_use[0].dispersion>np.min(lam_sens)) & \
-        #         (spec_use[0].dispersion<np.max(lam_sens))
-
-        #kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
-        #        (spec_use[0].dispersion<np.max(lam_sens))
 
         #Set the sky template to use.
         if self.local_sky_files is None:
@@ -176,20 +216,13 @@ Args:
         lam_sky = sky_temp[:,0]*u.AA
         kuse_sky = (spec_use[0].dispersion>np.min(lam_sky)) & \
                 (spec_use[0].dispersion<np.max(lam_sky))
-        #kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sky)) & \
-        #        (spec_use[0].dispersion<np.max(lam_sky))
 
         #Display a warning if we are missing any range because of the sensitivity curve or the sky template.
         lam = spec_use[0].dispersion[kuse]
-        # if np.min(lam)<np.min(lam_sens) or np.max(lam)>np.max(lam_sens):
-        #     print("Wavelength range for object {0:s} limited because of sensitivity template".format(self.name))
-        #     print("Spec-range: {0:.1f} - {1:.2f}".format(np.min(lam),np.max(lam)))
-        #     print("Sens-range: {0:.1f} - {1:.2f}".format(np.min(lam_sens),np.max(lam_sens)))
         if np.min(lam)<np.min(lam_sky) or np.max(lam)>np.max(lam_sky):
             print("Wavelength range for object {0:s} limited because of sky template".format(self.name))
             print("Spec-range: {0:.1f} - {1:.2f}".format(np.min(lam),np.max(lam)))
             print("Sky-range: {0:.1f} - {1:.2f}".format(np.min(lam_sky),np.max(lam_sky)))
-        #kuse = (kuse) & (kuse_sens) & (kuse_sky)
         kuse = (kuse) & (kuse_sky)
 
         #Now, assign the wavelength and flux to the object.
@@ -234,6 +267,10 @@ Args:
         #self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
 
         #Interpolate the sensitivity template to the object spectrum. Extrapolate if needed, which is OK as it is a smooth function of wavelegnth for the most part.
+        if np.min(self.lam_obs)<np.min(lam_sens) or np.max(self.lam_obs)>np.max(lam_sens):
+            print("Warning: Extrapolating sensitivity curve to match spectral range")
+            print("Spec-range: {0:.1f} - {1:.2f}".format( np.min(self.lam_obs),np.max(self.lam_obs)))
+            print("Sens-range: {0:.1f} - {1:.2f}".format(np.min(lam_sens),np.max(lam_sens)))
         f = interp1d(lam_sens, sens_orig, kind='linear', fill_value='extrapolate')
         self.sens = f(self.lam_obs)
 
@@ -243,30 +280,18 @@ Args:
     @property
     def sigma_res(self):
 
+        if self._sigma_res is not None:
+            return self._sigma_res
+
         slit_size = 1.0*u.arcsec
 
-        #Array that holds all information about the gratings.
-        res_page = dict()
-        res_page['158-7560']  = [135.,201.]
-        res_page['300-3990']  = [140.,'-' ]
-        res_page['316-7500']  = ['-' ,102.]
-        res_page['600-4000']  =	[ 71., '-']
-        res_page['600-10000'] =	['-' , 54.]
-        res_page['1200-4700'] =	[ 36., '-']
-        res_page['1200-7100'] =	[ 36., 27.]
-        res_page['1200-9400'] =	[ 35., 26.]
-
-        #Get the resolution.
-        if self.grating in res_page.keys():
-            if self.blue:
-                res = res_page[self.grating][0] * u.AA/u.mm
-            else:
-                res = res_page[self.grating][1] * u.AA/u.mm
+        if self.grating_dispersion is not None:
+            res = self.grating_dispersion
         else:
-            print(self.grating,"not found in page")
-            print("Using minimum of 0.1 A ")
-            return 0.1*u.AA
+             print("Grating dispersion not set.")
+             print("Using minimum of 1 AA/mm ")
+             res = 1.0*u.AA/u.mm
 
         FWHM_res = (slit_size/self.plate_scale)*self.pixel_size * res
-        sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
-        return sigma_res.to(u.AA)
+        self._sigma_res = (FWHM_res/(2.*(2.*np.log(2.))**0.5)).to(u.AA)
+        return self._sigma_res
