@@ -7,6 +7,7 @@ import astropy.units as u
 from astropy.constants import h,c
 import re
 import os
+from scipy.interpolate import interp1d
 
 #from .spectrum1d import read_fits_spectrum1d
 from .iraf_spectrum1d import read_fits_spectrum1d
@@ -43,10 +44,30 @@ Args:
 
    show_err_plot (boolean) : Show plot of the error fit if it is carried out.
 
+   local_sky_files (list)     : Optional. List of sky files if the default ones
+                                are not to be used.
+
+   local_sens_files (list)    : Optional. List of sensitivity files if the
+                                default ones are not to be used.
+
+   dichroic (string)          : Optional.
+
+   grating (string)           : Optional.
+
+   grating_dispersion (float) : Optional. In astropy units of AA/mm
+
+   detector (string)          : Optional.
+
+   plate_scale (float)        : Optional. In astropy units of arcsec.
+
+   pixel_size (float)         : Optional. In astropy units of microns.
+
+   slit_width (float)         : Optional. In astropy units of arcsec.
+
    """
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None):
+                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, dichroic=None, grating=None, grating_dispersion=None, detector=None, plate_scale=None, pixel_size=None, slit_width=None):
         super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
         self.RT   = 5.0*u.m #Telescope radius.
         self.instrument = "LRIS"
@@ -57,6 +78,17 @@ Args:
         self.edge_drop = 75.*u.AA
         self.local_sky_files = local_sky_files
         self.local_sens_files = local_sens_files
+
+        self.dichroic = dichroic
+        self.grating = grating
+        self.grating_dispersion = grating_dispersion
+        self.detector = detector
+        self.plate_scale = plate_scale
+        self.pixel_size = pixel_size
+        self.slit_width = slit_width
+
+        self._sigma_res = None
+
         self.__flam
         self.__flam_sky
         self.__sens
@@ -85,116 +117,66 @@ Args:
                 return
 
         if self.blue:
-
             #Assign the blue spectrum to be used
             spec_use = spec_b
-
-            #Open the fits file for the headers.
-            ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
-
-            #Figure out the limits on which we can use the spectra.
-            dichroic_wave = float(ff[0].header['DICHNAME'])*u.nm
-            kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
-
-            #https://www2.keck.hawaii.edu/inst/lris/detectors.html
-            #Use mean of amplifiers.
-            self.RON = 3.82
-            self.GAIN = 1.61
-            self.PIXSIZE = 0.135*u.arcsec
-
-            #Find the grism
-            grism_aux = re.search("^(.*?)/.*$",spec_b[0].header['GRISNAME'])
-            self.grism = "B"+grism_aux[1]
-            grname = self.grism
-
-            #Set the sky template. Remove data outisde the edges of the sky template.
-            if self.local_sky_files is None:
-                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_LRIS_b.dat"
-            else:
-                self.sky_temp_fname = self.local_sky_files[0]
-
+            #Set the channel
+            self.channel = 'b'
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[0]
-
         elif self.red:
-
             #Assign the red spectrum to be used
             spec_use = spec_r
-
-            #Open the fits file for the headers.
-            ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
-
-            #Figure out the limits on which we can use the spectra.
-            dichroic_wave = float(ff[0].header['DICHNAME'])*u.nm
-            kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
-
-            #https://www2.keck.hawaii.edu/inst/lris/detectors.html
-            #Use mean of amplifiers.
-            self.RON = 4.64
-            self.GAIN = 1.197
-            self.PIXSIZE = 0.135*u.arcsec
-
-            #Find the Grating and remove data outside the edges of the sensitivity curves.
-            grating_aux = re.search("^(.*?)/.*$",spec_r[0].header['GRANAME'])
-            self.grating = "R"+grating_aux[1]
-            grname = self.grating
-
-            #Set the sky template. Remove data outisde the edges of the sky template.
-            if self.local_sky_files is None:
-                self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_LRIS_r.dat"
-            else:
-                self.sky_temp_fname = self.local_sky_files[1]
-
+            #Set the channel
+            self.channel = 'r'
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
 
-
-        #Read the slit width if available in the headers. Otherwise, we'll assume the default 1.25" size from the spec class.
-        if 'SLITNAME' in spec_use[0].header:
-            m = re.match("long_(.*)",spec_use[0].header['SLITNAME'])
-            self.slit_width = float(m.group(1)) * u.arcsec
-
-        #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
-        if 'apsize_pix' in spec_use[0].header:
-            self.apsize_pix = spec_use[0].header['apsize_pix']
+        #Find some important aspects of the observations.
+        #Dichroic
+        keywords_to_load = {
+            "dichroic"  : "DICHNAME",
+            "detector"  : "CCDGEOM",
+            "slit_width": "SLITNAME",
+            "apsize_pix": "apsize_pix",
+            "texp"      : "EXPTIME",
+        }
+        if self.blue:
+            keywords_to_load['grating'] = "GRISNAME"
+            keywords_to_load['detector'] = "CCDGEOM"
         else:
-            self.apsize_pix = (self.slit_width/self.PIXSIZE).to(1.).value
+            keywords_to_load['grating'] = "GRANAME"
+            keywords_to_load['detector'] = "DETECTOR"
+        self.load_keyword_headers(spec_use, keywords_to_load)
 
-        #Find the grism and remove data outside the edges of the sensitivity curves.
-        if self.local_sens_files is None:
-            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sensitivity_Files/Sens_LRIS_"+grname+".txt"
-        else:
-            if self.blue:
-                self.sens_temp_fname = self.local_sens_files[0]
+        #Detectors
+        if self.detector is not None:
+            if re.search("e2v",self.detector):
+                self.detector = "e2v"
+            elif re.search("LBNL", self.detector):
+                self.detector = "LBNL"
+            elif re.search("Mark2", self.detector):
+                self.detector = "Mark2"
             else:
-                self.sens_temp_fname = self.local_sens_files[1]
-        sens_temp = np.loadtxt(self.sens_temp_fname)
-        lam_sens = sens_temp[:,0]*u.AA
-        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
-                (spec_use[0].dispersion<np.max(lam_sens))
+                pass
 
-        #Finally, figure out the sky template edges and trim the spectrum to that limit.
-        sky_temp = np.loadtxt(self.sky_temp_fname)
-        lam_sky = sky_temp[:,0]*u.AA
-        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sky)) & \
-                (spec_use[0].dispersion<np.max(lam_sky))
+        #Dichroic
+        if self.dichroic is not None:
+            self.dichroic_wave = float(self.dichroic)*u.nm
 
-        #Now, assign the wavelength and flux to the object.
-        self.lam_obs = spec_use[0].dispersion[kuse]
-        fnu = spec_use[0].data[kuse]*spec_use[0].unit
+        #Grating
+        if self.grating is not None:
+            self.grating  = re.sub("/","-",self.grating)
 
-        #In the error name, replace fits for txt, as we will write it in ASCII.
-        self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
+        #Slit width
+        if self.slit_width is not None:
+            try:
+                self.slit_width.unit
+            except AttributeError:
+                m = re.match("long_(.*)",self.slit_width)
+                self.slit_width = float(m.group(1)) * u.arcsec
 
-        #Mean bin size and exposure time. Useful for error estimation.
-        self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
-        self.texp = float(ff[0].header['EXPTIME'])*u.s
-
-        #Convert flam to fnu
-        self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
-
-        #Close the fits file.
-        ff.close()
+        #Finish the setup
+        self.run_setup(spec_use)
 
         return
 
@@ -214,19 +196,20 @@ Args:
     @property
     def __sens(self):
 
-        #Read the sensitivity curve.
-        # if self.blue:
-        #     grname = self.grism
-        # elif self.red:
-        #     grname = self.grating
-        # else:
-        #     return
         sens_temp = np.loadtxt(self.sens_temp_fname)
         lam_sens = sens_temp[:,0]*u.AA
         sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
 
         #Rebin the template to the object spectrum.
-        self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
+        #self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
+
+        #Interpolate the sensitivity template to the object spectrum. Extrapolate if needed, which is OK as it is a smooth function of wavelegnth for the most part.
+        if np.min(self.lam_obs)<np.min(lam_sens) or np.max(self.lam_obs)>np.max(lam_sens):
+            print("Warning: Extrapolating sensitivity curve to match spectral range {0:s}".format(self.name))
+            print("Spec-range: {0:.1f} - {1:.2f}".format( np.min(self.lam_obs),np.max(self.lam_obs)))
+            print("Sens-range: {0:.1f} - {1:.2f}".format(np.min(lam_sens),np.max(lam_sens)))
+        f = interp1d(lam_sens, sens_orig, kind='linear', fill_value='extrapolate')
+        self.sens = f(self.lam_obs)
 
         return
 
@@ -235,29 +218,45 @@ Args:
     @property
     def sigma_res(self):
 
-        if self.blue:
-            if self.grism=="B300":
-                FWHM_res = 8.4*u.AA
-            elif self.grism=="B400":
-                FWHM_res = 6.5*u.AA
-            elif self.grism=="B600":
-                FWHM_res = 3.8*u.AA
-            elif self.grism=="B1200":
-                FWHM_res = 1.56*u.AA
-            else:
-                return None
+        if self._sigma_res is not None:
+            return self._sigma_res
 
-        elif self.red:
-            if self.grating=="R300":
-                FWHM_res = 9.18*u.AA
-            elif self.grating=="R400":
-                FWHM_res = 6.9*u.AA
-            elif self.grating=="R600":
-                FWHM_res = 4.7*u.AA
+        if self.FWHM_res is None:
+            slit_size = 1.0*u.arcsec
+            if self.grating_dispersion is not None:
+                res = self.grating_dispersion
             else:
-                return None
-        else:
-            return None
+                print("Grating dispersion not set.")
+                print("Using minimum of 1 AA/mm ")
+                res = 1.0*u.AA/u.mm
+            self.FWHM_res = (slit_size/self.plate_scale)*self.pixel_size * res
 
-        sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
-        return sigma_res
+        self._sigma_res = (self.FWHM_res/(2.*(2.*np.log(2.))**0.5)).to(u.AA)
+        return self._sigma_res
+        #
+        # if self.blue:
+        #     if self.grism=="B300":
+        #         FWHM_res = 8.4*u.AA
+        #     elif self.grism=="B400":
+        #         FWHM_res = 6.5*u.AA
+        #     elif self.grism=="B600":
+        #         FWHM_res = 3.8*u.AA
+        #     elif self.grism=="B1200":
+        #         FWHM_res = 1.56*u.AA
+        #     else:
+        #         return None
+        #
+        # elif self.red:
+        #     if self.grating=="R300":
+        #         FWHM_res = 9.18*u.AA
+        #     elif self.grating=="R400":
+        #         FWHM_res = 6.9*u.AA
+        #     elif self.grating=="R600":
+        #         FWHM_res = 4.7*u.AA
+        #     else:
+        #         return None
+        # else:
+        #     return None
+        #
+        # sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
+        # return sigma_res
