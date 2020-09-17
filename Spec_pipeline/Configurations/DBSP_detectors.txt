@@ -1,5 +1,5 @@
-#Detector_name  plate_scale  pixel_size
+#Detector_name  plate_scale  pixel_size     RON       GAIN
 #                  "/pixel    microns
-CCD44-82          0.389        15.0
-LBNL_4Kx2K        0.293        15.0
-Site424           0.469        24.0
+CCD44-82          0.389        15.0         -           -
+LBNL_4Kx2K        0.293        15.0         -           -
+Site424           0.469        24.0         -           -

@@ -1,0 +1,9 @@
+#https://www2.keck.hawaii.edu/inst/lris/detectors.html
+#Use mean of amplifiers.
+#Assuming LBNL and Mark2 are the same. Hopefully they are not too different, but news section about the change in detectors says Mark2 is cosmetically better with fewer charge traps, but does not say anything about the other parameters.
+#
+#Detector_name  plate_scale  pixel_size     RON       GAIN
+#                  "/pixel    microns
+e2v                0.135        15.0        3.82      1.61
+LBNL               0.135        15.0        4.64      1.197
+Mark2              0.135        15.0        4.64      1.197

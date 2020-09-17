@@ -1,0 +1,4 @@
+#Obtained from https://www2.keck.hawaii.edu/inst/lris/dispersive_elements.html. I understand that the dispersions listed in the webpage are in units of AA/pixel, so I am dividing by the pixel size of 15um to turn them into AA/mm. The resolution obtained for a 1" slit is slightly larger than listed, and could be due, in principle, to a factor 1.22 due to the diffraction (location of the first order 0). Should check, but difference is quite minimal in the end.
+#Grating_name   Dispersion(AA/mm)       FWHM for 1" slit(AA)
+400-3400          95.3                        6.8
+600-4000          42.0                        4.0
