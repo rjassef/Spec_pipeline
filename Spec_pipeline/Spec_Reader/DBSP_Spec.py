@@ -59,11 +59,11 @@ Args:
 
    detector (string)          : Optional.
 
-   plate_scale (float)        : Optional. In astropy units of arcsec.
+   plate_scale (float)        : Optional. With astropy units of arcsec.
 
-   pixel_size (float)         : Optional. In astropy units of microns.
+   pixel_size (float)         : Optional. With astropy units of microns.
 
-   slit_width (float)         : Optional. In astropy units of arcsec.
+   slit_width (float)         : Optional. With astropy units of arcsec.
 
    """
 
@@ -151,7 +151,6 @@ Args:
             self.dichroic = re.sub("-","",self.dichroic)
             self.dichroic_wave = float(self.dichroic[1:])*100.*u.AA
 
-
         #Grating - there is a grating called sometimes 316/7150 and sometimes 316/7500, but it is the same grating with the same blaze as confirmed by the Palomar Observatory staff. We will alwayd use 316/7500.
         if self.grating is not None:
             self.grating  = re.sub("7150","7500",self.grating)
@@ -161,7 +160,10 @@ Args:
 
         #Slit width
         if self.slit_width is not None:
-            self.slit_width = float(self.slit_width) * u.arcsec
+            try:
+                self.slit_width.unit
+            except AttributeError:
+                self.slit_width = float(self.slit_width) * u.arcsec
 
         #Finish the setup
         self.run_setup(spec_use)
@@ -201,22 +203,21 @@ Args:
 
         return
 
-    #We use the numbers here: https://www.astro.caltech.edu/palomar/observer/200inchResources/dbspoverview.html#grating . We'll assume that the dispersion numbers quoted are the FWHM (like for LRIS) and we'll assume a 1" slit, the same as we did for LRIS, since really what matters here is the minimum between the seeing and the slit size, and we want to be conservative.
     @property
     def sigma_res(self):
 
         if self._sigma_res is not None:
             return self._sigma_res
 
-        slit_size = 1.0*u.arcsec
+        if self.FWHM_res is None:
+            slit_size = 1.0*u.arcsec
+            if self.grating_dispersion is not None:
+                res = self.grating_dispersion
+            else:
+                print("Grating dispersion not set.")
+                print("Using minimum of 1 AA/mm ")
+                res = 1.0*u.AA/u.mm
+            self.FWHM_res = (slit_size/self.plate_scale)*self.pixel_size * res
 
-        if self.grating_dispersion is not None:
-            res = self.grating_dispersion
-        else:
-             print("Grating dispersion not set.")
-             print("Using minimum of 1 AA/mm ")
-             res = 1.0*u.AA/u.mm
-
-        FWHM_res = (slit_size/self.plate_scale)*self.pixel_size * res
-        self._sigma_res = (FWHM_res/(2.*(2.*np.log(2.))**0.5)).to(u.AA)
+        self._sigma_res = (self.FWHM_res/(2.*(2.*np.log(2.))**0.5)).to(u.AA)
         return self._sigma_res

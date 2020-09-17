@@ -82,6 +82,7 @@ class Spec(object):
                                      self._flam_err]).T)
         return self._flam_err
 
+    #####
 
     def load_detector_properties(self):
         #Load the detectors file.
@@ -89,8 +90,16 @@ class Spec(object):
 
         if self.detector in dets[:,0]:
             det_use = dets[dets[:,0]==self.detector,:]
-            self.plate_scale = float(det_use[0,1])*u.arcsec
-            self.pixel_size  = float(det_use[0,2])*u.micron
+            kws = ["plate_scale", "pixel_size", "RON", "GAIN"]
+            units_kws = ["arcsec", "micron", "", ""]
+            for k, kw in enumerate(kws):
+                if (not hasattr(self,kw)) or (getattr(self,kw) is None):
+                    try:
+                        setattr(self, kw, float(det_use[0,k+1])*u.Unit(units_kws[k]))
+                    except ValueError:
+                        setattr(self, kw, None)
+            #self.plate_scale = float(det_use[0,1])*u.arcsec
+            #self.pixel_size  = float(det_use[0,2])*u.micron
         else:
             print("Warning: Detector {0:s} not found.".format(self.detector))
 
@@ -106,7 +115,15 @@ class Spec(object):
 
         if self.grating in grts[:,0]:
             grt_use = grts[grts[:,0]==self.grating,:]
-            self.grating_dispersion = float(grt_use[0,1])*u.AA/u.mm
+            kws = ["grating_dispersion", "FWHM_res"]
+            units_kws = ["Angstrom/mm", "Angstrom"]
+            for k,kw in enumerate(kws):
+                if (not hasattr(self,kw)) or (getattr(self,kw) is None):
+                    try:
+                        setattr(self, kw, float(grt_use[0,k+1])*u.Unit(units_kws[k]))
+                    except ValueError:
+                        setattr(self, kw, None)
+            #self.grating_dispersion = float(grt_use[0,1])*u.AA/u.mm
         else:
             print("Warning: Grating {0:s} not found.".format(self.grating))
 
