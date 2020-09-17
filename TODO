@@ -4,7 +4,9 @@
 
 - Add multiple setups for GMOS (mostly done already).
 
-- Add multiple setups for DEIMOS. 
+- Add multiple setups for DEIMOS.
+
+- Make the loader accept one spectrum at a time. Remove the scheme to find the channel of interest in dual spec based on a wavelength of interest.
 
 - Assuming a single setup for DEIMOS, not sure this is correct though, and not sure which one it is. We'll assume 600ZD for now.
 
