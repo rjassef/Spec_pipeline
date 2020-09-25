@@ -8,6 +8,7 @@ import astropy.units as u
 from astropy.constants import h,c
 import os
 import re
+from scipy.interpolate import interp1d
 
 #from .obtain_error_spectrum import get_error_spec
 from .obtain_error_spectrum_with_extra_poly import get_error_spec
@@ -35,8 +36,16 @@ class Spec(object):
         self.red=False
         self.blue=False
 
+        self.dichroic = None
+        self.grating = None
+        self.grating_dispersion = None
+        self.detector = None
+        self.plate_scale = None
+        self.pixel_size = None
+        self.slit_width = None
+
         #If no slit width is given, assume 1.25" as discussed on telecon from 05/26/2020
-        self.slit_width = 1.25 * u.arcsec
+        #self.slit_width = 1.25 * u.arcsec
 
     @property
     def lam_rest(self):
@@ -214,5 +223,29 @@ class Spec(object):
 
         #Convert fnu to flambda.
         self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
+
+        return
+
+    @property
+    def __sens(self):
+
+        try:
+            sens_temp = np.loadtxt(self.sens_temp_fname)
+        except (IOError,OSError):
+            print("Could not open file {0:s}".format(self.sens_temp_fname))
+            return
+        lam_sens = sens_temp[:,0]*u.AA
+        sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
+
+        #Rebin the template to the object spectrum.
+        #self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
+
+        #Interpolate the sensitivity template to the object spectrum. Extrapolate if needed, which is OK as it is a smooth function of wavelegnth for the most part.
+        if np.min(self.lam_obs)<np.min(lam_sens) or np.max(self.lam_obs)>np.max(lam_sens):
+            print("Warning: Extrapolating sensitivity curve to match spectral range {0:s}".format(self.name))
+            print("Spec-range: {0:.1f} - {1:.2f}".format( np.min(self.lam_obs),np.max(self.lam_obs)))
+            print("Sens-range: {0:.1f} - {1:.2f}".format(np.min(lam_sens),np.max(lam_sens)))
+        f = interp1d(lam_sens, sens_orig, kind='linear', fill_value='extrapolate')
+        self.sens = f(self.lam_obs)
 
         return

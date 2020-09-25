@@ -67,7 +67,7 @@ Args:
    """
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, dichroic=None, grating=None, grating_dispersion=None, detector=None, plate_scale=None, pixel_size=None, slit_width=None):
+                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None):
         super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
         self.RT   = 5.0*u.m #Telescope radius.
         self.instrument = "LRIS"
@@ -79,19 +79,27 @@ Args:
         self.local_sky_files = local_sky_files
         self.local_sens_files = local_sens_files
 
-        self.dichroic = dichroic
-        self.grating = grating
-        self.grating_dispersion = grating_dispersion
-        self.detector = detector
-        self.plate_scale = plate_scale
-        self.pixel_size = pixel_size
-        self.slit_width = slit_width
+        if inst_conf is not None:
+            for kw in inst_conf.keys():
+                kwuse = kw
+                if kwuse[:4]=='blue' and self.blue:
+                    kwuse = kw[5:]
+                elif kwuse[:3]=='red' and self.red:
+                    kwuse = kw[4:]
+                setattr(self,kwuse,inst_conf[kw])
+
+        # self.grating = grating
+        # self.grating_dispersion = grating_dispersion
+        # self.detector = detector
+        # self.plate_scale = plate_scale
+        # self.pixel_size = pixel_size
+        # self.slit_width = slit_width
 
         self._sigma_res = None
 
         self.__flam
         self.__flam_sky
-        self.__sens
+        self._Spec__sens
 
     @property
     def __flam(self):
@@ -154,7 +162,7 @@ Args:
                 self.detector = "e2v"
             elif re.search("LBNL", self.detector):
                 self.detector = "LBNL"
-            elif re.search("Mark2", self.detector):
+            elif re.search("Mark 2", self.detector):
                 self.detector = "Mark2"
             else:
                 pass
@@ -193,26 +201,26 @@ Args:
 
         return
 
-    @property
-    def __sens(self):
-
-        sens_temp = np.loadtxt(self.sens_temp_fname)
-        lam_sens = sens_temp[:,0]*u.AA
-        sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
-
-        #Rebin the template to the object spectrum.
-        #self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
-
-        #Interpolate the sensitivity template to the object spectrum. Extrapolate if needed, which is OK as it is a smooth function of wavelegnth for the most part.
-        if np.min(self.lam_obs)<np.min(lam_sens) or np.max(self.lam_obs)>np.max(lam_sens):
-            print("Warning: Extrapolating sensitivity curve to match spectral range {0:s}".format(self.name))
-            print("Spec-range: {0:.1f} - {1:.2f}".format( np.min(self.lam_obs),np.max(self.lam_obs)))
-            print("Sens-range: {0:.1f} - {1:.2f}".format(np.min(lam_sens),np.max(lam_sens)))
-        f = interp1d(lam_sens, sens_orig, kind='linear', fill_value='extrapolate')
-        self.sens = f(self.lam_obs)
-
-        return
-
+    # @property
+    # def __sens(self):
+    #
+    #     sens_temp = np.loadtxt(self.sens_temp_fname)
+    #     lam_sens = sens_temp[:,0]*u.AA
+    #     sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
+    #
+    #     #Rebin the template to the object spectrum.
+    #     #self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
+    #
+    #     #Interpolate the sensitivity template to the object spectrum. Extrapolate if needed, which is OK as it is a smooth function of wavelegnth for the most part.
+    #     if np.min(self.lam_obs)<np.min(lam_sens) or np.max(self.lam_obs)>np.max(lam_sens):
+    #         print("Warning: Extrapolating sensitivity curve to match spectral range {0:s}".format(self.name))
+    #         print("Spec-range: {0:.1f} - {1:.2f}".format( np.min(self.lam_obs),np.max(self.lam_obs)))
+    #         print("Sens-range: {0:.1f} - {1:.2f}".format(np.min(lam_sens),np.max(lam_sens)))
+    #     f = interp1d(lam_sens, sens_orig, kind='linear', fill_value='extrapolate')
+    #     self.sens = f(self.lam_obs)
+    #
+    #     return
+    #
 
     #Resolutions, taken from https://www2.keck.hawaii.edu/inst/lris/dispersive_elements.html. We'll assume the value for a 1" slit. We typically used larger ones, but the seeing was probably not much larger than 1". We will also take the minimum value, as this is meant to put a minimum limit in the velocity  widths.
     @property
