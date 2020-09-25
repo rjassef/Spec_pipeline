@@ -241,7 +241,8 @@ def get_error_spec(spec, wd=15, show_plot=False):
         if fit_blue_exp or fit_red_exp:
             plt.plot(spec.lam_obs,flam_err_2.to(flamunit),'-m',label='Best-fit no Exp.')
         iduse = spec.name
-        if spec.instrument in ["LRIS","DBSP"]:
+        #if spec.instrument in ["LRIS","DBSP"]:
+        if spec.dual_spec:
             if spec.blue:
                 iduse += ".blue"
             else:
