@@ -15,13 +15,13 @@ from .obtain_error_spectrum_with_extra_poly import get_error_spec
 
 class Spec(object):
 
-    def __init__(self,_name,_zspec,_fits_files=None,_line_center=None,show_err_plot=False,error_fit_blue_exp=True):
+    def __init__(self,name,zspec,fits_files=None,line_center=None,show_err_plot=False,error_fit_blue_exp=True, local_sky_files=None, local_sens_files=None):
         self.RT   = None
         self.instrument = None
-        self.name  = _name
-        self.zspec = _zspec
-        self.fits_files = _fits_files
-        self.line_center = _line_center
+        self.name  = name
+        self.zspec = zspec
+        self.fits_files = fits_files
+        self.line_center = line_center
         self.lam_obs  = None
         self.dlam = None
         self.texp = None
@@ -36,6 +36,9 @@ class Spec(object):
         self.red=False
         self.blue=False
 
+        self.local_sky_files = local_sky_files
+        self.local_sens_files = local_sens_files
+
         self.dichroic = None
         self.grating = None
         self.grating_dispersion = None
@@ -43,6 +46,8 @@ class Spec(object):
         self.plate_scale = None
         self.pixel_size = None
         self.slit_width = None
+
+        self._sigma_res = None
 
         #If no slit width is given, assume 1.25" as discussed on telecon from 05/26/2020
         #self.slit_width = 1.25 * u.arcsec
@@ -249,3 +254,35 @@ class Spec(object):
         self.sens = f(self.lam_obs)
 
         return
+
+    @property
+    def __flam_sky(self):
+
+        #Read the template
+        sky_temp = np.loadtxt(self.sky_temp_fname)
+        lam_sky = sky_temp[:,0]*u.AA
+        flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
+
+        #Rebin the template to the object spectrum.
+        self.flam_sky = rebin_spec(lam_sky, flam_sky_orig, self.lam_obs)
+
+        return
+
+    @property
+    def sigma_res(self):
+
+        if self._sigma_res is not None:
+            return self._sigma_res
+
+        if self.FWHM_res is None:
+            slit_size = 1.0*u.arcsec
+            if self.grating_dispersion is not None:
+                res = self.grating_dispersion
+            else:
+                print("Grating dispersion not set.")
+                print("Using minimum of 1 AA/mm ")
+                res = 1.0*u.AA/u.mm
+            self.FWHM_res = (slit_size/self.plate_scale)*self.pixel_size * res
+
+        self._sigma_res = (self.FWHM_res/(2.*(2.*np.log(2.))**0.5)).to(u.AA)
+        return self._sigma_res

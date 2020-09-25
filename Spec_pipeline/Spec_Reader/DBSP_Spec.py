@@ -69,15 +69,15 @@ Args:
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
                  blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None):
-        super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
+
+        super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot, local_sky_files=local_sky_files, local_sens_files=local_sens_files)
+
         self.RT   = 2.5*u.m #Telescope radius.
         self.instrument = "DBSP"
         self.dual_spec = True
         self.blue = blue
         self.red  = red
         self.edge_drop = 75.*u.AA
-        self.local_sky_files = local_sky_files
-        self.local_sens_files = local_sens_files
 
         if inst_conf is not None:
             for kw in inst_conf.keys():
@@ -88,19 +88,9 @@ Args:
                     kwuse = kw[4:]
                 setattr(self,kwuse,inst_conf[kw])
 
-        # self.dichroic = dichroic
-        # self.grating = grating
-        # self.grating_dispersion = grating_dispersion
-        # self.detector = detector
-        # self.plate_scale = plate_scale
-        # self.pixel_size = pixel_size
-        # self.slit_width = slit_width
-
-        self._sigma_res = None
-
         self.__flam
-        self.__flam_sky
-        self.__sens
+        self._Spec__flam_sky
+        self._Spec__sens
 
     @property
     def __flam(self):
@@ -178,59 +168,3 @@ Args:
         self.run_setup(spec_use)
 
         return
-
-    @property
-    def __flam_sky(self):
-
-        #Read the template
-        sky_temp = np.loadtxt(self.sky_temp_fname)
-        lam_sky = sky_temp[:,0]*u.AA
-        flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
-
-        #Rebin the template to the object spectrum.
-        self.flam_sky = rebin_spec(lam_sky, flam_sky_orig, self.lam_obs)
-
-        return
-
-    # @property
-    # def __sens(self):
-    #
-    #     try:
-    #         sens_temp = np.loadtxt(self.sens_temp_fname)
-    #     except (IOError,OSError):
-    #         print("Could not open file {0:s}".format(self.sens_temp_fname))
-    #         return
-    #     lam_sens = sens_temp[:,0]*u.AA
-    #     sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
-    #
-    #     #Rebin the template to the object spectrum.
-    #     #self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
-    #
-    #     #Interpolate the sensitivity template to the object spectrum. Extrapolate if needed, which is OK as it is a smooth function of wavelegnth for the most part.
-    #     if np.min(self.lam_obs)<np.min(lam_sens) or np.max(self.lam_obs)>np.max(lam_sens):
-    #         print("Warning: Extrapolating sensitivity curve to match spectral range {0:s}".format(self.name))
-    #         print("Spec-range: {0:.1f} - {1:.2f}".format( np.min(self.lam_obs),np.max(self.lam_obs)))
-    #         print("Sens-range: {0:.1f} - {1:.2f}".format(np.min(lam_sens),np.max(lam_sens)))
-    #     f = interp1d(lam_sens, sens_orig, kind='linear', fill_value='extrapolate')
-    #     self.sens = f(self.lam_obs)
-    #
-    #     return
-
-    @property
-    def sigma_res(self):
-
-        if self._sigma_res is not None:
-            return self._sigma_res
-
-        if self.FWHM_res is None:
-            slit_size = 1.0*u.arcsec
-            if self.grating_dispersion is not None:
-                res = self.grating_dispersion
-            else:
-                print("Grating dispersion not set.")
-                print("Using minimum of 1 AA/mm ")
-                res = 1.0*u.AA/u.mm
-            self.FWHM_res = (slit_size/self.plate_scale)*self.pixel_size * res
-
-        self._sigma_res = (self.FWHM_res/(2.*(2.*np.log(2.))**0.5)).to(u.AA)
-        return self._sigma_res
