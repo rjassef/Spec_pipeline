@@ -78,7 +78,7 @@ Args:
         self._Spec__flam_sky
         self._Spec__sens
 
-    return
+        return
 
     @property
     def __flam(self):

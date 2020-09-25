@@ -12,7 +12,7 @@ from scipy.interpolate import interp1d
 #from .spectrum1d import read_fits_spectrum1d
 from .iraf_spectrum1d import read_fits_spectrum1d
 from .Spec import Spec
-from .rebin_spec import rebin_spec
+#from .rebin_spec import rebin_spec
 
 #As there are too many different things to keep in minds, we'll load
 #the spectra as objects, so we can load the appropiate sensitivity
@@ -25,13 +25,13 @@ class DBSP_Spec(Spec):
 Module that reads a DBSP spectrum and returns a spec object.
 
 Args:
-   _name (string)      : Object name or ID.
+   name (string)       : Object name or ID.
 
-   _zspec (float)      : Spectroscopic redshift.
+   zspec (float)       : Spectroscopic redshift.
 
-   _fits_files (list)  : Spectrum file name. Has to be a one element list.
+   fits_files (list)   : Spectrum file name. Has to be a one element list.
 
-   _line_center (float): Optional. Grating used for the observations.
+   line_center (float) : Optional. Grating used for the observations.
                          Needs to have astropy units of AA.
 
    blue (boolean)      : Optional. If wavenlength of interest is not provided,
@@ -51,26 +51,14 @@ Args:
    local_sens_files (list)    : Optional. List of sensitivity files if the
                                 default ones are not to be used.
 
-   dichroic (string)          : Optional.
-
-   grating (string)           : Optional.
-
-   grating_dispersion (float) : Optional. In astropy units of AA/mm
-
-   detector (string)          : Optional.
-
-   plate_scale (float)        : Optional. With astropy units of arcsec.
-
-   pixel_size (float)         : Optional. With astropy units of microns.
-
-   slit_width (float)         : Optional. With astropy units of arcsec.
+   inst_conf                  : Optional. Configurations dictionary.
 
    """
 
-    def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None):
+    def __init__(self, name, zspec, fits_files, line_center=None,
+                 blue=False, red=False, show_err_plot=False, local_sky_files=None, local_sens_files=None, inst_conf=None):
 
-        super(DBSP_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot, local_sky_files=local_sky_files, local_sens_files=local_sens_files)
+        super(DBSP_Spec,self).__init__(name,zspec,fits_files,line_center,show_err_plot=show_err_plot, local_sky_files=local_sky_files, local_sens_files=local_sens_files)
 
         self.RT   = 2.5*u.m #Telescope radius.
         self.instrument = "DBSP"
@@ -91,6 +79,8 @@ Args:
         self.__flam
         self._Spec__flam_sky
         self._Spec__sens
+
+        return
 
     @property
     def __flam(self):
