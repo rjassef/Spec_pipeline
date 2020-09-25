@@ -1,0 +1,4 @@
+# Taken from http://www.gemini.edu/node/10654 . Values taken for the EEV chips, although it should not matter. Dispersion obtained by dividing the dispersion in nm/pix by the pixel size. For the FWHM, we used the resolving power at the blaze and the blaze wavelength to determine delta_lam, and assumed delta_lam equals to FWHM. Then, we multiplied by to go from the 0.5" slit to a 1" slit.
+#Grating_name   Dispersion(AA/mm)       FWHM for 1" slit(AA)
+B600                 33.0                     5.46
+R400                 49.6                     7.97

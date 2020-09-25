@@ -1,0 +1,4 @@
+#Detector_name  plate_scale  pixel_size     RON       GAIN
+#                  "/pixel    microns
+EEV               0.073       13.5            -         -
+Hamamatsu         0.080       15.0            -         -
