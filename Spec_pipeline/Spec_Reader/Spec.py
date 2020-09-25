@@ -12,6 +12,7 @@ from scipy.interpolate import interp1d
 
 #from .obtain_error_spectrum import get_error_spec
 from .obtain_error_spectrum_with_extra_poly import get_error_spec
+from .rebin_spec import rebin_spec
 
 class Spec(object):
 
@@ -51,6 +52,8 @@ class Spec(object):
 
         #If no slit width is given, assume 1.25" as discussed on telecon from 05/26/2020
         #self.slit_width = 1.25 * u.arcsec
+
+        return
 
     @property
     def lam_rest(self):
@@ -181,7 +184,11 @@ class Spec(object):
 
         #Set the sensitivity template.
         if self.local_sens_files is None:
-            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_{0:s}_{1:s}_{2:s}_{3:s}_{4:s}.txt".format(self.instrument, self.detector, self.grating, self.dichroic, self.channel)
+            #self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_{0:s}_{1:s}_{2:s}_{3:s}_{4:s}.txt".format(self.instrument, self.detector, self.grating, self.dichroic, self.channel)
+            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_{0:s}_{1:s}_{2:s}".format(self.instrument, self.detector, self.grating)
+            if self.dual_spec:
+                self.sens_temp_fname += "_{0:s}_{1:s}".format(self.dichroic, self.channel)
+            self.sens_temp_fname += ".txt"
         else:
             if self.blue:
                 self.sens_temp_fname = self.local_sens_files[0]
@@ -190,7 +197,11 @@ class Spec(object):
 
         #Set the sky template to use.
         if self.local_sky_files is None:
-            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_{0:s}_{1:s}_{2:.2f}arcsec_{3:s}.txt".format( self.instrument, self.grating, self.slit_width.to(u.arcsec).value, self.channel)
+            #self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_{0:s}_{1:s}_{2:.2f}arcsec_{3:s}.txt".format( self.instrument, self.grating, self.slit_width.to(u.arcsec).value, self.channel)
+            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_{0:s}_{1:s}_{2:.2f}arcsec".format( self.instrument, self.grating, self.slit_width.to(u.arcsec).value)
+            if self.dual_spec:
+                self.sky_temp_fname += "_{0:s}".format(self.channel)
+            self.sky_temp_fname += ".txt"
         else:
             if self.blue:
                 self.sky_temp_fname = self.local_sky_files[0]
@@ -200,19 +211,23 @@ class Spec(object):
         #Finally, figure out the sky template edges and trim the spectrum to that limit.
         try:
             sky_temp = np.loadtxt(self.sky_temp_fname)
-        except IOError:
+            lam_sky = sky_temp[:,0]*u.AA
+            lam_sky_min = np.min(lam_sky)
+            lam_sky_max = np.max(lam_sky)
+        except (IOError, OSError):
             print("Could not open sky file ",self.sky_temp_fname)
-            return
-        lam_sky = sky_temp[:,0]*u.AA
-        kuse_sky = (spec_use[0].dispersion>np.min(lam_sky)) & \
-                (spec_use[0].dispersion<np.max(lam_sky))
+            lam_sky_min = 0.*u.AA
+            lam_sky_max = 1.e6*u.AA
+
+        kuse_sky = (spec_use[0].dispersion>lam_sky_min) & \
+                (spec_use[0].dispersion<lam_sky_max)
 
         #Display a warning if we are missing any range because of the sensitivity curve or the sky template.
         lam = spec_use[0].dispersion[kuse]
-        if np.min(lam)<np.min(lam_sky) or np.max(lam)>np.max(lam_sky):
+        if np.min(lam)<lam_sky_min or np.max(lam)>lam_sky_max:
             print("Wavelength range for object {0:s} limited because of sky template".format(self.name))
             print("Spec-range: {0:.1f} - {1:.2f}".format(np.min(lam),np.max(lam)))
-            print("Sky-range: {0:.1f} - {1:.2f}".format(np.min(lam_sky),np.max(lam_sky)))
+            print("Sky-range: {0:.1f} - {1:.2f}".format(lam_sky_min,lam_sky_max))
         kuse = (kuse) & (kuse_sky)
 
         #Now, assign the wavelength and flux to the object.
@@ -259,7 +274,12 @@ class Spec(object):
     def __flam_sky(self):
 
         #Read the template
-        sky_temp = np.loadtxt(self.sky_temp_fname)
+        try:
+            sky_temp = np.loadtxt(self.sky_temp_fname)
+        except (IOError, OSError):
+            print("Could not open file {0:s}".format(self.sky_temp_fname))
+            return
+
         lam_sky = sky_temp[:,0]*u.AA
         flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
 
