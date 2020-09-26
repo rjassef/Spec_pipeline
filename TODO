@@ -1,7 +1,5 @@
 - Fix negative fluxes in sky template for DBSP
 
-- Add multiple setups for GMOS (mostly done already).
-
 - Add multiple setups for DEIMOS.
 
 - Make the loader accept one spectrum at a time. Remove the scheme to find the channel of interest in dual spec based on a wavelength of interest.
@@ -128,3 +126,5 @@ Done
 - No Dichroich information in DEIMOS data headers. From the data of W0757 we will assume 640nm. DONE No dichroic in DEIMOS, only a chip gap that Dan uses to split blue and red, but it is a single channel spectrograph.
 
 - Add multiple setups for LRIS. DONE
+
+- Add multiple setups for GMOS (mostly done already). DONE
