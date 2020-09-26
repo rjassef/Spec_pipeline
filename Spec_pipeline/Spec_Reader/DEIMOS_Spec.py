@@ -24,13 +24,13 @@ class DEIMOS_Spec(Spec):
 Module that read an DEIMOS spectrum and returns a spec object.
 
 Args:
-   _name (string)      : Object name or ID.
+   name (string)      : Object name or ID.
 
-   _zspec (float)      : Spectroscopic redshift.
+   zspec (float)      : Spectroscopic redshift.
 
-   _fits_files (list)  : Spectrum file name. Has to be a one element list.
+   fits_files (list)  : Spectrum file name. Has to be a one element list.
 
-   _line_center (float): Optional. Grating used for the observations.
+   line_center (float): Optional. Grating used for the observations.
                          Needs to have astropy units of AA.
 
    blue (boolean)      : Optional. If wavenlength of interest is not provided,
@@ -41,22 +41,48 @@ Args:
                          it should be indicated whether the blue side or the
                          red side spectrum should be loaded.
 
+   show_err_plot (boolean) : Show plot of the error fit if it is carried out.
+
+   local_sky_files (list)     : Optional. List of sky files if the default ones
+                                are not to be used.
+
+   local_sens_files (list)    : Optional. List of sensitivity files if the
+                                default ones are not to be used.
+
+   inst_conf                  : Optional. Configurations dictionary.
+
    """
 
-    def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None):
-        super(DEIMOS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot)
+    def __init__(self,name,zspec,fits_files,line_center=None,
+                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None):
+
+        super(DEIMOS_Spec,self).__init__(name, zspec, fits_files, line_center, show_err_plot=show_err_plot, local_sky_files=local_sky_files, local_sens_files=local_sens_files)
+
         self.RT   = 5.0*u.m #Telescope radius.
         self.instrument = "DEIMOS"
         self.blue = blue
         self.red = red
-        #self.edge_drop = 50.*u.AA
-        #self.edge_drop = 75.*u.AA
-        self.local_sky_files = local_sky_files
-        self.local_sens_files = local_sens_files
+
+        #Deimos is not a dual spectrograph really, but we treat it as such since Dan reduced them with a dual spectrograph scheme.
+        self.dual_spec = True
+        self.edge_drop = 0.*u.AA
+        self.dichroic  = "None"
+        self.dichroic_wave = None
+
+        #Parse the configuration.
+        if inst_conf is not None:
+            for kw in inst_conf.keys():
+                kwuse = kw
+                if kwuse[:4]=='blue' and self.blue:
+                    kwuse = kw[5:]
+                elif kwuse[:3]=='red' and self.red:
+                    kwuse = kw[4:]
+                setattr(self,kwuse,inst_conf[kw])
+
         self.__flam
-        self.__flam_sky
-        self.__sens
+        self._Spec__flam_sky
+        self._Spec__sens
+
 
     @property
     def __flam(self):
@@ -82,128 +108,51 @@ Args:
                 return
 
         if self.blue:
-
             #Assign the blue spectrum to be used
             spec_use = spec_b
-
-            #Open the fits file for the headers.
-            ff = fits.open(self.data_prefix+"/"+self.fits_files[0])
-
-            #Figure out the limits on which we can use the spectra.
-            #dichroic_wave = 640*u.nm
-            #kuse = (spec_use[0].dispersion<dichroic_wave-self.edge_drop)
-
-            #Web page says a maximum of 2.64e - https://www2.keck.hawaii.edu/inst/deimos/deimos_detector_data.html
-            self.RON  = 2.64
-
-            #We'll also assume a gain of 1.2 from the same web page.
-            self.GAIN = 1.20
-
+            #Set the channel
+            self.channel = 'b'
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[0]
-
         elif self.red:
-
             #Assign the red spectrum to be used
             spec_use = spec_r
-
-            #Open the fits file for the headers.
-            ff = fits.open(self.data_prefix+"/"+self.fits_files[1])
-
-            #Figure out the limits on which we can use the spectra.
-            #dichroic_wave = 640*u.nm
-            #kuse = (spec_use[0].dispersion>dichroic_wave+self.edge_drop)
-
-            #Web page says a maximum of 2.64e - https://www2.keck.hawaii.edu/inst/deimos/deimos_detector_data.html
-            self.RON  = 2.64
-
-            #We'll also assume a gain of 1.2 from the same web page.
-            self.GAIN = 1.20
-
+            #Set the channel
+            self.channel = 'r'
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
 
 
-        #If no apsize_pix read from headers, assume the slit size for the extraction aperture.
-        self.apsize_pix = spec_use[0].header['apsize_pix']
+        #Find some important aspects of the observations.
+        #Dichroic
+        keywords_to_load = {
+            "detector"  : "CCDGEOM",
+            "apsize_pix": "apsize_pix",
+            "texp"      : "EXPTIME",
+        }
+        self.load_keyword_headers(spec_use, keywords_to_load)
 
-        #Find the grism and remove data outside the edges of the sensitivity curves.
+        #Detectors
+        if self.detector is not None:
+            if re.search("MIT/LL",self.detector):
+                self.detector = "MIT_LL"
+            else:
+                pass
+
+        #Slit width
+        if self.slit_width is not None:
+            try:
+                self.slit_width.unit
+            except AttributeError:
+                m = re.match("long_(.*)",self.slit_width)
+                self.slit_width = float(m.group(1)) * u.arcsec
+
+        #Since DEIMOS has the pretty uncommon feature of using filters to control the wavelength range, we should include the filter in the sensitivity curve. Since this scapes the name convention in Spec.py, we'll overload it as a local sens file if none have been given.
         if self.local_sens_files is None:
-            self.sens_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sensitivity_Files/Sens_DEIMOS.txt"
-        else:
-            if self.blue:
-                self.sens_temp_fname = self.local_sens_files[0]
-            else:
-                self.sens_temp_fname = self.local_sens_files[1]
-        sens_temp = np.loadtxt(self.sens_temp_fname)
-        lam_sens = sens_temp[:,0]*u.AA
-        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sens)) & \
-                (spec_use[0].dispersion<np.max(lam_sens))
+            sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_{0:s}_{1:s}_{2:s}_{3:s}.txt".format(self.instrument, self.detector, self.grating, self.filter)
+            self.local_sens_files = [sens_temp_fname, sens_temp_fname]
 
-        #Finally, figure out the sky template edges and trim the spectrum to that limit.
-        #sky_temp = np.loadtxt(os.environ['SPEC_PIPE_LOC']+\
-        #                      "/Spec_pipeline/Sky_Templates/template_sky_GMOS.dat")
-        if self.local_sky_files is None:
-            self.sky_temp_fname = os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Sky_Templates/template_sky_DEIMOS.dat"
-        else:
-            if self.blue:
-                self.sky_temp_fname = self.local_sky_files[0]
-            else:
-                self.sky_temp_fname = self.local_sky_files[1]
-        sky_temp = np.loadtxt(self.sky_temp_fname)
-        lam_sky = sky_temp[:,0]*u.AA
-        kuse = (kuse) & (spec_use[0].dispersion>np.min(lam_sky)) & \
-                (spec_use[0].dispersion<np.max(lam_sky))
-
-        #Now, assign the wavelength and flux to the object.
-        self.lam_obs = spec_use[0].dispersion[kuse]
-        fnu = spec_use[0].data[kuse]*spec_use[0].unit
-
-        #In the error name, replace fits for txt, as we will write it in ASCII.
-        self.spec_err_name = re.sub(".fits",".txt",self.spec_err_name)
-
-        #Mean bin size and exposure time. Useful for error estimation.
-        self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
-        self.texp = float(ff[0].header['EXPTIME'])*u.s
-
-        #Convert flam to fnu
-        self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
-
-        #Close the fits file.
-        ff.close()
+        #Finish the setup
+        self.run_setup(spec_use)
 
         return
-
-    @property
-    def __flam_sky(self):
-
-        #Read the template
-        sky_temp = np.loadtxt(self.sky_temp_fname)
-        lam_sky = sky_temp[:,0]*u.AA
-        flam_sky_orig = sky_temp[:,1]*u.erg/(u.s*u.cm**2*u.AA)
-
-        #Rebin the template to the object spectrum.
-        self.flam_sky = rebin_spec(lam_sky, flam_sky_orig, self.lam_obs)
-
-        return
-
-    #There is only one sensitivity curve that we use.
-    @property
-    def __sens(self):
-
-        #Read the sensitivity curve.
-        sens_temp = np.loadtxt(self.sens_temp_fname)
-        lam_sens = sens_temp[:,0]*u.AA
-        sens_orig = sens_temp[:,1]*u.dimensionless_unscaled
-
-        #Rebin the template to the object spectrum.
-        self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)
-
-        return
-
-    #Taken from https://www2.keck.hawaii.edu/inst/deimos/gratings.html. We'll assume a 1" slit with the 600ZD grating.
-    @property
-    def sigma_res(self):
-        FWHM_res = 3.5*u.AA * 1./0.75
-        sigma_res = FWHM_res/(2.*(2.*np.log(2.))**0.5)
-        return sigma_res
