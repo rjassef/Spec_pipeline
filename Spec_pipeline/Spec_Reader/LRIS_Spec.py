@@ -12,7 +12,7 @@ from scipy.interpolate import interp1d
 #from .spectrum1d import read_fits_spectrum1d
 from .iraf_spectrum1d import read_fits_spectrum1d
 from .Spec import Spec
-from .rebin_spec import rebin_spec
+#from .rebin_spec import rebin_spec
 
 #As there are too many different things to keep in mind, we'll load
 #the spectra as objects, so we can load the appropiate sensitivity
