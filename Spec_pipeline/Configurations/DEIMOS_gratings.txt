@@ -1,0 +1,3 @@
+#Grating_name   Dispersion(AA/mm)       FWHM for 1" slit(AA)
+600ZD              43.33                      4.7
+830G               31.33                      3.3

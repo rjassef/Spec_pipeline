@@ -1,0 +1,6 @@
+#https://www2.keck.hawaii.edu/inst/deimos/deimos_detector_data.html
+#https://www2.keck.hawaii.edu/inst/deimos/specs.html
+#Detector_name  plate_scale  pixel_size     RON       GAIN
+#                  "/pixel    microns
+MIT_LL              0.1185      15.0        2.64      1.20
+MIT-LL              0.1185      15.0        2.64      1.20
