@@ -159,7 +159,7 @@ class Spec(object):
     def run_setup(self, spec_use):
 
         #Cut the edges close to the dichroic.
-        if (hasattr(self,'dichroic')) and (self.dichroic is not None):
+        if (hasattr(self,'dichroic_wave')) and (self.dichroic_wave is not None):
             if self.blue:
                 kuse = (spec_use[0].dispersion<self.dichroic_wave-self.edge_drop)
             else:
