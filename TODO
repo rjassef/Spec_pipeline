@@ -1,6 +1,6 @@
 - Fix negative fluxes in sky template for DBSP
 
-- Make the loader accept one spectrum at a time. Remove the scheme to find the channel of interest in dual spec based on a wavelength of interest.
+- Put default keyword headers in a configuration file.
 
 - Ftest is currently wrong, but should work for what we need (a rough discriminant of the line detection) for the time being. But the number of fit parameters can be off.
 
@@ -128,3 +128,5 @@ Done
 - Assuming a single setup for DEIMOS, not sure this is correct though, and not sure which one it is. We'll assume 600ZD for now. - DONE
 
 - - Need to modify SNR_wing to measure the noise from the median of the MC distribution rather than from the best-fit value, at least in the case where one or more of the best-fit parameters are at the edge of their allowed values. In particular for FWHM, this can result in lines that do not have lower fluxes than the best-fit in the MC. - SNR_wing DEPRECATED
+
+- Make the loader accept one spectrum at a time. Remove the scheme to find the channel of interest in dual spec based on a wavelength of interest. DONE
