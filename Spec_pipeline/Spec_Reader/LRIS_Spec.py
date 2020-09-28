@@ -1,18 +1,12 @@
 #!/usr/bin/env python
 
 import numpy as np
-#from specutils.io.read_fits import read_fits_spectrum1d
-from astropy.io import fits
 import astropy.units as u
-from astropy.constants import h,c
 import re
-import os
-from scipy.interpolate import interp1d
 
-#from .spectrum1d import read_fits_spectrum1d
 from .iraf_spectrum1d import read_fits_spectrum1d
 from .Spec import Spec
-#from .rebin_spec import rebin_spec
+
 
 #As there are too many different things to keep in mind, we'll load
 #the spectra as objects, so we can load the appropiate sensitivity
@@ -25,71 +19,48 @@ class LRIS_Spec(Spec):
 Module that read an LRIS spectrum and returns a spec object.
 
 Args:
-   _name (string)      : Object name or ID.
+   name (string)              : Object name or ID.
 
-   _zspec (float)      : Spectroscopic redshift.
+   zspec (float)              : Spectroscopic redshift.
 
-   _fits_files (list)  : Spectrum file name. Has to be a one element list.
+   fits_file (string)         : Spectrum file name.
 
-   _line_center (float): Optional. Grating used for the observations.
-                         Needs to have astropy units of AA.
+   blue (boolean)             : Optional. Indicated the provided spectrum is
+                                from the blue arm of the spectrograph. Either
+                                blue or red must be provided.
 
-   blue (boolean)      : Optional. If wavenlength of interest is not provided,
-                         it should be indicated whether the blue side or the
-                         red side spectrum should be loaded.
+   red (boolean)              : Optional. Indicated the provided spectrum is
+                                from the red arm of the spectrograph. Either
+                                blue or red must be provided.
 
-   red (boolean)       : Optional. If wavenlength of interest is not provided,
-                         it should be indicated whether the blue side or the
-                         red side spectrum should be loaded.
+   show_err_plot (boolean)    : Optional. True if error-fit plot is to be
+                                displayed.
 
-   show_err_plot (boolean) : Show plot of the error fit if it is carried out.
-
-   local_sky_files (list)     : Optional. List of sky files if the default ones
+   local_sky_file (string)    : Optional. Sky file if the default ones
                                 are not to be used.
 
-   local_sens_files (list)    : Optional. List of sensitivity files if the
+   local_sens_file (string)   : Optional. Sensitivity file if the
                                 default ones are not to be used.
 
-   inst_conf                  : Optional. Configurations dictionary.
+   inst_conf (dict)           : Optional. Configurations dictionary.
 
-   header_kws                 : Optional. Dictionary. Defaults are:
-                                "dichroic"  : "DICHNAME",
-                                "detector"  : "CCDGEOM",
-                                "slit_width": "SLITNAME",
-                                "apsize_pix": "apsize_pix",
-                                "texp"      : "EXPTIME"
-
-                                For blue side:
-                                keywords_to_load['grating'] = "GRISNAME"
-                                keywords_to_load['detector'] = "CCDGEOM"
-
-                                For red side:
-                                keywords_to_load['grating'] = "GRANAME"
-                                keywords_to_load['detector'] = "DETECTOR"
+   header_kws                 : Optional. Dictionary.
 
    """
 
-    def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None, header_kws=None):
+    def __init__(self, name, zspec, fits_file, blue=False, red=False, show_err_plot=False, local_sky_file=None, local_sens_file=None, inst_conf=None, header_kws=None):
 
-        super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot, local_sky_files=local_sky_files, local_sens_files=local_sens_files)
-
-        self.RT   = 5.0*u.m #Telescope radius.
-        self.instrument = "LRIS"
+        #Load basic instrument properties.
+        RT   = 5.0*u.m #Telescope radius.
+        instrument = "LRIS"
         self.dual_spec = True
         self.blue = blue
         self.red = red
         self.edge_drop = 75.*u.AA
 
-        if inst_conf is not None:
-            for kw in inst_conf.keys():
-                kwuse = kw
-                if kwuse[:4]=='blue' and self.blue:
-                    kwuse = kw[5:]
-                elif kwuse[:3]=='red' and self.red:
-                    kwuse = kw[4:]
-                setattr(self,kwuse,inst_conf[kw])
+        super(LRIS_Spec,self).__init__(name, zspec, fits_file, show_err_plot=show_err_plot, local_sky_file=local_sky_file, local_sens_file=local_sens_file, inst_conf=inst_conf, header_kws=header_kws, RT=RT, instrument=instrument)
 
+        #Finally, load the spectra.
         self.__flam
         self._Spec__flam_sky
         self._Spec__sens
@@ -99,59 +70,20 @@ Args:
     @property
     def __flam(self):
 
-        spec_b = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_files[0],
-                                      dispersion_unit=u.AA,
-                                      flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
-        spec_r = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_files[1],
-                                      dispersion_unit=u.AA,
-                                      flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
+        #Load the spectrum
+        spec = read_fits_spectrum1d(self.data_prefix+"/"+self.fits_file, dispersion_unit=u.AA, flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
 
-        #Line that we want to fit unless side has been decided already.
-        if not self.blue and not self.red:
-            lam_targ = self.line_center*(1.+self.zspec)
-            if lam_targ>spec_b[0].dispersion.min() and \
-               lam_targ<spec_b[0].dispersion.max():
-                self.blue = True
-            elif lam_targ>spec_r[0].dispersion.min() and \
-                 lam_targ<spec_r[0].dispersion.max():
-                self.red = True
-            else:
-                print("Line not within spectral ranges")
-                return
+        #Assign the error name file.
+        self.spec_err_name = "error."+self.fits_file
 
+        #Set the channel.
         if self.blue:
-            #Assign the blue spectrum to be used
-            spec_use = spec_b
-            #Set the channel
             self.channel = 'b'
-            #Finally, assign the error name file.
-            self.spec_err_name = "error."+self.fits_files[0]
         elif self.red:
-            #Assign the red spectrum to be used
-            spec_use = spec_r
-            #Set the channel
             self.channel = 'r'
-            #Finally, assign the error name file.
-            self.spec_err_name = "error."+self.fits_files[1]
 
-        #Load attributes from header keywords. Set the default ones, and overwrite them with, or add to them, the ones set by the user.
-        keywords_to_load = {
-            "dichroic"  : "DICHNAME",
-            "detector"  : "CCDGEOM",
-            "slit_width": "SLITNAME",
-            "apsize_pix": "apsize_pix",
-            "texp"      : "EXPTIME"
-        }
-        if self.blue:
-            keywords_to_load['grating'] = "GRISNAME"
-            keywords_to_load['detector'] = "CCDGEOM"
-        else:
-            keywords_to_load['grating'] = "GRANAME"
-            keywords_to_load['detector'] = "DETECTOR"
-        if header_kws is not None:
-            for kw in header_kws.keys():
-                keywords_to_load[kw] = header_kws[kw]
-        self.load_keyword_headers(spec_use, keywords_to_load)
+        #Load attributes from header keywords.
+        self.load_keyword_headers(spec, self.keywords_to_load)
 
         #Detectors
         if self.detector is not None:
@@ -181,6 +113,6 @@ Args:
                 self.slit_width = float(m.group(1)) * u.arcsec
 
         #Finish the setup
-        self.run_setup(spec_use)
+        self.run_setup(spec)
 
         return

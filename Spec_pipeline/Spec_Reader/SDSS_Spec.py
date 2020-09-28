@@ -20,26 +20,27 @@ class SDSS_Spec(Spec):
 Module that read an SDSS spectrum and returns a spec object.
 
 Args:
-   _name (string)      : Object name or ID.
+   name (string)      : Object name or ID.
 
-   _zspec (float)      : Spectroscopic redshift.
+   zspec (float)      : Spectroscopic redshift.
 
-   _fits_files (list)  : Spectrum file name. Has to be a one element list.
+   fits_file (string) : Spectrum file name. Has to be a one element list.
 
    """
 
-    def __init__(self,_name,_zspec,_fits_files,local_sky_files=None,local_sens_files=None):
-        super(SDSS_Spec,self).__init__(_name,_zspec,_fits_files)
-        self.RT   = 1.25*u.m #Telescope radius.
-        self.instrument = "SDSS"
-        self.local_sky_files = local_sky_files
-        self.local_sens_files = local_sens_files
+    def __init__(self, name, zspec, fits_file):
+
+        RT   = 1.25*u.m #Telescope radius.
+        instrument = "SDSS"
+
+        super(SDSS_Spec,self).__init__(name, zspec, fits_file, RT=RT, instrument=instrument)
+
         self.__flam
 
     @property
     def __flam(self):
 
-        s = fits.open(self.data_prefix+"/"+self.fits_files[0])
+        s = fits.open(self.data_prefix+"/"+self.fits_file)
         self.lam_obs   = 10.**(s[1].data['loglam']) * u.AA
 
         flux_unit = 1e-17 * u.erg/(u.cm**2*u.s*u.AA)

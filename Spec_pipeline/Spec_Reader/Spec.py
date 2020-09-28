@@ -16,13 +16,11 @@ from .rebin_spec import rebin_spec
 
 class Spec(object):
 
-    def __init__(self,name,zspec,fits_files=None,line_center=None,show_err_plot=False,error_fit_blue_exp=True, local_sky_files=None, local_sens_files=None):
-        self.RT   = None
-        self.instrument = None
+    def __init__(self,name,zspec,fits_file=None,show_err_plot=False,error_fit_blue_exp=True, local_sky_file=None, local_sens_file=None, inst_conf=None, header_kws=None, RT=1.0*u.m, instrument=None):
+
         self.name  = name
         self.zspec = zspec
-        self.fits_files = fits_files
-        self.line_center = line_center
+        self.fits_file = fits_file
         self.lam_obs  = None
         self.dlam = None
         self.texp = None
@@ -33,12 +31,24 @@ class Spec(object):
         self.save_err = True
         self.show_err_plot=show_err_plot
         self.print_err_plot=False
-        self.dual_spec=False
-        self.red=False
-        self.blue=False
 
-        self.local_sky_files = local_sky_files
-        self.local_sens_files = local_sens_files
+        self.RT = RT
+        self.instrument = instrument
+        if self.instrument is None:
+            print("Must provide instrument's name.")
+            return 1
+
+        if not hasattr(self,"dual_spec"):
+            self.dual_spec = False
+            self.red=False
+            self.blue=False
+
+        if self.dual_spec and (not self.blue and not self.red):
+            print("Must indicate whether this a blue or red arm spectrum.")
+            return 1
+
+        self.local_sky_file = local_sky_file
+        self.local_sens_file = local_sens_file
 
         self.dichroic = None
         self.grating = None
@@ -53,7 +63,46 @@ class Spec(object):
         #If no slit width is given, assume 1.25" as discussed on telecon from 05/26/2020
         #self.slit_width = 1.25 * u.arcsec
 
-        return
+        #Load the user provided configurations.
+        if inst_conf is not None:
+            for kw in inst_conf.keys():
+                kwuse = kw
+                if kwuse[:4]=='blue' and self.blue:
+                    kwuse = kw[5:]
+                elif kwuse[:3]=='red' and self.red:
+                    kwuse = kw[4:]
+                setattr(self,kwuse,inst_conf[kw])
+
+
+
+        #Set the default header keywords and overwrite them with, or add to them, the ones set by the user.
+        self.keywords_to_load = dict()
+        try:
+            cat = open(os.environ['SPEC_PIPE_LOC']+"/Spec_pipeline/Configurations/{0:s}_Header_Keywords.txt".format(self.instrument))
+            for line in cat:
+                if line[0]=='#':
+                    continue
+                x = line.split()
+                if len(x)<2:
+                    continue
+                if len(x)>2:
+                    if x[2]=='blue' and not self.blue:
+                        continue
+                    elif x[2]=='red' and not self.red:
+                        continue
+                self.keywords_to_load[x[0]] = x[1]
+        except IOError:
+            pass
+
+        #Add spec aperture keyword.
+        self.keywords_to_load["apsize_pix"] = "apsize_pix"
+
+        #Add the user provided ones.
+        if header_kws is not None:
+            for kw in header_kws.keys():
+                self.keywords_to_load[kw] = header_kws[kw]
+
+        return 0
 
     @property
     def lam_rest(self):
@@ -183,30 +232,32 @@ class Spec(object):
                 pass
 
         #Set the sensitivity template.
-        if self.local_sens_files is None:
+        if self.local_sens_file is None:
             #self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_{0:s}_{1:s}_{2:s}_{3:s}_{4:s}.txt".format(self.instrument, self.detector, self.grating, self.dichroic, self.channel)
             self.sens_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sensitivity_Files/" + "Sens_{0:s}_{1:s}_{2:s}".format(self.instrument, self.detector, self.grating)
             if self.dual_spec:
                 self.sens_temp_fname += "_{0:s}_{1:s}".format(self.dichroic, self.channel)
             self.sens_temp_fname += ".txt"
         else:
-            if self.blue:
-                self.sens_temp_fname = self.local_sens_files[0]
-            else:
-                self.sens_temp_fname = self.local_sens_files[1]
+            self.sens_temp_fname = self.local_sens_file
+            # if self.blue:
+            #     self.sens_temp_fname = self.local_sens_files[0]
+            # else:
+            #     self.sens_temp_fname = self.local_sens_files[1]
 
         #Set the sky template to use.
-        if self.local_sky_files is None:
+        if self.local_sky_file is None:
             #self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_{0:s}_{1:s}_{2:.2f}arcsec_{3:s}.txt".format( self.instrument, self.grating, self.slit_width.to(u.arcsec).value, self.channel)
             self.sky_temp_fname = os.environ['SPEC_PIPE_LOC'] + "/Spec_pipeline/Sky_Templates/" + "template_sky_{0:s}_{1:s}_{2:.2f}arcsec".format( self.instrument, self.grating, self.slit_width.to(u.arcsec).value)
             if self.dual_spec:
                 self.sky_temp_fname += "_{0:s}".format(self.channel)
             self.sky_temp_fname += ".txt"
         else:
-            if self.blue:
-                self.sky_temp_fname = self.local_sky_files[0]
-            else:
-                self.sky_temp_fname = self.local_sky_files[1]
+            self.sky_temp_fname = self.local_sky_file
+            # if self.blue:
+            #     self.sky_temp_fname = self.local_sky_files[0]
+            # else:
+            #     self.sky_temp_fname = self.local_sky_files[1]
 
         #Finally, figure out the sky template edges and trim the spectrum to that limit.
         try:
