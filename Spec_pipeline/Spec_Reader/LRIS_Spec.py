@@ -51,10 +51,26 @@ Args:
                                 default ones are not to be used.
 
    inst_conf                  : Optional. Configurations dictionary.
+
+   header_kws                 : Optional. Dictionary. Defaults are:
+                                "dichroic"  : "DICHNAME",
+                                "detector"  : "CCDGEOM",
+                                "slit_width": "SLITNAME",
+                                "apsize_pix": "apsize_pix",
+                                "texp"      : "EXPTIME"
+
+                                For blue side:
+                                keywords_to_load['grating'] = "GRISNAME"
+                                keywords_to_load['detector'] = "CCDGEOM"
+
+                                For red side:
+                                keywords_to_load['grating'] = "GRANAME"
+                                keywords_to_load['detector'] = "DETECTOR"
+
    """
 
     def __init__(self,_name,_zspec,_fits_files,_line_center=None,
-                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None):
+                 blue=False,red=False,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None, header_kws=None):
 
         super(LRIS_Spec,self).__init__(_name,_zspec,_fits_files,_line_center,show_err_plot=show_err_plot, local_sky_files=local_sky_files, local_sens_files=local_sens_files)
 
@@ -118,14 +134,13 @@ Args:
             #Finally, assign the error name file.
             self.spec_err_name = "error."+self.fits_files[1]
 
-        #Find some important aspects of the observations.
-        #Dichroic
+        #Load attributes from header keywords. Set the default ones, and overwrite them with, or add to them, the ones set by the user.
         keywords_to_load = {
             "dichroic"  : "DICHNAME",
             "detector"  : "CCDGEOM",
             "slit_width": "SLITNAME",
             "apsize_pix": "apsize_pix",
-            "texp"      : "EXPTIME",
+            "texp"      : "EXPTIME"
         }
         if self.blue:
             keywords_to_load['grating'] = "GRISNAME"
@@ -133,6 +148,9 @@ Args:
         else:
             keywords_to_load['grating'] = "GRANAME"
             keywords_to_load['detector'] = "DETECTOR"
+        if header_kws is not None:
+            for kw in header_kws.keys():
+                keywords_to_load[kw] = header_kws[kw]
         self.load_keyword_headers(spec_use, keywords_to_load)
 
         #Detectors

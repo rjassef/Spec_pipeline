@@ -37,9 +37,15 @@ Args:
 
    inst_conf                  : Optional. Configurations dictionary.
 
+   header_kws                 : Optional. Dictionary. Defaults are:
+                                "apsize_pix": "apsize_pix",
+                                "texp"      : "EXPTIME",
+                                "RON"       : "RDNOISE",
+                                "GAIN"      : "GAINMULT"
+
    """
 
-    def __init__(self,name,zspec,fits_files,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None):
+    def __init__(self,name,zspec,fits_files,show_err_plot=False,local_sky_files=None,local_sens_files=None, inst_conf=None, header_kws=None):
 
         super(GMOS_Spec,self).__init__(name,zspec,fits_files,show_err_plot=show_err_plot,  local_sky_files=local_sky_files, local_sens_files=local_sens_files)
 
@@ -72,12 +78,16 @@ Args:
                                     flux_unit = u.erg/(u.cm**2*u.s*u.Hz))
         self.spec_err_name = "error."+self.fits_files[0]
 
+        #Load attributes from header keywords. Set the default ones, and overwrite them with, or add to them, the ones set by the user.
         keywords_to_load = {
             "apsize_pix": "apsize_pix",
             "texp"      : "EXPTIME",
             "RON"       : "RDNOISE",
             "GAIN"      : "GAINMULT"
         }
+        if header_kws is not None:
+            for kw in header_kws.keys():
+                keywords_to_load[kw] = header_kws[kw]
         self.load_keyword_headers(spec, keywords_to_load)
 
         #Slit width
