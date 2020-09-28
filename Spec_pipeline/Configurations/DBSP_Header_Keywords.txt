@@ -1,0 +1,7 @@
+dichroic              DICHROIC        both
+detector              DETNAM          both
+grating               GRATING         both
+slit_width            APERTURE        both
+texp                  EXPTIME         both
+RON                   RON             both
+GAIN                  GAIN            both

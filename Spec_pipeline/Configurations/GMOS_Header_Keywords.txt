@@ -1,0 +1,3 @@
+texp       EXPTIME
+RON        RDNOISE
+GAIN       GAINMULT

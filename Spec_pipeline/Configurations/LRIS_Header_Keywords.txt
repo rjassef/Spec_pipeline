@@ -1,0 +1,11 @@
+dichroic          DICHNAME      both
+slit_width        SLITNAME      both
+texp              EXPTIME       both
+
+#Blue Arm
+grating           GRISNAME      blue
+detector          CCDGEOM       blue
+
+#Red Arm
+grating           GRANAME       red
+detector          DETECTOR      red
