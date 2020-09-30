@@ -10,6 +10,8 @@ CIII]	      1908.734  #Taken from SDSS line list.
 CII]	      2326.0    #Taken from SDSS line list.
 NeIV	      2439.5    #Taken from SDSS line list.
 MgII 	      2799.117  #Taken from SDSS line list.
+[NeV]3346   3346.79
+[NeV]3426   3426.85
 [OII]3726   3727.092
 [OII]3728   3729.875
 [NeIII]	    3869.86
