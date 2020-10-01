@@ -7,6 +7,7 @@ from astropy.stats import sigma_clipped_stats
 import os
 import re
 import sys
+from scipy.special import erf
 
 from .line_class import Line_fit
 from .MC_errors_general import get_error
@@ -250,10 +251,10 @@ class Multi_Line_fit(Line_fit):
             return None
 
         #Get the line fluxes and their dispersion (used as noise).
-        S = self.line_flux()
+        S = self.line_flux(SNR_mode=True)
         #For the dispersion do 3 sigma clipping. Should not do less than about 500 realizations.
         #N = np.std(self.line_flux(MC=True),axis=1)
-        N = sigma_clipped_stats(self.line_flux(MC=True),axis=1)[2]
+        N = sigma_clipped_stats(self.line_flux(MC=True,SNR_mode=True),axis=1)[2]
         return (S/N).to(1.)
 
     #This implementation, instead of doing sigma clipping, estimates the noise using the steepness of the wings. Specifically, the noise is calculated as the 95.4% range - 68.3% range. For a Gaussian distribution, this should be equal to sigma.
@@ -275,7 +276,7 @@ class Multi_Line_fit(Line_fit):
         return (S/N).to(1.)
 
     #Line flux or fluxes, depending on the case.
-    def line_flux(self,x_line=None,chain_output=None,MC=False):
+    def line_flux(self,x_line=None,chain_output=None,MC=False,SNR_mode=False):
 
         if MC:
             chain_output = self.MC_chain
@@ -293,14 +294,38 @@ class Multi_Line_fit(Line_fit):
         else:
             integrated_flux = np.zeros(self.nlines)*self.flux_unit
         for i in range(self.nlines):
-            integrated_flux[i] = self._get_line_flux(i,x_line_use)
+            integrated_flux[i] = self._get_line_flux(i,x_line_use,SNR_mode=SNR_mode)
 
         return integrated_flux
 
-    def _get_line_flux(self,i,x_line_use=None):
+    def _get_line_flux(self,i,x_line_use=None,SNR_mode=False):
+
         dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
-        flux = flam_line * self.line_center[i]*(2.*np.pi)**0.5 * \
-               sigma_v/c
+
+        if not SNR_mode:
+            flux = flam_line * self.line_center[i]*(2.*np.pi)**0.5 * \
+                sigma_v/c
+        else:
+
+            nsig = 5
+            vmin = -nsig*sigma_v
+            vmax =  nsig*sigma_v
+            lam_min = self.line_center[i]*(1.+vmin/c)
+            lam_max = self.line_center[i]*(1.+vmax/c)
+
+            spec = self.default_spec
+            lam_min = np.where(lam_min<np.min(spec.lam_rest), np.min(spec.lam_rest), lam_min)
+            lam_max = np.where(lam_max>np.max(spec.lam_rest), np.max(spec.lam_rest), lam_max)
+            #if lam_min<np.min(spec.lam_rest):
+            #    lam_min = np.min(spec.lam_rest)
+            #if lam_max>np.max(spec.lam_rest):
+            #    lam_max = np.max(spec.lam_rest)
+
+            wmin = ((c/(2**0.5*sigma_v)) * ((lam_min-self.line_center[i])/self.line_center[i] - dv/c)).to(1.).value
+            wmax = ((c/(2**0.5*sigma_v)) * ((lam_max-self.line_center[i])/self.line_center[i] - dv/c)).to(1.).value
+
+            flux = (erf(wmax) + erf(np.abs(wmin))) * flam_line * self.line_center[i]*(np.pi/2)**0.5 * sigma_v/c
+
         flux = flux.to(self.flux_unit)
         return flux
 
