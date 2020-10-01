@@ -290,7 +290,10 @@ class Spec(object):
 
         #Mean bin size, exposure time, RON and GAIN. Useful for error estimation.
         self.dlam = np.mean(self.lam_obs[1:]-self.lam_obs[:-1])
-        self.texp = np.float(self.texp) * u.s
+        try:
+            self.texp.unit
+        except AttributeError:
+            self.texp = np.float(self.texp) * u.s
 
         #Convert fnu to flambda.
         self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
