@@ -302,9 +302,11 @@ class Multi_Line_fit(Line_fit):
 
         dv, flam_line, sigma_v = self.line_par_parser(i,x_line_use)
 
+        #If we are not estimating the SNR of the emission line, then we want to get the entire flux of the model emission.
         if not SNR_mode:
-            flux = flam_line * self.line_center[i]*(2.*np.pi)**0.5 * \
-                sigma_v/c
+            flux = flam_line * self.line_center[i]*(2.*np.pi)**0.5 * sigma_v/c
+
+        #On the other hand, if we are estimating the SNR, then what we want to do is estimate the flux of the line within the observed bounds of the spectrum only. This does not consider emission lines affected by sky absorption.
         else:
 
             nsig = 5
@@ -313,13 +315,10 @@ class Multi_Line_fit(Line_fit):
             lam_min = self.line_center[i]*(1.+vmin/c)
             lam_max = self.line_center[i]*(1.+vmax/c)
 
-            spec = self.default_spec
-            lam_min = np.where(lam_min<np.min(spec.lam_rest), np.min(spec.lam_rest), lam_min)
-            lam_max = np.where(lam_max>np.max(spec.lam_rest), np.max(spec.lam_rest), lam_max)
-            #if lam_min<np.min(spec.lam_rest):
-            #    lam_min = np.min(spec.lam_rest)
-            #if lam_max>np.max(spec.lam_rest):
-            #    lam_max = np.max(spec.lam_rest)
+            lam_min_spec = np.min(self.default_spec.lam_rest)
+            lam_max_spec = np.max(self.default_spec.lam_rest)
+            lam_min = np.where(lam_min<lam_min_spec, lam_min_spec, lam_min)
+            lam_max = np.where(lam_max>lam_max_spec, lam_max_spec, lam_max)
 
             wmin = ((c/(2**0.5*sigma_v)) * ((lam_min-self.line_center[i])/self.line_center[i] - dv/c)).to(1.).value
             wmax = ((c/(2**0.5*sigma_v)) * ((lam_max-self.line_center[i])/self.line_center[i] - dv/c)).to(1.).value
