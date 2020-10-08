@@ -1,0 +1,490 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spec_pipeline.Spec_Reader.Spec &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../../../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../../../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Spec_pipeline.Spec_Reader.Spec</h1><div class="highlight"><pre>
+<span></span><span class="c1">#As there are too many different things to keep in minds, we&#39;ll load</span>
+<span class="c1">#the spectra as objects, so we can load the appropiate sensitivity</span>
+<span class="c1">#curves and sky spectra without having to think too much about it</span>
+<span class="c1">#during the code execution.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">from</span> <span class="nn">astropy.constants</span> <span class="k">import</span> <span class="n">h</span><span class="p">,</span><span class="n">c</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="k">import</span> <span class="n">interp1d</span>
+
+<span class="c1">#from .obtain_error_spectrum import get_error_spec</span>
+<span class="kn">from</span> <span class="nn">.obtain_error_spectrum_with_extra_poly</span> <span class="k">import</span> <span class="n">get_error_spec</span>
+<span class="kn">from</span> <span class="nn">.rebin_spec</span> <span class="k">import</span> <span class="n">rebin_spec</span>
+
+<div class="viewcode-block" id="Spec"><a class="viewcode-back" href="../../../Spec_pipeline/spec_class.html#Spec_pipeline.Spec_Reader.Spec.Spec">[docs]</a><span class="k">class</span> <span class="nc">Spec</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Superclass for spectrum objects. Subclasses for different instruments have been created, and it is recommended to use those as a template for setting up a new instrument rather than trying to create directly as spec object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        Object ID</span>
+
+<span class="sd">    zspec : float</span>
+<span class="sd">        Spectroscopic redshift.</span>
+
+<span class="sd">    fits_file : string</span>
+<span class="sd">        Spectrum file name.</span>
+
+<span class="sd">    show_err_plot : boolean, optional</span>
+<span class="sd">        True if error-fit plot is to be displayed.</span>
+
+<span class="sd">    error_fit_blue_exp : boolean, optional</span>
+<span class="sd">        If True, forces the error estimations to use an exponential to model extra uncertainty in the blue edge. Empirically seen to be needed by most spectra.</span>
+
+<span class="sd">    local_sky_file : string, optional</span>
+<span class="sd">        Sky file if the default ones are not to be used.</span>
+
+<span class="sd">    local_sens_file : string, optional</span>
+<span class="sd">        Sensitivity file if the default ones are not to be used.</span>
+
+<span class="sd">    inst_conf : dictionary, optional</span>
+<span class="sd">        Configurations dictionary.</span>
+
+<span class="sd">    header_kws : dictionary, optional</span>
+<span class="sd">        Dictionary with header keywords to use. Have precedence over default header keywords.</span>
+
+<span class="sd">    RT : float with astropy.units of meters, optional</span>
+<span class="sd">        Aperture radius of the telescope. Default is 1.0 m.</span>
+
+<span class="sd">    instrument : string, optional</span>
+<span class="sd">        Instrument&#39;s name. Should be consistent with the name used in the default configuration files. </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">zspec</span><span class="p">,</span> <span class="n">fits_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_err_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">error_fit_blue_exp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">local_sky_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">local_sens_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inst_conf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">header_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">RT</span><span class="o">=</span><span class="mf">1.0</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">instrument</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span>  <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zspec</span> <span class="o">=</span> <span class="n">zspec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fits_file</span> <span class="o">=</span> <span class="n">fits_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span>  <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dlam</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">texp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RON</span>  <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_err_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Kp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_prefix</span> <span class="o">=</span> <span class="s2">&quot;data/&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_err</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_err_plot</span><span class="o">=</span><span class="n">show_err_plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_err_plot</span><span class="o">=</span><span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">RT</span> <span class="o">=</span> <span class="n">RT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span> <span class="o">=</span> <span class="n">instrument</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Must provide instrument&#39;s name.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;dual_spec&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dual_spec</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="o">=</span><span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="o">=</span><span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_spec</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blue</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Must indicate whether this a blue or red arm spectrum.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_sky_file</span> <span class="o">=</span> <span class="n">local_sky_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_sens_file</span> <span class="o">=</span> <span class="n">local_sens_file</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dichroic</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grating</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grating_dispersion</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plate_scale</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slit_width</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_res</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1">#If no slit width is given, assume 1.25&quot; as discussed on telecon from 05/26/2020</span>
+        <span class="c1">#self.slit_width = 1.25 * u.arcsec</span>
+
+        <span class="c1">#Load the user provided configurations.</span>
+        <span class="k">if</span> <span class="n">inst_conf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">inst_conf</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">kwuse</span> <span class="o">=</span> <span class="n">kw</span>
+                <span class="k">if</span> <span class="n">kwuse</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;blue&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="p">:</span>
+                    <span class="n">kwuse</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>
+                <span class="k">elif</span> <span class="n">kwuse</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;red&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="p">:</span>
+                    <span class="n">kwuse</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">kwuse</span><span class="p">,</span><span class="n">inst_conf</span><span class="p">[</span><span class="n">kw</span><span class="p">])</span>
+
+
+
+        <span class="c1">#Set the default header keywords and overwrite them with, or add to them, the ones set by the user.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keywords_to_load</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cat</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SPEC_PIPE_LOC&#39;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;/Spec_pipeline/Configurations/</span><span class="si">{0:s}</span><span class="s2">_Header_Keywords.txt&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cat</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;#&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;blue&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">elif</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;red&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">keywords_to_load</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1">#Add spec aperture keyword.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keywords_to_load</span><span class="p">[</span><span class="s2">&quot;apsize_pix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;apsize_pix&quot;</span>
+
+        <span class="c1">#Add the user provided ones.</span>
+        <span class="k">if</span> <span class="n">header_kws</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">header_kws</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">keywords_to_load</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span> <span class="o">=</span> <span class="n">header_kws</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lam_rest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lam_rest</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lam_rest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">zspec</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lam_rest</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lam_rest</span>
+
+    <span class="k">def</span> <span class="nf">eps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sens</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">lam_obs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">dlam</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sens</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sens</span>
+        <span class="k">if</span> <span class="n">lam_obs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lam_obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span>
+        <span class="k">if</span> <span class="n">dlam</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dlam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dlam</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eps</span> <span class="o">=</span> <span class="n">sens</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">RT</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">dlam</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">texp</span><span class="o">/</span>\
+                    <span class="p">(</span><span class="n">h</span><span class="o">*</span><span class="n">c</span><span class="o">/</span><span class="n">lam_obs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eps</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eps</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">flam_err</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="c1">#Try to open the error spectrum. If not found, generate it.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cat</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_prefix</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">spec_err_name</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span>
+            <span class="n">cat</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Kp</span> <span class="o">=</span> <span class="n">get_error_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wd</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">show_plot</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_err_plot</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_err</span><span class="p">:</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_prefix</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">spec_err_name</span><span class="p">,</span>
+                           <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span>
+
+    <span class="c1">#####</span>
+
+    <span class="k">def</span> <span class="nf">load_detector_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#Load the detectors file.</span>
+        <span class="n">dets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SPEC_PIPE_LOC&#39;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;/Spec_pipeline/Configurations/</span><span class="si">{0:s}</span><span class="s2">_detectors.txt&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="ow">in</span> <span class="n">dets</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">det_use</span> <span class="o">=</span> <span class="n">dets</span><span class="p">[</span><span class="n">dets</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">,:]</span>
+            <span class="n">kws</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;plate_scale&quot;</span><span class="p">,</span> <span class="s2">&quot;pixel_size&quot;</span><span class="p">,</span> <span class="s2">&quot;RON&quot;</span><span class="p">,</span> <span class="s2">&quot;GAIN&quot;</span><span class="p">]</span>
+            <span class="n">units_kws</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;arcsec&quot;</span><span class="p">,</span> <span class="s2">&quot;micron&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">kw</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kws</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">kw</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">kw</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kw</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">det_use</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">units_kws</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kw</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1">#self.plate_scale = float(det_use[0,1])*u.arcsec</span>
+            <span class="c1">#self.pixel_size  = float(det_use[0,2])*u.micron</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Detector </span><span class="si">{0:s}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">))</span>
+
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">load_grating_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1">#Load the detectors file.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_spec</span><span class="p">:</span>
+            <span class="n">grts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SPEC_PIPE_LOC&#39;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;/Spec_pipeline/Configurations/</span><span class="si">{0:s}</span><span class="s2">_gratings_</span><span class="si">{1:s}</span><span class="s2">.txt&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SPEC_PIPE_LOC&#39;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;/Spec_pipeline/Configurations/</span><span class="si">{0:s}</span><span class="s2">_gratings.txt&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grating</span> <span class="ow">in</span> <span class="n">grts</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">grt_use</span> <span class="o">=</span> <span class="n">grts</span><span class="p">[</span><span class="n">grts</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">grating</span><span class="p">,:]</span>
+            <span class="n">kws</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;grating_dispersion&quot;</span><span class="p">,</span> <span class="s2">&quot;FWHM_res&quot;</span><span class="p">]</span>
+            <span class="n">units_kws</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Angstrom/mm&quot;</span><span class="p">,</span> <span class="s2">&quot;Angstrom&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">kw</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kws</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">kw</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">kw</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kw</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">grt_use</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">units_kws</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kw</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1">#self.grating_dispersion = float(grt_use[0,1])*u.AA/u.mm</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Grating </span><span class="si">{0:s}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grating</span><span class="p">))</span>
+
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">load_keyword_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">keywords</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keywords</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">keywords</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span> <span class="n">spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="n">keywords</span><span class="p">[</span><span class="n">key</span><span class="p">]])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: </span><span class="si">{0:s}</span><span class="s2"> keyword not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">keywords</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">run_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec_use</span><span class="p">):</span>
+
+        <span class="c1">#Cut the edges close to the dichroic.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;dichroic_wave&#39;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dichroic_wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="p">:</span>
+                <span class="n">kuse</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dispersion</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">dichroic_wave</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_drop</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kuse</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dispersion</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">dichroic_wave</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_drop</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kuse</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dispersion</span><span class="o">&gt;</span><span class="mi">0</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span>
+
+        <span class="c1">#Load the detector properties.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;detector&#39;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_detector_properties</span><span class="p">()</span>
+
+        <span class="c1">#Load the grating properties.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;grating&#39;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grating</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_grating_properties</span><span class="p">()</span>
+
+        <span class="c1">#If no apsize_pix read from headers, assume the slit size for the extraction aperture.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">apsize_pix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">apsize_pix</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slit_width</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">plate_scale</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="c1">#Set the sensitivity template.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_sens_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1">#self.sens_temp_fname = os.environ[&#39;SPEC_PIPE_LOC&#39;] + &quot;/Spec_pipeline/Sensitivity_Files/&quot; + &quot;Sens_{0:s}_{1:s}_{2:s}_{3:s}_{4:s}.txt&quot;.format(self.instrument, self.detector, self.grating, self.dichroic, self.channel)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sens_temp_fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SPEC_PIPE_LOC&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;/Spec_pipeline/Sensitivity_Files/&quot;</span> <span class="o">+</span> <span class="s2">&quot;Sens_</span><span class="si">{0:s}</span><span class="s2">_</span><span class="si">{1:s}</span><span class="s2">_</span><span class="si">{2:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grating</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_spec</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sens_temp_fname</span> <span class="o">+=</span> <span class="s2">&quot;_</span><span class="si">{0:s}</span><span class="s2">_</span><span class="si">{1:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dichroic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sens_temp_fname</span> <span class="o">+=</span> <span class="s2">&quot;.txt&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sens_temp_fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_sens_file</span>
+            <span class="c1"># if self.blue:</span>
+            <span class="c1">#     self.sens_temp_fname = self.local_sens_files[0]</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     self.sens_temp_fname = self.local_sens_files[1]</span>
+
+        <span class="c1">#Set the sky template to use.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_sky_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1">#self.sky_temp_fname = os.environ[&#39;SPEC_PIPE_LOC&#39;] + &quot;/Spec_pipeline/Sky_Templates/&quot; + &quot;template_sky_{0:s}_{1:s}_{2:.2f}arcsec_{3:s}.txt&quot;.format( self.instrument, self.grating, self.slit_width.to(u.arcsec).value, self.channel)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sky_temp_fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SPEC_PIPE_LOC&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;/Spec_pipeline/Sky_Templates/&quot;</span> <span class="o">+</span> <span class="s2">&quot;template_sky_</span><span class="si">{0:s}</span><span class="s2">_</span><span class="si">{1:s}</span><span class="s2">_</span><span class="si">{2:.2f}</span><span class="s2">arcsec&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grating</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">slit_width</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">arcsec</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_spec</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sky_temp_fname</span> <span class="o">+=</span> <span class="s2">&quot;_</span><span class="si">{0:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sky_temp_fname</span> <span class="o">+=</span> <span class="s2">&quot;.txt&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sky_temp_fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_sky_file</span>
+            <span class="c1"># if self.blue:</span>
+            <span class="c1">#     self.sky_temp_fname = self.local_sky_files[0]</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     self.sky_temp_fname = self.local_sky_files[1]</span>
+
+        <span class="c1">#Finally, figure out the sky template edges and trim the spectrum to that limit.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sky_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sky_temp_fname</span><span class="p">)</span>
+            <span class="n">lam_sky</span> <span class="o">=</span> <span class="n">sky_temp</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+            <span class="n">lam_sky_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lam_sky</span><span class="p">)</span>
+            <span class="n">lam_sky_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lam_sky</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not open sky file &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">sky_temp_fname</span><span class="p">)</span>
+            <span class="n">lam_sky_min</span> <span class="o">=</span> <span class="mf">0.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+            <span class="n">lam_sky_max</span> <span class="o">=</span> <span class="mf">1.e6</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+
+        <span class="n">kuse_sky</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dispersion</span><span class="o">&gt;</span><span class="n">lam_sky_min</span><span class="p">)</span> <span class="o">&amp;</span> \
+                <span class="p">(</span><span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dispersion</span><span class="o">&lt;</span><span class="n">lam_sky_max</span><span class="p">)</span>
+
+        <span class="c1">#Display a warning if we are missing any range because of the sensitivity curve or the sky template.</span>
+        <span class="n">lam</span> <span class="o">=</span> <span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dispersion</span><span class="p">[</span><span class="n">kuse</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lam</span><span class="p">)</span><span class="o">&lt;</span><span class="n">lam_sky_min</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lam</span><span class="p">)</span><span class="o">&gt;</span><span class="n">lam_sky_max</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Wavelength range for object </span><span class="si">{0:s}</span><span class="s2"> limited because of sky template&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Spec-range: </span><span class="si">{0:.1f}</span><span class="s2"> - </span><span class="si">{1:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lam</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lam</span><span class="p">)))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sky-range: </span><span class="si">{0:.1f}</span><span class="s2"> - </span><span class="si">{1:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lam_sky_min</span><span class="p">,</span><span class="n">lam_sky_max</span><span class="p">))</span>
+        <span class="n">kuse</span> <span class="o">=</span> <span class="p">(</span><span class="n">kuse</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">kuse_sky</span><span class="p">)</span>
+
+        <span class="c1">#Now, assign the wavelength and flux to the object.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span> <span class="o">=</span> <span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dispersion</span><span class="p">[</span><span class="n">kuse</span><span class="p">]</span>
+        <span class="n">fnu</span> <span class="o">=</span> <span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">kuse</span><span class="p">]</span><span class="o">*</span><span class="n">spec_use</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span>
+
+        <span class="c1">#Change the .fits for .txt in the error file name as it will be saved in ASCII</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_err_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;.fits&quot;</span><span class="p">,</span><span class="s2">&quot;.txt&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">spec_err_name</span><span class="p">)</span>
+
+        <span class="c1">#Mean bin size, exposure time, RON and GAIN. Useful for error estimation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dlam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">texp</span><span class="o">.</span><span class="n">unit</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">texp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">texp</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span>
+
+        <span class="c1">#Convert fnu to flambda.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flam</span> <span class="o">=</span> <span class="p">(</span><span class="n">fnu</span><span class="o">*</span><span class="n">c</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">))</span>
+
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__sens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sens_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sens_temp_fname</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span><span class="ne">OSError</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not open file </span><span class="si">{0:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sens_temp_fname</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="n">lam_sens</span> <span class="o">=</span> <span class="n">sens_temp</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+        <span class="n">sens_orig</span> <span class="o">=</span> <span class="n">sens_temp</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">dimensionless_unscaled</span>
+
+        <span class="c1">#Rebin the template to the object spectrum.</span>
+        <span class="c1">#self.sens = rebin_spec(lam_sens, sens_orig, self.lam_obs)</span>
+
+        <span class="c1">#Interpolate the sensitivity template to the object spectrum. Extrapolate if needed, which is OK as it is a smooth function of wavelegnth for the most part.</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">)</span><span class="o">&lt;</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lam_sens</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">)</span><span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lam_sens</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Extrapolating sensitivity curve to match spectral range </span><span class="si">{0:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Spec-range: </span><span class="si">{0:.1f}</span><span class="s2"> - </span><span class="si">{1:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">)))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sens-range: </span><span class="si">{0:.1f}</span><span class="s2"> - </span><span class="si">{1:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lam_sens</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lam_sens</span><span class="p">)))</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">lam_sens</span><span class="p">,</span> <span class="n">sens_orig</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sens</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">)</span>
+
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__flam_sky</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1">#Read the template</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sky_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sky_temp_fname</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not open file </span><span class="si">{0:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sky_temp_fname</span><span class="p">))</span>
+            <span class="k">return</span>
+
+        <span class="n">lam_sky</span> <span class="o">=</span> <span class="n">sky_temp</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+        <span class="n">flam_sky_orig</span> <span class="o">=</span> <span class="n">sky_temp</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span>
+
+        <span class="c1">#Rebin the template to the object spectrum.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flam_sky</span> <span class="o">=</span> <span class="n">rebin_spec</span><span class="p">(</span><span class="n">lam_sky</span><span class="p">,</span> <span class="n">flam_sky_orig</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span><span class="p">)</span>
+
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sigma_res</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_res</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_res</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_res</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">slit_size</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">arcsec</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grating_dispersion</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grating_dispersion</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Grating dispersion not set.&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using minimum of 1 AA/mm &quot;</span><span class="p">)</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">mm</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_res</span> <span class="o">=</span> <span class="p">(</span><span class="n">slit_size</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">plate_scale</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span> <span class="o">*</span> <span class="n">res</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_res</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FWHM_res</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_res</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 08 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>

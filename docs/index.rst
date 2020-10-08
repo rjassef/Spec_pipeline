@@ -10,10 +10,29 @@ Welcome to Spec_pipeline's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+Installation and Quick Start Guide
+----------------------------------
+.. toctree::
+   :maxdepth: 2
+
    usage/installation
    usage/quickstart
 
+Classes to Load Spectra
+-----------------------
+
+.. toctree::
+   :maxdepth: 2
+
    Spec_pipeline/implemented
+
+   Spec_pipeline/spec_class
+
+Classes to Fit Spectra
+----------------------
+.. toctree::
+   :maxdepth: 2
+
 
 Indices and tables
 ==================
