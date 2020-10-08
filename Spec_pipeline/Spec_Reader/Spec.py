@@ -16,7 +16,47 @@ from .rebin_spec import rebin_spec
 
 class Spec(object):
 
-    def __init__(self,name,zspec,fits_file=None,show_err_plot=False,error_fit_blue_exp=True, local_sky_file=None, local_sens_file=None, inst_conf=None, header_kws=None, RT=1.0*u.m, instrument=None):
+    """
+    Superclass for spectrum objects. Subclasses for different instruments have been created, and it is recommended to use those as a template for setting up a new instrument rather than trying to create directly as spec object.
+
+    Parameters
+    ----------
+    name : string
+        Object ID
+
+    zspec : float
+        Spectroscopic redshift.
+
+    fits_file : string
+        Spectrum file name.
+
+    show_err_plot : boolean, optional
+        True if error-fit plot is to be displayed.
+
+    error_fit_blue_exp : boolean, optional
+        If True, forces the error estimations to use an exponential to model extra uncertainty in the blue edge. Empirically seen to be needed by most spectra.
+
+    local_sky_file : string, optional
+        Sky file if the default ones are not to be used.
+
+    local_sens_file : string, optional
+        Sensitivity file if the default ones are not to be used.
+
+    inst_conf : dictionary, optional
+        Configurations dictionary.
+
+    header_kws : dictionary, optional
+        Dictionary with header keywords to use. Have precedence over default header keywords.
+
+    RT : float with astropy.units of meters, optional
+        Aperture radius of the telescope. Default is 1.0 m.
+
+    instrument : string, optional
+        Instrument's name. Should be consistent with the name used in the default configuration files. 
+
+    """
+
+    def __init__(self, name, zspec, fits_file=None, show_err_plot=False, error_fit_blue_exp=True, local_sky_file=None, local_sens_file=None, inst_conf=None, header_kws=None, RT=1.0*u.m, instrument=None):
 
         self.name  = name
         self.zspec = zspec
