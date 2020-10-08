@@ -44,6 +44,17 @@ class Line_fit(object):
         return spec
 
     def zline(self, spec_use=None):
+
+        """
+        This function returns an updated redshift for each line being fit according to its best-fit velocity offset.
+
+        Parameters
+        ----------
+        spec_use : Spec object, optional
+            Spectrum being fit.
+
+        """
+
         spec = self.get_spec_use(spec_use)
         if spec is None:
             return
@@ -51,6 +62,16 @@ class Line_fit(object):
         return (1+spec.zspec)*(1+self.dv_fit/c)-1
 
     def run_fit(self, spec_use=None):
+
+        """
+        This function runs the fit.
+
+        Parameters
+        ----------
+        spec_use : Spec object, optional
+            Spectrum that will be fit.
+
+        """
 
         spec = self.get_spec_use(spec_use)
         if spec is None:
@@ -71,6 +92,26 @@ class Line_fit(object):
         return
 
     def run_MC(self,nrep,spec_use=None,Ncpu=None,save_chain=None):
+
+        """
+        This function runs the MC. Needs to be run after run_fit.
+
+        Parameters
+        ----------
+        nrep : int
+            Number of MC resamples.
+
+        spec_use : Spec object, optional
+            Spectrum that will be fit.
+
+        Ncpu : int, optional
+            Number of CPU cores to be used. Default is to use all available.
+
+        save_chain : file path, optional
+            File name to save the MC chain. If none given, chain is not saved to a file.
+
+        """
+
         spec = self.get_spec_use(spec_use)
         if spec is None:
             return
@@ -81,6 +122,25 @@ class Line_fit(object):
         return
 
     def plot(self,spec_use=None,plot_fname=None,chain_file=None,chain=None):
+
+        """
+        This function plots the best-fit model to the spectrum within the fitting ranges.
+
+        Parameters
+        ----------
+        spec_use : Spec object, optional
+            Spectrum that will be fit.
+
+        plot_fname : file path, optional
+            Filename to save a hard copy of the plot. If none provided, the plot is shown to screen.
+
+        chain_file : file path, optional
+            MC chain file. Overrides the default and the current chain obtained from run_MC if any.
+
+        chain : 2D array of shape nrep x npar, optional
+            If provided, uses this one instead of that calculated by run_MC for this plot.
+
+        """
         spec = self.get_spec_use(spec_use)
         if spec is None:
             return
@@ -89,6 +149,16 @@ class Line_fit(object):
         plot_fit.plot_fit(spec,self,chain=chain,chain_file=chain_file,plot_fname=plot_fname)
 
     def run_Ftest(self,spec_use=None):
+
+        """
+        This function runs an F-test. Can only be run after the fit. Results are saved in self.p and self.F .
+
+        Parameters
+        ----------
+        spec_use : Spec object, optional
+            Spectrum that will be fit.
+
+        """
 
         spec = self.get_spec_use(spec_use)
         if spec is None:

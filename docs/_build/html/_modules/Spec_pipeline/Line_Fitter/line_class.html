@@ -1,0 +1,331 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spec_pipeline.Line_Fitter.line_class &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../../../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../../../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Spec_pipeline.Line_Fitter.line_class</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Implementation of the line fitting routines. This is the main class,</span>
+<span class="c1"># we will have a separate class with different defaults for different</span>
+<span class="c1"># emission lines.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="k">import</span> <span class="n">betainc</span>
+<span class="kn">from</span> <span class="nn">astropy.constants</span> <span class="k">import</span> <span class="n">c</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">MC_errors_general</span> <span class="k">as</span> <span class="n">MC</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">new_fit_general</span> <span class="k">as</span> <span class="n">fit</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">plot_fit</span>
+
+<div class="viewcode-block" id="Line_fit"><a class="viewcode-back" href="../../../Line_Fitter/line_class.html#Spec_pipeline.Line_fit">[docs]</a><span class="k">class</span> <span class="nc">Line_fit</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">_line_name</span><span class="p">,</span><span class="n">_default_spec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_name</span> <span class="o">=</span> <span class="n">_line_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_spec</span> <span class="o">=</span> <span class="n">_default_spec</span>
+
+        <span class="c1">#Fit arrays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xopt</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nlines</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1">#Values from Ftest</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chi2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chi2_no_line</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">F</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1">#MC Output chain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MC_chain</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">get_spec_use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Need to provide an spectrum&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_spec</span>
+        <span class="k">return</span> <span class="n">spec</span>
+
+<div class="viewcode-block" id="Line_fit.zline"><a class="viewcode-back" href="../../../Line_Fitter/line_class.html#Spec_pipeline.Line_fit.zline">[docs]</a>    <span class="k">def</span> <span class="nf">zline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec_use</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function returns an updated redshift for each line being fit according to its best-fit velocity offset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec_use : Spec object, optional</span>
+<span class="sd">            Spectrum being fit.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_spec_use</span><span class="p">(</span><span class="n">spec_use</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1">#return spec.zspec+self.dv_fit/c</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">spec</span><span class="o">.</span><span class="n">zspec</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="o">/</span><span class="n">c</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Line_fit.run_fit"><a class="viewcode-back" href="../../../Line_Fitter/line_class.html#Spec_pipeline.Line_fit.run_fit">[docs]</a>    <span class="k">def</span> <span class="nf">run_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec_use</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function runs the fit.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec_use : Spec object, optional</span>
+<span class="sd">            Spectrum that will be fit.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_spec_use</span><span class="p">(</span><span class="n">spec_use</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1">#Check that the fit can be run.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_fit_be_run</span><span class="p">(</span><span class="n">spec</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1">#If no initial guesses have been set, set the default ones</span>
+        <span class="c1">#here.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_initial_fit_values</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+
+        <span class="c1">#Run the fit.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xopt</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xopt</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="Line_fit.run_MC"><a class="viewcode-back" href="../../../Line_Fitter/line_class.html#Spec_pipeline.Line_fit.run_MC">[docs]</a>    <span class="k">def</span> <span class="nf">run_MC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">nrep</span><span class="p">,</span><span class="n">spec_use</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">Ncpu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">save_chain</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function runs the MC. Needs to be run after run_fit.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nrep : int</span>
+<span class="sd">            Number of MC resamples.</span>
+
+<span class="sd">        spec_use : Spec object, optional</span>
+<span class="sd">            Spectrum that will be fit.</span>
+
+<span class="sd">        Ncpu : int, optional</span>
+<span class="sd">            Number of CPU cores to be used. Default is to use all available.</span>
+
+<span class="sd">        save_chain : file path, optional</span>
+<span class="sd">            File name to save the MC chain. If none given, chain is not saved to a file.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_spec_use</span><span class="p">(</span><span class="n">spec_use</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xopt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First run the line fit.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">MC</span><span class="o">.</span><span class="n">MC_errors</span><span class="p">(</span><span class="n">nrep</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">Ncpu</span><span class="o">=</span><span class="n">Ncpu</span><span class="p">,</span> <span class="n">save_chain</span><span class="o">=</span><span class="n">save_chain</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="Line_fit.plot"><a class="viewcode-back" href="../../../Line_Fitter/line_class.html#Spec_pipeline.Line_fit.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec_use</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">plot_fname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">chain_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">chain</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function plots the best-fit model to the spectrum within the fitting ranges.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec_use : Spec object, optional</span>
+<span class="sd">            Spectrum that will be fit.</span>
+
+<span class="sd">        plot_fname : file path, optional</span>
+<span class="sd">            Filename to save a hard copy of the plot. If none provided, the plot is shown to screen.</span>
+
+<span class="sd">        chain_file : file path, optional</span>
+<span class="sd">            MC chain file. Overrides the default and the current chain obtained from run_MC if any.</span>
+
+<span class="sd">        chain : 2D array of shape nrep x npar, optional</span>
+<span class="sd">            If provided, uses this one instead of that calculated by run_MC for this plot.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_spec_use</span><span class="p">(</span><span class="n">spec_use</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">chain</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MC_chain</span>
+        <span class="n">plot_fit</span><span class="o">.</span><span class="n">plot_fit</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span><span class="bp">self</span><span class="p">,</span><span class="n">chain</span><span class="o">=</span><span class="n">chain</span><span class="p">,</span><span class="n">chain_file</span><span class="o">=</span><span class="n">chain_file</span><span class="p">,</span><span class="n">plot_fname</span><span class="o">=</span><span class="n">plot_fname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Line_fit.run_Ftest"><a class="viewcode-back" href="../../../Line_Fitter/line_class.html#Spec_pipeline.Line_fit.run_Ftest">[docs]</a>    <span class="k">def</span> <span class="nf">run_Ftest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec_use</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function runs an F-test. Can only be run after the fit. Results are saved in self.p and self.F .</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec_use : Spec object, optional</span>
+<span class="sd">            Spectrum that will be fit.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_spec_use</span><span class="p">(</span><span class="n">spec_use</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xopt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First fit the line&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1">#Get the indices of the line fitting region.</span>
+        <span class="n">iuse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_line</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+
+        <span class="c1">#With emission line.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chi2</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">chi2_fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xopt</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">iuse</span><span class="p">,</span> <span class="n">check_constraints</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1">#Without emission line.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chi2_no_line</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span>
+        <span class="n">flam_line_fit_back</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
+            <span class="n">flam_mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_model</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="p">[</span><span class="n">iuse</span><span class="p">])</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">flam</span><span class="p">[</span><span class="n">iuse</span><span class="p">]</span><span class="o">-</span><span class="n">flam_mod</span>
+            <span class="n">flam_err_use</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">flam_err</span><span class="p">[</span><span class="n">iuse</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chi2_no_line</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">diff</span><span class="o">/</span><span class="n">flam_err_use</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">flam_line_fit_back</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1">#x_noline = np.copy(self.xopt)</span>
+        <span class="c1">#x_noline[:self.npar_line] = 0</span>
+        <span class="c1">#self.chi2_no_line = fit.chi2_fit(x_noline, spec, self, iuse, check_constraints=False)</span>
+
+
+        <span class="c1">#Get the degrees of freedom.</span>
+        <span class="n">n_datapoints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">iuse</span><span class="p">)</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="n">n_datapoints</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">npar_fit</span>
+        <span class="n">nu_no_line</span> <span class="o">=</span> <span class="n">n_datapoints</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_fit</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">)</span>
+        <span class="n">chi2_nu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chi2</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+        <span class="n">chi2_no_line_nu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chi2_no_line</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nu_no_line</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">F</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">chi2_no_line</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">chi2</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nu_no_line</span><span class="o">-</span><span class="n">nu</span><span class="p">))</span> <span class="o">/</span> \
+                 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chi2</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nu</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">F</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&lt;</span><span class="mf">0.</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nnu1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">nu_no_line</span><span class="o">-</span><span class="n">nu</span><span class="p">)</span>
+                <span class="n">nnu2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="n">nnu1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">nnu1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">nnu2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">-</span><span class="n">betainc</span><span class="p">(</span><span class="n">nnu1</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">nnu2</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+        <span class="c1">###</span>
+        <span class="c1"># In order for a subclass to work, a significant number of functions need to be defined within it. This function just checks that the subclass is ready to be used. Should only be called for debugging purposes.</span>
+    <span class="k">def</span> <span class="nf">check_subclass_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">list_of_attibutes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;dv_fit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;can_fit_be_run&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;set_initial_fit_values&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;set_pars&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;get_i_fit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;get_i_line&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;get_i_cont&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;npar_fit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;npar_line&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;meet_constraints&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;flam_model&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;flam_cont_model&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;parse_chain_output&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ncont_reg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;continuum_regions&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;flamunit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;nlines&#39;</span>
+            <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">list_of_attibutes</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;self.&quot;</span><span class="o">+</span><span class="n">att</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+        <span class="k">return</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 08 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>

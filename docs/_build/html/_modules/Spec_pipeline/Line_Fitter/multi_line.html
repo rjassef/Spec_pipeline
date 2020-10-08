@@ -1,0 +1,953 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spec_pipeline.Line_Fitter.multi_line &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../../../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../../../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Spec_pipeline.Line_Fitter.multi_line</h1><div class="highlight"><pre>
+<span></span><span class="c1">#Class to jointly fit N emission lines.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">from</span> <span class="nn">astropy.constants</span> <span class="k">import</span> <span class="n">c</span>
+<span class="kn">from</span> <span class="nn">astropy.stats</span> <span class="k">import</span> <span class="n">sigma_clipped_stats</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="k">import</span> <span class="n">erf</span>
+
+<span class="kn">from</span> <span class="nn">.line_class</span> <span class="k">import</span> <span class="n">Line_fit</span>
+<span class="kn">from</span> <span class="nn">.MC_errors_general</span> <span class="k">import</span> <span class="n">get_error</span>
+
+<div class="viewcode-block" id="Multi_Line_fit"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit">[docs]</a><span class="k">class</span> <span class="nc">Multi_Line_fit</span><span class="p">(</span><span class="n">Line_fit</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    line_name : string</span>
+<span class="sd">        Name of the emission line in the line file.</span>
+
+<span class="sd">    lines_file : file_path, optional</span>
+<span class="sd">        Path of the file with the line definitions. If not provided, the default multi_lines.txt file in the Line_Fitter folder is used.</span>
+
+<span class="sd">    lines_center_file : file_path, optional</span>
+<span class="sd">        Path of the file with the line centers. If not provided, the default line_centers.txt file in the Line_Fitter folder is used.</span>
+
+<span class="sd">    spec : spec object, optional</span>
+<span class="sd">        Spec object to be used as the default spectrum to be fit. Highly recommended to be used.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line_name</span><span class="p">,</span> <span class="n">lines_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lines_center_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="c1">#Load the main class.</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Multi_Line_fit</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">line_name</span><span class="p">,</span><span class="n">spec</span><span class="p">)</span>
+
+        <span class="c1">#Basic units to be used.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>    <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flux_unit</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">#Initial default guess value for line widths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_0</span> <span class="o">=</span> <span class="mf">1000.</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+
+        <span class="c1">#First, read the line centers.</span>
+        <span class="k">if</span> <span class="n">lines_center_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lines_center_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SPEC_PIPE_LOC&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;/Spec_pipeline/Line_Fitter/line_centers.txt&quot;</span>
+        <span class="n">line_centers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">lines_center_file</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cat</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;#&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">line_centers</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">cat</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1">#Search the list for the line in question.</span>
+        <span class="k">if</span> <span class="n">lines_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lines_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SPEC_PIPE_LOC&#39;</span><span class="p">]</span><span class="o">+</span>\
+                   <span class="s2">&quot;/Spec_pipeline/Line_Fitter/multi_lines.txt&quot;</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">lines_file</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">line_found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cat</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="k">continue</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">_line_name</span><span class="p">:</span>
+                <span class="n">line_found</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="n">cat</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line_found</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Line&quot;</span><span class="p">,</span><span class="n">_line_name</span><span class="p">,</span><span class="s2">&quot;not found in file&quot;</span><span class="p">,</span><span class="n">lines_file</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="c1">#x[1:] = [float(ix) for ix in x[1:]]</span>
+
+        <span class="c1">#Define all the fit control variables that might not get</span>
+        <span class="c1">#defined later.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1">#Parse the data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nlines</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c1">#Assign parameters for the fit</span>
+        <span class="c1">#Line centers - the lines file could provide the name of the line or its central wavelength.</span>
+        <span class="c1">#self.line_center = np.array(x[2:2+self.nlines*1])*self.waveunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">jj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">*</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">jj</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="ow">in</span> <span class="n">line_centers</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">line_centers</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">jj</span><span class="p">]]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Line&quot;</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="n">jj</span><span class="p">],</span><span class="s2">&quot;not found in line centers file&quot;</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+        <span class="c1">#Joint constraints</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">2</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span>
+        <span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">:]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">ix</span><span class="p">)</span> <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">:]]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">j1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="n">i</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span><span class="o">+</span><span class="n">k</span>
+                <span class="n">j2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span><span class="o">+</span><span class="n">k</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">j1</span><span class="p">:</span><span class="n">j2</span><span class="p">]</span>
+            <span class="n">k</span><span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">),</span>
+                                        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">j1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="n">i</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span><span class="o">+</span><span class="n">k</span>
+                <span class="n">j2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span><span class="o">+</span><span class="n">k</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">j1</span><span class="p">:</span><span class="n">j2</span><span class="p">]</span>
+            <span class="n">k</span><span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">j1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="n">i</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span><span class="o">+</span><span class="n">k</span>
+                <span class="n">j2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span><span class="o">+</span><span class="n">k</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">j1</span><span class="p">:</span><span class="n">j2</span><span class="p">]</span>
+            <span class="n">k</span><span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">))</span>
+
+        <span class="c1">#Fit regions.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_velocity_region</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ncont_reg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuum_regions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">ncont_reg</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncont_reg</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continuum_regions</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">continuum_regions</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="n">k</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuum_regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuum_regions</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+
+        <span class="c1">#Set the default constraints for the fitting.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dv_max</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="mf">500.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="mf">5000.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span>
+
+        <span class="c1">#If default spectrum has been defined, then we should use its resolution to set sigma_v_min.</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">spec</span><span class="o">.</span><span class="n">sigma_res</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_min</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">sigma_res</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">spec</span><span class="o">.</span><span class="n">zspec</span><span class="p">))</span><span class="o">*</span> <span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="mf">100.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span>
+
+        <span class="k">return</span>
+
+
+    <span class="c1">#Parameter translator.</span>
+    <span class="c1">#x_line_fit is what is used in the fits,</span>
+    <span class="c1">#x_line_use is what is used to construct the model.</span>
+
+    <span class="c1">#Order is always [dv1, flam_line1, sigma_v1, dv2, flam_line2, ...]</span>
+
+    <span class="k">def</span> <span class="nf">line_par_translator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line_fit</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_line_fit</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">x_line_use</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_line_use</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span><span class="n">x_line_fit</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c1">#All parameters for the first line are always fit.</span>
+        <span class="n">x_line_use</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_line_fit</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+
+            <span class="c1">#For line i, see if any of the dv values are greater than</span>
+            <span class="c1">#0. Stop at the first one different than 0 if any. If none</span>
+            <span class="c1">#are greater than 0, then the dv parameter is meant to be</span>
+            <span class="c1">#fit. Repeat then for the line ratio and sigma.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_line_fit</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span><span class="p">[:,</span><span class="n">i</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_line_fit</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#j = np.nonzero(self.fixed_ratio[:,i])[0][0]</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_line_fit</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[:,</span><span class="n">i</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+
+
+        <span class="k">return</span> <span class="n">x_line_use</span>
+
+
+    <span class="c1">###################</span>
+    <span class="c1"># Fit Model</span>
+    <span class="c1">###################</span>
+
+    <span class="c1">#Complete model.</span>
+<div class="viewcode-block" id="Multi_Line_fit.flam_model"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.flam_model">[docs]</a>    <span class="k">def</span> <span class="nf">flam_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function that returns the best-fit model to the spectrum.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        lam : float with astropy units of wavelength</span>
+<span class="sd">            Wavelengths for which to return the model.</span>
+
+<span class="sd">        x   : array, optional</span>
+<span class="sd">            Parameters for the model. Only meant to be used by the fitter, not the user. npar_line parameters for the line(s) followed by the parameters for the continuum.</span>
+
+<span class="sd">        chain_output : two dimensional array, optional</span>
+<span class="sd">            MC parameters for the model. Only meant to be used by the fitter, not the user. nrep x (npar_line parameters for the line(s) followed by the parameters for the continuum).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        flam_model : array</span>
+<span class="sd">            Model spectrum. Same shape as lam if chain_output not provided. Otherwise, nrep x len(lam) shape.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">chain_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_line</span> <span class="o">=</span> <span class="n">chain_output</span><span class="p">[:,:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">x_cont</span> <span class="o">=</span> <span class="n">chain_output</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">elif</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_line</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span>
+            <span class="n">x_cont</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_line</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">x_cont</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">flam_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_cont_model</span><span class="p">(</span><span class="n">lam</span><span class="p">,</span><span class="n">x_cont</span><span class="p">)</span>
+        <span class="n">flam_model</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_model</span><span class="p">(</span><span class="n">lam</span><span class="p">,</span><span class="n">x_line</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">flam_model</span></div>
+
+
+    <span class="c1">#A Gaussian per line.</span>
+    <span class="k">def</span> <span class="nf">flam_line_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x_line</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">x_line_use</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">x_line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_line_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_translator</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
+
+        <span class="n">flam_line_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">dv</span><span class="p">,</span> <span class="n">flam_line</span><span class="p">,</span> <span class="n">sigma_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_parser</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">c</span><span class="o">*</span><span class="p">(</span><span class="n">lam</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mf">1.</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">flam_line_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">flam_line_model</span>  <span class="o">=</span> <span class="n">flam_line</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">((</span><span class="n">v</span><span class="o">-</span><span class="n">dv</span><span class="p">)</span><span class="o">/</span><span class="n">sigma_v</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flam_line_model</span> <span class="o">+=</span> <span class="n">flam_line</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">((</span><span class="n">v</span><span class="o">-</span><span class="n">dv</span><span class="p">)</span><span class="o">/</span><span class="n">sigma_v</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">flam_line_model</span>
+
+    <span class="c1">#Continuum will be a straight line.</span>
+    <span class="k">def</span> <span class="nf">flam_cont_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x_cont</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cont_par_parser</span><span class="p">(</span><span class="n">x_cont</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">a</span><span class="o">*</span><span class="n">lam</span><span class="o">+</span><span class="n">b</span>
+
+
+    <span class="k">def</span> <span class="nf">cont_par_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x_cont</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">x_cont</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">x_cont</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
+        <span class="k">return</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span>
+
+    <span class="k">def</span> <span class="nf">line_par_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x_line_use</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dv</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">flam_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">sigma_v</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dv</span>        <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span>  <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+            <span class="n">flam_line</span> <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
+            <span class="n">sigma_v</span>   <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+        <span class="k">return</span> <span class="n">dv</span><span class="p">,</span> <span class="n">flam_line</span><span class="p">,</span> <span class="n">sigma_v</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">line_SNR</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        SNR of the emission line modeled. Can only be obtained after running run_MC.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SNR : float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#Can only run if an MC chain exists.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">MC_chain</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Need to run an MC first&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1">#Get the line fluxes and their dispersion (used as noise).</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">(</span><span class="n">SNR_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#For the dispersion do 3 sigma clipping. Should not do less than about 500 realizations.</span>
+        <span class="c1">#N = np.std(self.line_flux(MC=True),axis=1)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">sigma_clipped_stats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">(</span><span class="n">MC</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">SNR_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">S</span><span class="o">/</span><span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+
+    <span class="c1">#This implementation, instead of doing sigma clipping, estimates the noise using the steepness of the wings. Specifically, the noise is calculated as the 95.4% range - 68.3% range. For a Gaussian distribution, this should be equal to sigma.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">line_SNR_wing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        SNR of the emission line modeled but estimated using only the wings of the PDF. Not recommended to be used, will be deprecated. Can only be obtained after running run_MC.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SNR_wing : float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#Can only run if an MC chain exists.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">MC_chain</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Need to run an MC first&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1">#Get the line fluxes and their dispersion (used as noise).</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">()</span>
+        <span class="c1">#For the dispersion do 3 sigma clipping. Should not do less than about 500 realizations.</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="n">S</span><span class="o">.</span><span class="n">unit</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">N_low</span><span class="p">,</span> <span class="n">N_hig</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">(</span><span class="n">MC</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">k</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">()[</span><span class="n">k</span><span class="p">])</span>
+            <span class="n">N2_low</span><span class="p">,</span> <span class="n">N2_hig</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">(</span><span class="n">MC</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">k</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">()[</span><span class="n">k</span><span class="p">],</span><span class="n">cf</span><span class="o">=</span><span class="mf">95.4</span><span class="p">)</span>
+            <span class="n">N</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">N2_low</span><span class="o">-</span><span class="n">N_low</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">S</span><span class="o">/</span><span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+
+    <span class="c1">#Line flux or fluxes, depending on the case.</span>
+<div class="viewcode-block" id="Multi_Line_fit.line_flux"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.line_flux">[docs]</a>    <span class="k">def</span> <span class="nf">line_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_line</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">SNR_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flux of the emission line modeled. Can only be obtained after running run_fit.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x_line : array of npar_line length, optional</span>
+<span class="sd">            Emission line fit parameters. Only intended for internal use to estimate SNR.</span>
+
+<span class="sd">        MC : boolean, optional</span>
+<span class="sd">            If True, estimate the line flux for the whole MC chain instead of the best fit.</span>
+
+<span class="sd">        SNR_mode : boolean, optional</span>
+<span class="sd">            If True, only estimates the flux within the spectrum wavelength range. Useful for the SNR calculation.</span>
+
+<span class="sd">        chain_output : array of nrep x npar shape, optional</span>
+<span class="sd">            Provide an MC chain output different than the default one obtained from run_MC. If MC=True, the default one is preferred. Kept for legacy with earlier code, but not really useful.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        flux : float or array of nrep x float if MC=True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">MC</span><span class="p">:</span>
+            <span class="n">chain_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MC_chain</span>
+
+        <span class="k">if</span> <span class="n">chain_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_line</span> <span class="o">=</span> <span class="n">chain_output</span><span class="p">[:,:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">if</span> <span class="n">x_line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_line_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_translator</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_line_use</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">chain_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">integrated_flux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">chain_output</span><span class="p">)))</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flux_unit</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">integrated_flux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flux_unit</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">integrated_flux</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_line_flux</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">,</span><span class="n">SNR_mode</span><span class="o">=</span><span class="n">SNR_mode</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">integrated_flux</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_line_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">SNR_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="n">dv</span><span class="p">,</span> <span class="n">flam_line</span><span class="p">,</span> <span class="n">sigma_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_parser</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">)</span>
+
+        <span class="c1">#If we are not estimating the SNR of the emission line, then we want to get the entire flux of the model emission.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">SNR_mode</span><span class="p">:</span>
+            <span class="n">flux</span> <span class="o">=</span> <span class="n">flam_line</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sigma_v</span><span class="o">/</span><span class="n">c</span>
+
+        <span class="c1">#On the other hand, if we are estimating the SNR, then what we want to do is estimate the flux of the line within the observed bounds of the spectrum only. This does not consider emission lines affected by sky absorption.</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">nsig</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="n">vmin</span> <span class="o">=</span> <span class="o">-</span><span class="n">nsig</span><span class="o">*</span><span class="n">sigma_v</span>
+            <span class="n">vmax</span> <span class="o">=</span>  <span class="n">nsig</span><span class="o">*</span><span class="n">sigma_v</span>
+            <span class="n">lam_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">vmin</span><span class="o">/</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">lam_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">vmax</span><span class="o">/</span><span class="n">c</span><span class="p">)</span>
+
+            <span class="n">lam_min_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="p">)</span>
+            <span class="n">lam_max_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="p">)</span>
+            <span class="n">lam_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">lam_min</span><span class="o">&lt;</span><span class="n">lam_min_spec</span><span class="p">,</span> <span class="n">lam_min_spec</span><span class="p">,</span> <span class="n">lam_min</span><span class="p">)</span>
+            <span class="n">lam_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">lam_max</span><span class="o">&gt;</span><span class="n">lam_max_spec</span><span class="p">,</span> <span class="n">lam_max_spec</span><span class="p">,</span> <span class="n">lam_max</span><span class="p">)</span>
+
+            <span class="n">wmin</span> <span class="o">=</span> <span class="p">((</span><span class="n">c</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mf">0.5</span><span class="o">*</span><span class="n">sigma_v</span><span class="p">))</span> <span class="o">*</span> <span class="p">((</span><span class="n">lam_min</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">dv</span><span class="o">/</span><span class="n">c</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">wmax</span> <span class="o">=</span> <span class="p">((</span><span class="n">c</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mf">0.5</span><span class="o">*</span><span class="n">sigma_v</span><span class="p">))</span> <span class="o">*</span> <span class="p">((</span><span class="n">lam_max</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">dv</span><span class="o">/</span><span class="n">c</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+
+            <span class="n">flux</span> <span class="o">=</span> <span class="p">(</span><span class="n">erf</span><span class="p">(</span><span class="n">wmax</span><span class="p">)</span> <span class="o">+</span> <span class="n">erf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">wmin</span><span class="p">)))</span> <span class="o">*</span> <span class="n">flam_line</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sigma_v</span><span class="o">/</span><span class="n">c</span>
+
+        <span class="n">flux</span> <span class="o">=</span> <span class="n">flux</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flux_unit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">flux</span>
+
+    <span class="c1">#Note that this expression for the EW is only valid for cases in which the continuum is either constant with wavelength or antisymmetric around the peak wavelength (such as the case for the linear continuum used here).</span>
+<div class="viewcode-block" id="Multi_Line_fit.EW"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.EW">[docs]</a>    <span class="k">def</span> <span class="nf">EW</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Equivaleng width of the emission line modeled. Can only be obtained after running run_fit.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : array of npar length, optional</span>
+<span class="sd">            Fit parameters. Not really useful, as best-fit parameters are used by default.</span>
+
+<span class="sd">        MC : boolean, optional</span>
+<span class="sd">            If True, estimate the EW for the whole MC chain instead of the best fit.</span>
+
+<span class="sd">        chain_output : array of nrep x npar shape, optional</span>
+<span class="sd">            Provide an MC chain output different than the default one obtained from run_MC. If MC=True, the default one is preferred. Kept for legacy with earlier code, but not really useful.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        EW : float or array of nrep x float if MC=True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">MC</span><span class="p">:</span>
+            <span class="n">chain_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MC_chain</span>
+
+        <span class="k">if</span> <span class="n">chain_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_line</span> <span class="o">=</span> <span class="n">chain_output</span><span class="p">[:,:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">x_cont</span> <span class="o">=</span> <span class="n">chain_output</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">elif</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_line</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span>
+            <span class="n">x_cont</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_line</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">x_cont</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">Fline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">(</span><span class="n">x_line</span><span class="p">,</span><span class="n">chain_output</span><span class="o">=</span><span class="n">chain_output</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chain_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">flam_cont</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">chain_output</span><span class="p">)))</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flam_cont</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
+        <span class="n">lam_peak</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="o">/</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">flam_cont</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_cont_model</span><span class="p">(</span><span class="n">lam_peak</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">x_cont</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">Fline</span><span class="o">/</span><span class="n">flam_cont</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span><span class="p">)</span></div>
+
+    <span class="c1">#############</span>
+    <span class="c1"># Constraints</span>
+    <span class="c1">#############</span>
+
+    <span class="c1">#Check if constraints are met.</span>
+    <span class="k">def</span> <span class="nf">meet_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>
+        <span class="n">x_line</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span>
+        <span class="n">x_cont</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meet_line_constraints</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">meet_cont_constraints</span><span class="p">(</span><span class="n">x_cont</span><span class="p">))</span>
+
+    <span class="c1">#Constraints on the continuum fit parameters.</span>
+    <span class="k">def</span> <span class="nf">meet_cont_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
+        <span class="c1">#Require continuum to be non-negative over the entire range. Since it is just a straight line, it is enough to check the edges of the regions.</span>
+        <span class="c1">#a, b = self.cont_par_parser(x_cont)</span>
+        <span class="c1">#edge_fluxes = a*self.continuum_regions.flatten()+b</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">x_cont</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">x_cont</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">lam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuum_regions</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">edge_fluxes</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">lam</span><span class="o">+</span><span class="n">b</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_fluxes</span><span class="p">[</span><span class="n">edge_fluxes</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1">#Constraints on the emission line fit parameters.</span>
+    <span class="k">def</span> <span class="nf">meet_line_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line</span><span class="p">):</span>
+
+        <span class="n">x_line_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_translator</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">dv</span><span class="p">,</span> <span class="n">flam_line</span><span class="p">,</span> <span class="n">sigma_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_parser</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">)</span>
+
+            <span class="c1">#Do no allow huge shifts on the line centers</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dv</span><span class="p">)</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">dv_max</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="c1">#Do not allow too narrow or too broad emission lines.</span>
+            <span class="k">if</span> <span class="n">sigma_v</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_min</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">or</span> \
+               <span class="n">sigma_v</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_max</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="c1">#Do no allow negative emission lines.</span>
+            <span class="k">if</span> <span class="n">flam_line</span><span class="o">&lt;</span><span class="mf">0.</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1">#This function is called to determine that the fit can indeed be run.</span>
+    <span class="k">def</span> <span class="nf">can_fit_be_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+        <span class="c1">#Check if centroid of the emission line is within the</span>
+        <span class="c1">#spectrum.</span>
+        <span class="n">min_lam_targ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">)</span>
+        <span class="n">max_lam_targ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> \
+           <span class="n">min_lam_targ</span><span class="o">&lt;</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="n">max_lam_targ</span><span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lines not within spectrum&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1">##################</span>
+    <span class="c1"># Index functions</span>
+    <span class="c1">##################</span>
+
+    <span class="k">def</span> <span class="nf">get_i_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+        <span class="n">i_cont</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_cont</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">i_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_line</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">i_ban</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_ban</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">i_all</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">i_cont</span><span class="p">,</span><span class="n">i_line</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i_ban</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">i_all</span> <span class="o">=</span> <span class="n">i_all</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">i_all</span><span class="p">,</span><span class="n">i_ban</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">i_all</span>
+
+    <span class="c1">#This function is called to determine the indices of the spectrum</span>
+    <span class="c1">#to be used for fitting the continuum.</span>
+    <span class="k">def</span> <span class="nf">get_i_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+
+        <span class="n">i_cont_use</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncont_reg</span><span class="p">):</span>
+            <span class="n">i_cont_use</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">((</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">continuum_regions</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span>
+             <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">continuum_regions</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="p">)</span>
+        <span class="n">i_cont_flat</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">i_cont_use</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
+        <span class="n">i_cont</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">i_cont_flat</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">i_cont</span>
+
+    <span class="c1">#This is one is called to determine the indices of the spectrum</span>
+    <span class="c1">#used for fitting the emission line.</span>
+    <span class="k">def</span> <span class="nf">get_i_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+        <span class="c1">#Only consider regions within a certain velocity range of the</span>
+        <span class="c1">#canonical emission line center.</span>
+        <span class="n">lam_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">)</span>
+        <span class="n">lam_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">)</span>
+
+        <span class="n">v1</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="o">/</span><span class="n">lam_min</span><span class="o">-</span><span class="mf">1.</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">v2</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="o">/</span><span class="n">lam_max</span><span class="o">-</span><span class="mf">1.</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">v1abs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
+        <span class="n">v2abs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
+
+        <span class="n">i_line1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">v1abs</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">line_velocity_region</span><span class="p">)</span>
+        <span class="n">i_line2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">v2abs</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">line_velocity_region</span><span class="p">)</span>
+
+        <span class="n">k_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">i_line1</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">i_line2</span><span class="p">)])</span>
+        <span class="n">k_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">i_line1</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">i_line2</span><span class="p">)])</span>
+
+        <span class="n">i_line</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">k_min</span><span class="p">,</span><span class="n">k_max</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">i_line</span>
+
+    <span class="c1">#This function is called to get the indices of wavelengths ranges that should be excised from the any fit. The first obvious regions to be omitted are the atmospheric A-band and B-band absorption lines. Taken from Smette et al. (2015), section 2.</span>
+    <span class="c1">#Updated on Sep 1, 2020 to numbers suggested by Dan Stern over email.</span>
+    <span class="k">def</span> <span class="nf">get_i_ban</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+        <span class="c1">#A-band</span>
+        <span class="n">i_banA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">((</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">&gt;=</span><span class="mf">7592.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">&lt;=</span><span class="mf">7677.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">))</span>
+        <span class="c1">#B-band</span>
+        <span class="n">i_banB</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">((</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">&gt;=</span><span class="mf">6864.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">&lt;=</span><span class="mf">6920.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">))</span>
+        <span class="n">i_ban</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">i_banA</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span><span class="n">i_banB</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+        <span class="k">return</span> <span class="n">i_ban</span>
+
+    <span class="c1">#####################</span>
+    <span class="c1"># Useful properties.</span>
+    <span class="c1">#####################</span>
+
+
+    <span class="k">def</span> <span class="nf">sigma_to_FWHM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sigma_v</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sigma_v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">sigma_v</span><span class="o">*</span><span class="mf">2.</span><span class="o">*</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">FWHM_v</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_to_FWHM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_fit</span><span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">FWHM_v_low</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_to_FWHM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_low</span><span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">FWHM_v_hig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_to_FWHM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_hig</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">npar_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_npar_fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">npar_cont</span>
+        <span class="k">return</span> <span class="n">_npar_fit</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">npar_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_npar_line</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="n">_npar_line</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> \
+               <span class="n">_npar_line</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> \
+               <span class="n">_npar_line</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">_npar_line</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">npar_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">2</span>
+
+    <span class="c1">######################</span>
+    <span class="c1"># Parameter setters. #</span>
+    <span class="c1">######################</span>
+
+    <span class="k">def</span> <span class="nf">set_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>
+        <span class="n">x_line</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span>
+        <span class="n">x_cont</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_line_pars</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_cont_pars</span><span class="p">(</span><span class="n">x_cont</span><span class="p">)</span>
+        <span class="k">return</span>
+
+
+    <span class="k">def</span> <span class="nf">set_line_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_fit</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+
+        <span class="n">x_line_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_translator</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>\
+                <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_parser</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">)</span>
+
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">set_cont_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cont_par_parser</span><span class="p">(</span><span class="n">x_cont</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">set_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
+
+        <span class="c1">#Check that the fit can be run.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_fit_be_run</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x0_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines_initial_fit_values</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x0_cont</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cont_initial_fit_values</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x0_line</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">x0_cont</span><span class="p">))</span>
+
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">lines_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+
+        <span class="c1">#Set up the initial values.</span>
+        <span class="n">dv_0</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span> <span class="c1">#km/s</span>
+        <span class="n">sigma_v_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_0</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span> <span class="c1">#km/s</span>
+
+        <span class="n">flam_line_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">aux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">flam</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">])</span><span class="o">*</span><span class="mf">0.5</span>
+            <span class="n">flam_line_0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">aux</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="n">x0_line</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">)</span>
+        <span class="n">x0_line</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">dv_0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">flam_line_0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sigma_v_0</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_dv</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">x0_line</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">dv_0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_ratio</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">x0_line</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">flam_line_0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">x0_line</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigma_v_0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">x0_line</span>
+
+    <span class="k">def</span> <span class="nf">cont_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+        <span class="n">i_cont</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_cont</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">mean_cont</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">flam</span><span class="p">[</span><span class="n">i_cont</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span><span class="p">)</span>
+        <span class="n">mean_lam</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="p">[</span><span class="n">i_cont</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span><span class="p">)</span>
+        <span class="n">a0</span> <span class="o">=</span> <span class="n">mean_cont</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">mean_lam</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">b0</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">x0_cont</span> <span class="o">=</span> <span class="p">[</span><span class="n">a0</span><span class="p">,</span><span class="n">b0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">x0_cont</span>
+
+    <span class="k">def</span> <span class="nf">parse_chain_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">Output</span><span class="p">):</span>
+
+        <span class="n">x_line</span> <span class="o">=</span> <span class="n">Output</span><span class="p">[:,:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">x_cont</span> <span class="o">=</span> <span class="n">Output</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dv_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dv_hig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_hig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_hig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
+
+        <span class="n">x_line_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_translator</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">dv</span><span class="p">,</span> <span class="n">flam_line</span><span class="p">,</span> <span class="n">sigma_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_parser</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dv_low</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">dv_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">dv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_low</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">flam_line</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_low</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">sigma_v</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_fit</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flux_unit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_hig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flux_unit</span>
+        <span class="n">line_flux_MC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">(</span><span class="n">MC</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">line_flux_fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EW_hig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">EW_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span>
+        <span class="n">EW_MC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">EW</span><span class="p">(</span><span class="n">MC</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">EW_fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">EW</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_low</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">line_flux_MC</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">line_flux_fit</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">EW_low</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">EW_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">EW_MC</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">EW_fit</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cont_par_parser</span><span class="p">(</span><span class="n">x_cont</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a_low</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_hig</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_low</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_hig</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
+
+        <span class="k">return</span>
+
+    <span class="c1">##########</span>
+    <span class="c1"># Plotting</span>
+    <span class="c1">##########</span>
+
+    <span class="c1">#Textbox with fit results. We will use one box per emission line, below the spectrum. We have up to three emission lines.</span>
+    <span class="k">def</span> <span class="nf">line_legends</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+        <span class="n">line_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">line_name</span><span class="p">)</span>
+        <span class="n">lname</span> <span class="o">=</span> <span class="n">line_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lname</span><span class="p">)</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">:</span>
+            <span class="n">lname</span> <span class="o">=</span> <span class="p">[</span><span class="n">lname</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxstyle</span><span class="o">=</span><span class="s1">&#39;round&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">textbox</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0:s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lname</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">textbox</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">FWHM = </span><span class="si">{0:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FWHM_v</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">textbox</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">$\Delta v$ = </span><span class="si">{0:.1f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">MC_chain</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">textbox</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">SNR = </span><span class="si">{0:.1f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_SNR</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">textbox</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">p   = </span><span class="si">{0:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.025</span><span class="o">+</span><span class="n">i</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">,</span> <span class="n">textbox</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">props</span><span class="p">)</span>
+
+        <span class="k">return</span>
+
+    <span class="c1">##########</span>
+    <span class="c1"># Printing</span>
+    <span class="c1">##########</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">print_fit_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">print_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{1:s}{0:d}</span><span class="s2"> </span><span class="si">{2:s}{0:d}</span><span class="s2"> </span><span class="si">{3:s}{0:d}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;dv&quot;</span><span class="p">,</span> <span class="s2">&quot;flam_line&quot;</span><span class="p">,</span> <span class="s2">&quot;FWHM_v&quot;</span><span class="p">,</span> <span class="s2">&quot;line_flux&quot;</span><span class="p">,</span> <span class="s2">&quot;EW&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">print_output</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">print_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">print_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:.3f}</span><span class="s2"> </span><span class="si">{1:.3e}</span><span class="s2"> </span><span class="si">{2:.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">EW</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">print_output</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">print_MC_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">print_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{1:s}{0:d}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;SNR&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{1:s}{0:d}</span><span class="s2">_low </span><span class="si">{1:s}{0:d}</span><span class="s2">_hig &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;dv&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{1:s}{0:d}</span><span class="s2">_low </span><span class="si">{1:s}{0:d}</span><span class="s2">_hig &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;flam_line&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{1:s}{0:d}</span><span class="s2">_low </span><span class="si">{1:s}{0:d}</span><span class="s2">_hig &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;FWHM_v&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{1:s}{0:d}</span><span class="s2">_low </span><span class="si">{1:s}{0:d}</span><span class="s2">_hig &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;line_flux&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{1:s}{0:d}</span><span class="s2">_low </span><span class="si">{1:s}{0:d}</span><span class="s2">_hig &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;EW&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">print_output</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">print_MC</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">print_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:.3e}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_SNR</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:.3f}</span><span class="s2"> </span><span class="si">{1:.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dv_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dv_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:.3e}</span><span class="s2"> </span><span class="si">{1:.3e}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:.3f}</span><span class="s2"> </span><span class="si">{1:.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_v_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_v_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:.3f}</span><span class="s2"> </span><span class="si">{1:.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:.3f}</span><span class="s2"> </span><span class="si">{1:.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">EW_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">EW_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">print_output</span>
+
+    <span class="k">def</span> <span class="nf">print_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">print_output</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0:15s}</span><span class="s2"> </span><span class="si">{1:7s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Obj_ID&quot;</span><span class="p">,</span><span class="s2">&quot;z_spec&quot;</span><span class="p">)</span>
+        <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;line_id&quot;</span><span class="p">)</span>
+        <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10s}</span><span class="s2"> </span><span class="si">{1:10s}</span><span class="s2"> </span><span class="si">{2:10s}</span><span class="s2"> </span><span class="si">{3:10s}</span><span class="s2"> </span><span class="si">{4:10s}</span><span class="s2"> </span><span class="si">{5:10s}</span><span class="s2"> </span><span class="si">{6:10s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;dv&quot;</span><span class="p">,</span> <span class="s2">&quot;flam_line&quot;</span><span class="p">,</span> <span class="s2">&quot;FWHM_v&quot;</span><span class="p">,</span> <span class="s2">&quot;lam_cen&quot;</span><span class="p">,</span> <span class="s2">&quot;line_flux&quot;</span><span class="p">,</span> <span class="s2">&quot;EW&quot;</span><span class="p">,</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">MC</span><span class="p">:</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;SNR&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;SNR_wing&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14s}</span><span class="s2"> </span><span class="si">{1:14s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;dv_low&quot;</span><span class="p">,</span><span class="s2">&quot;dv_hig&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14s}</span><span class="s2"> </span><span class="si">{1:14s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="s2">&quot;flam_line_low&quot;</span><span class="p">,</span> <span class="s2">&quot;flam_line_hig&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14s}</span><span class="s2"> </span><span class="si">{1:14s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="s2">&quot;FWHM_v_low&quot;</span><span class="p">,</span> <span class="s2">&quot;FWHM_v_hig&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14s}</span><span class="s2"> </span><span class="si">{1:14s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="s2">&quot;lam_cen_low&quot;</span><span class="p">,</span> <span class="s2">&quot;lam_cen_hig&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14s}</span><span class="s2"> </span><span class="si">{1:14s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="s2">&quot;line_flux_low&quot;</span><span class="p">,</span> <span class="s2">&quot;line_flux_hig&quot;</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14s}</span><span class="s2"> </span><span class="si">{1:14s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="s2">&quot;EW_low&quot;</span><span class="p">,</span> <span class="s2">&quot;EW_hig&quot;</span><span class="p">)</span>
+        <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">print_output</span>
+
+    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec_use</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_spec_use</span><span class="p">(</span><span class="n">spec_use</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_Ftest</span><span class="p">()</span>
+        <span class="n">print_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">lname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lname</span><span class="p">)</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">:</span>
+            <span class="n">lname</span> <span class="o">=</span> <span class="p">[</span><span class="n">lname</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">):</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:15s}</span><span class="s2"> </span><span class="si">{1:7.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">zspec</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lname</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10.3f}</span><span class="s2"> </span><span class="si">{1:10.3e}</span><span class="s2"> </span><span class="si">{2:10.3f}</span><span class="s2"> </span><span class="si">{3:10.3f}</span><span class="s2"> </span><span class="si">{4:10.3e}</span><span class="s2"> </span><span class="si">{5:10.3f}</span><span class="s2"> </span><span class="si">{6:10.3f}</span><span class="s2">  &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">zline</span><span class="p">()[</span><span class="n">i</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">EW</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">MC</span><span class="p">:</span>
+                <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10.3e}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_SNR</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10.3e}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_SNR_wing</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14.3f}</span><span class="s2"> </span><span class="si">{1:14.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">dv_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dv_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14.3e}</span><span class="s2"> </span><span class="si">{1:14.3e}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">flam_line_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14.3f}</span><span class="s2"> </span><span class="si">{1:14.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_v_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_v_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14.3f}</span><span class="s2"> </span><span class="si">{1:14.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dv_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dv_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14.3e}</span><span class="s2"> </span><span class="si">{1:14.3e}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14.3f}</span><span class="s2"> </span><span class="si">{1:14.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">EW_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">EW_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">print_output</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 08 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>

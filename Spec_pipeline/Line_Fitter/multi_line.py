@@ -14,10 +14,29 @@ from .MC_errors_general import get_error
 
 class Multi_Line_fit(Line_fit):
 
-    def __init__(self,_line_name,lines_file=None,lines_center_file=None,spec=None):
+    """
+    Main method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.
+
+    Parameters
+    ----------
+    line_name : string
+        Name of the emission line in the line file.
+
+    lines_file : file_path, optional
+        Path of the file with the line definitions. If not provided, the default multi_lines.txt file in the Line_Fitter folder is used.
+
+    lines_center_file : file_path, optional
+        Path of the file with the line centers. If not provided, the default line_centers.txt file in the Line_Fitter folder is used.
+
+    spec : spec object, optional
+        Spec object to be used as the default spectrum to be fit. Highly recommended to be used.
+
+    """
+
+    def __init__(self, line_name, lines_file=None, lines_center_file=None, spec=None):
 
         #Load the main class.
-        super(Multi_Line_fit,self).__init__(_line_name,spec)
+        super(Multi_Line_fit,self).__init__(line_name,spec)
 
         #Basic units to be used.
         self.flamunit = u.erg/(u.s*u.cm**2*u.AA)
@@ -184,6 +203,27 @@ class Multi_Line_fit(Line_fit):
     #Complete model.
     def flam_model(self,lam,x=None,chain_output=None):
 
+        """
+        Function that returns the best-fit model to the spectrum.
+
+        Parameters
+        ----------
+        lam : float with astropy units of wavelength
+            Wavelengths for which to return the model.
+
+        x   : array, optional
+            Parameters for the model. Only meant to be used by the fitter, not the user. npar_line parameters for the line(s) followed by the parameters for the continuum.
+
+        chain_output : two dimensional array, optional
+            MC parameters for the model. Only meant to be used by the fitter, not the user. nrep x (npar_line parameters for the line(s) followed by the parameters for the continuum).
+
+        Returns
+        -------
+        flam_model : array
+            Model spectrum. Same shape as lam if chain_output not provided. Otherwise, nrep x len(lam) shape.
+
+        """
+
         if chain_output is not None:
             x_line = chain_output[:,:self.npar_line].T
             x_cont = chain_output[:,self.npar_line:].T
@@ -245,6 +285,16 @@ class Multi_Line_fit(Line_fit):
 
     @property
     def line_SNR(self):
+
+        """
+        SNR of the emission line modeled. Can only be obtained after running run_MC.
+
+        Returns
+        -------
+        SNR : float
+
+        """
+
         #Can only run if an MC chain exists.
         if self.MC_chain is None:
             print("Need to run an MC first")
@@ -260,6 +310,16 @@ class Multi_Line_fit(Line_fit):
     #This implementation, instead of doing sigma clipping, estimates the noise using the steepness of the wings. Specifically, the noise is calculated as the 95.4% range - 68.3% range. For a Gaussian distribution, this should be equal to sigma.
     @property
     def line_SNR_wing(self):
+
+        """
+        SNR of the emission line modeled but estimated using only the wings of the PDF. Not recommended to be used, will be deprecated. Can only be obtained after running run_MC.
+
+        Returns
+        -------
+        SNR_wing : float
+
+        """
+
         #Can only run if an MC chain exists.
         if self.MC_chain is None:
             print("Need to run an MC first")
@@ -276,7 +336,30 @@ class Multi_Line_fit(Line_fit):
         return (S/N).to(1.)
 
     #Line flux or fluxes, depending on the case.
-    def line_flux(self,x_line=None,chain_output=None,MC=False,SNR_mode=False):
+    def line_flux(self, x_line=None, MC=False, SNR_mode=False, chain_output=None):
+
+        """
+        Flux of the emission line modeled. Can only be obtained after running run_fit.
+
+        Parameters
+        ----------
+        x_line : array of npar_line length, optional
+            Emission line fit parameters. Only intended for internal use to estimate SNR.
+
+        MC : boolean, optional
+            If True, estimate the line flux for the whole MC chain instead of the best fit.
+
+        SNR_mode : boolean, optional
+            If True, only estimates the flux within the spectrum wavelength range. Useful for the SNR calculation.
+
+        chain_output : array of nrep x npar shape, optional
+            Provide an MC chain output different than the default one obtained from run_MC. If MC=True, the default one is preferred. Kept for legacy with earlier code, but not really useful.
+
+        Returns
+        -------
+        flux : float or array of nrep x float if MC=True
+
+        """
 
         if MC:
             chain_output = self.MC_chain
@@ -329,7 +412,27 @@ class Multi_Line_fit(Line_fit):
         return flux
 
     #Note that this expression for the EW is only valid for cases in which the continuum is either constant with wavelength or antisymmetric around the peak wavelength (such as the case for the linear continuum used here).
-    def EW(self,x=None,chain_output=None,MC=False):
+    def EW(self, x=None, MC=False, chain_output=None):
+
+        """
+        Equivaleng width of the emission line modeled. Can only be obtained after running run_fit.
+
+        Parameters
+        ----------
+        x : array of npar length, optional
+            Fit parameters. Not really useful, as best-fit parameters are used by default.
+
+        MC : boolean, optional
+            If True, estimate the EW for the whole MC chain instead of the best fit.
+
+        chain_output : array of nrep x npar shape, optional
+            Provide an MC chain output different than the default one obtained from run_MC. If MC=True, the default one is preferred. Kept for legacy with earlier code, but not really useful.
+
+        Returns
+        -------
+        EW : float or array of nrep x float if MC=True
+
+        """
 
         if MC:
             chain_output = self.MC_chain

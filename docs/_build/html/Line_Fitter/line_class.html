@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>The Line_fit Class &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Implemented Line Fitter Classes" href="implemented.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="implemented.html" title="Implemented Line Fitter Classes">
+	  &laquo; previous
+	</a>
+	
+      </li>
+      <li>
+	<a href="../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      
+      <li>The Line_fit Class</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-line-fit-class">
+<h1>The Line_fit Class<a class="headerlink" href="#the-line-fit-class" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="line-fit">
+<h2><a class="reference internal" href="#Spec_pipeline.Line_Fitter.line_class.Line_fit" title="Spec_pipeline.Line_Fitter.line_class.Line_fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Line_fit</span></code></a><a class="headerlink" href="#line-fit" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Spec_pipeline.Line_Fitter.line_class.Line_fit">
+<em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.Line_Fitter.line_class.</code><code class="sig-name descname">Line_fit</code><span class="sig-paren">(</span><em class="sig-param">_line_name</em>, <em class="sig-param">_default_spec=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/line_class.html#Line_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Line_Fitter.line_class.Line_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="Spec_pipeline.Line_Fitter.line_class.Line_fit.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em>, <em class="sig-param">plot_fname=None</em>, <em class="sig-param">chain_file=None</em>, <em class="sig-param">chain=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/line_class.html#Line_fit.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Line_Fitter.line_class.Line_fit.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function plots the best-fit model to the spectrum within the fitting ranges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+<dt><strong>plot_fname</strong><span class="classifier">file path, optional</span></dt><dd><p>Filename to save a hard copy of the plot. If none provided, the plot is shown to screen.</p>
+</dd>
+<dt><strong>chain_file</strong><span class="classifier">file path, optional</span></dt><dd><p>MC chain file. Overrides the default and the current chain obtained from run_MC if any.</p>
+</dd>
+<dt><strong>chain</strong><span class="classifier">2D array of shape nrep x npar, optional</span></dt><dd><p>If provided, uses this one instead of that calculated by run_MC for this plot.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Line_Fitter.line_class.Line_fit.run_Ftest">
+<code class="sig-name descname">run_Ftest</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/line_class.html#Line_fit.run_Ftest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Line_Fitter.line_class.Line_fit.run_Ftest" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs an F-test. Can only be run after the fit. Results are saved in self.p and self.F .</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Line_Fitter.line_class.Line_fit.run_MC">
+<code class="sig-name descname">run_MC</code><span class="sig-paren">(</span><em class="sig-param">nrep</em>, <em class="sig-param">spec_use=None</em>, <em class="sig-param">Ncpu=None</em>, <em class="sig-param">save_chain=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/line_class.html#Line_fit.run_MC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Line_Fitter.line_class.Line_fit.run_MC" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs the MC. Needs to be run after run_fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>nrep</strong><span class="classifier">int</span></dt><dd><p>Number of MC resamples.</p>
+</dd>
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+<dt><strong>Ncpu</strong><span class="classifier">int, optional</span></dt><dd><p>Number of CPU cores to be used. Default is to use all available.</p>
+</dd>
+<dt><strong>save_chain</strong><span class="classifier">file path, optional</span></dt><dd><p>File name to save the MC chain. If none given, chain is not saved to a file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Line_Fitter.line_class.Line_fit.run_fit">
+<code class="sig-name descname">run_fit</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/line_class.html#Line_fit.run_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Line_Fitter.line_class.Line_fit.run_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs the fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Line_Fitter.line_class.Line_fit.zline">
+<code class="sig-name descname">zline</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/line_class.html#Line_fit.zline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Line_Fitter.line_class.Line_fit.zline" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns an updated redshift for each line being fit according to its best-fit velocity offset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum being fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">The Line_fit Class</a><ul>
+<li><a class="reference internal" href="#line-fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Line_fit</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/Line_Fitter/line_class.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 08 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>

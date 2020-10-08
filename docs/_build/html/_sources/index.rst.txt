@@ -24,15 +24,16 @@ Classes to Load Spectra
 .. toctree::
    :maxdepth: 2
 
-   Spec_pipeline/implemented
-
-   Spec_pipeline/spec_class
+   Spec_Reader/spec_class
+   Spec_Reader/implemented
 
 Classes to Fit Spectra
 ----------------------
 .. toctree::
    :maxdepth: 2
 
+   Line_Fitter/line_class
+   Line_Fitter/implemented
 
 Indices and tables
 ==================

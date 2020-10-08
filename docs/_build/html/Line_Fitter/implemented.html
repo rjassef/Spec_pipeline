@@ -1,0 +1,411 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Implemented Line Fitter Classes &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="The Line_fit Class" href="line_class.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="line_class.html" title="The Line_fit Class">
+	  &laquo; previous
+	</a>
+	
+      </li>
+      <li>
+	<a href="../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      
+      <li>Implemented Line Fitter Classes</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="implemented-line-fitter-classes">
+<h1>Implemented Line Fitter Classes<a class="headerlink" href="#implemented-line-fitter-classes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="multi-line-fit">
+<h2><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit" title="Spec_pipeline.Multi_Line_fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Multi_Line_fit</span></code></a><a class="headerlink" href="#multi-line-fit" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Spec_pipeline.Multi_Line_fit">
+<em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">Multi_Line_fit</code><span class="sig-paren">(</span><em class="sig-param">line_name</em>, <em class="sig-param">lines_file=None</em>, <em class="sig-param">lines_center_file=None</em>, <em class="sig-param">spec=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="line_class.html#Spec_pipeline.Line_Fitter.line_class.Line_fit" title="Spec_pipeline.Line_Fitter.line_class.Line_fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spec_pipeline.Line_Fitter.line_class.Line_fit</span></code></a></p>
+<p>Main method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>line_name</strong><span class="classifier">string</span></dt><dd><p>Name of the emission line in the line file.</p>
+</dd>
+<dt><strong>lines_file</strong><span class="classifier">file_path, optional</span></dt><dd><p>Path of the file with the line definitions. If not provided, the default multi_lines.txt file in the Line_Fitter folder is used.</p>
+</dd>
+<dt><strong>lines_center_file</strong><span class="classifier">file_path, optional</span></dt><dd><p>Path of the file with the line centers. If not provided, the default line_centers.txt file in the Line_Fitter folder is used.</p>
+</dd>
+<dt><strong>spec</strong><span class="classifier">spec object, optional</span></dt><dd><p>Spec object to be used as the default spectrum to be fit. Highly recommended to be used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.EW">
+<code class="sig-name descname">EW</code><span class="sig-paren">(</span><em class="sig-param">x=None</em>, <em class="sig-param">MC=False</em>, <em class="sig-param">chain_output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.EW"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.EW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equivaleng width of the emission line modeled. Can only be obtained after running run_fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">array of npar length, optional</span></dt><dd><p>Fit parameters. Not really useful, as best-fit parameters are used by default.</p>
+</dd>
+<dt><strong>MC</strong><span class="classifier">boolean, optional</span></dt><dd><p>If True, estimate the EW for the whole MC chain instead of the best fit.</p>
+</dd>
+<dt><strong>chain_output</strong><span class="classifier">array of nrep x npar shape, optional</span></dt><dd><p>Provide an MC chain output different than the default one obtained from run_MC. If MC=True, the default one is preferred. Kept for legacy with earlier code, but not really useful.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>EW</strong><span class="classifier">float or array of nrep x float if MC=True</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.flam_model">
+<code class="sig-name descname">flam_model</code><span class="sig-paren">(</span><em class="sig-param">lam</em>, <em class="sig-param">x=None</em>, <em class="sig-param">chain_output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.flam_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.flam_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns the best-fit model to the spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>lam</strong><span class="classifier">float with astropy units of wavelength</span></dt><dd><p>Wavelengths for which to return the model.</p>
+</dd>
+<dt><strong>x</strong><span class="classifier">array, optional</span></dt><dd><p>Parameters for the model. Only meant to be used by the fitter, not the user. npar_line parameters for the line(s) followed by the parameters for the continuum.</p>
+</dd>
+<dt><strong>chain_output</strong><span class="classifier">two dimensional array, optional</span></dt><dd><p>MC parameters for the model. Only meant to be used by the fitter, not the user. nrep x (npar_line parameters for the line(s) followed by the parameters for the continuum).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>flam_model</strong><span class="classifier">array</span></dt><dd><p>Model spectrum. Same shape as lam if chain_output not provided. Otherwise, nrep x len(lam) shape.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.line_SNR">
+<em class="property">property </em><code class="sig-name descname">line_SNR</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_SNR" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNR of the emission line modeled. Can only be obtained after running run_MC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>SNR</strong><span class="classifier">float</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.line_SNR_wing">
+<em class="property">property </em><code class="sig-name descname">line_SNR_wing</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_SNR_wing" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNR of the emission line modeled but estimated using only the wings of the PDF. Not recommended to be used, will be deprecated. Can only be obtained after running run_MC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>SNR_wing</strong><span class="classifier">float</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.line_flux">
+<code class="sig-name descname">line_flux</code><span class="sig-paren">(</span><em class="sig-param">x_line=None</em>, <em class="sig-param">MC=False</em>, <em class="sig-param">SNR_mode=False</em>, <em class="sig-param">chain_output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.line_flux"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flux of the emission line modeled. Can only be obtained after running run_fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x_line</strong><span class="classifier">array of npar_line length, optional</span></dt><dd><p>Emission line fit parameters. Only intended for internal use to estimate SNR.</p>
+</dd>
+<dt><strong>MC</strong><span class="classifier">boolean, optional</span></dt><dd><p>If True, estimate the line flux for the whole MC chain instead of the best fit.</p>
+</dd>
+<dt><strong>SNR_mode</strong><span class="classifier">boolean, optional</span></dt><dd><p>If True, only estimates the flux within the spectrum wavelength range. Useful for the SNR calculation.</p>
+</dd>
+<dt><strong>chain_output</strong><span class="classifier">array of nrep x npar shape, optional</span></dt><dd><p>Provide an MC chain output different than the default one obtained from run_MC. If MC=True, the default one is preferred. Kept for legacy with earlier code, but not really useful.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>flux</strong><span class="classifier">float or array of nrep x float if MC=True</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em>, <em class="sig-param">plot_fname=None</em>, <em class="sig-param">chain_file=None</em>, <em class="sig-param">chain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function plots the best-fit model to the spectrum within the fitting ranges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+<dt><strong>plot_fname</strong><span class="classifier">file path, optional</span></dt><dd><p>Filename to save a hard copy of the plot. If none provided, the plot is shown to screen.</p>
+</dd>
+<dt><strong>chain_file</strong><span class="classifier">file path, optional</span></dt><dd><p>MC chain file. Overrides the default and the current chain obtained from run_MC if any.</p>
+</dd>
+<dt><strong>chain</strong><span class="classifier">2D array of shape nrep x npar, optional</span></dt><dd><p>If provided, uses this one instead of that calculated by run_MC for this plot.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.run_Ftest">
+<code class="sig-name descname">run_Ftest</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.run_Ftest" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs an F-test. Can only be run after the fit. Results are saved in self.p and self.F .</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.run_MC">
+<code class="sig-name descname">run_MC</code><span class="sig-paren">(</span><em class="sig-param">nrep</em>, <em class="sig-param">spec_use=None</em>, <em class="sig-param">Ncpu=None</em>, <em class="sig-param">save_chain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.run_MC" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs the MC. Needs to be run after run_fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>nrep</strong><span class="classifier">int</span></dt><dd><p>Number of MC resamples.</p>
+</dd>
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+<dt><strong>Ncpu</strong><span class="classifier">int, optional</span></dt><dd><p>Number of CPU cores to be used. Default is to use all available.</p>
+</dd>
+<dt><strong>save_chain</strong><span class="classifier">file path, optional</span></dt><dd><p>File name to save the MC chain. If none given, chain is not saved to a file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.run_fit">
+<code class="sig-name descname">run_fit</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.run_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs the fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.zline">
+<code class="sig-name descname">zline</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.zline" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns an updated redshift for each line being fit according to its best-fit velocity offset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum being fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="complex-line-fit">
+<h2><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit" title="Spec_pipeline.Complex_Line_fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Complex_Line_fit</span></code></a><a class="headerlink" href="#complex-line-fit" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Spec_pipeline.Complex_Line_fit">
+<em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">Complex_Line_fit</code><span class="sig-paren">(</span><em class="sig-param">line_name=None</em>, <em class="sig-param">spec=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="line_class.html#Spec_pipeline.Line_Fitter.line_class.Line_fit" title="Spec_pipeline.Line_Fitter.line_class.Line_fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spec_pipeline.Line_Fitter.line_class.Line_fit</span></code></a></p>
+<p>Flexible method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>line_name</strong><span class="classifier">string, optional</span></dt><dd><p>Name of the emission line. Only for user identification.</p>
+</dd>
+<dt><strong>spec</strong><span class="classifier">spec object, optional</span></dt><dd><p>Spec object to be used as the default spectrum to be fit. Highly recommended to be used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em>, <em class="sig-param">plot_fname=None</em>, <em class="sig-param">chain_file=None</em>, <em class="sig-param">chain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function plots the best-fit model to the spectrum within the fitting ranges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+<dt><strong>plot_fname</strong><span class="classifier">file path, optional</span></dt><dd><p>Filename to save a hard copy of the plot. If none provided, the plot is shown to screen.</p>
+</dd>
+<dt><strong>chain_file</strong><span class="classifier">file path, optional</span></dt><dd><p>MC chain file. Overrides the default and the current chain obtained from run_MC if any.</p>
+</dd>
+<dt><strong>chain</strong><span class="classifier">2D array of shape nrep x npar, optional</span></dt><dd><p>If provided, uses this one instead of that calculated by run_MC for this plot.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.run_Ftest">
+<code class="sig-name descname">run_Ftest</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.run_Ftest" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs an F-test. Can only be run after the fit. Results are saved in self.p and self.F .</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.run_MC">
+<code class="sig-name descname">run_MC</code><span class="sig-paren">(</span><em class="sig-param">nrep</em>, <em class="sig-param">spec_use=None</em>, <em class="sig-param">Ncpu=None</em>, <em class="sig-param">save_chain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.run_MC" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs the MC. Needs to be run after run_fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>nrep</strong><span class="classifier">int</span></dt><dd><p>Number of MC resamples.</p>
+</dd>
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+<dt><strong>Ncpu</strong><span class="classifier">int, optional</span></dt><dd><p>Number of CPU cores to be used. Default is to use all available.</p>
+</dd>
+<dt><strong>save_chain</strong><span class="classifier">file path, optional</span></dt><dd><p>File name to save the MC chain. If none given, chain is not saved to a file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.run_fit">
+<code class="sig-name descname">run_fit</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.run_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs the fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum that will be fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.zline">
+<code class="sig-name descname">zline</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.zline" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns an updated redshift for each line being fit according to its best-fit velocity offset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec_use</strong><span class="classifier">Spec object, optional</span></dt><dd><p>Spectrum being fit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Implemented Line Fitter Classes</a><ul>
+<li><a class="reference internal" href="#multi-line-fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Multi_Line_fit</span></code></a></li>
+<li><a class="reference internal" href="#complex-line-fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Complex_Line_fit</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/Line_Fitter/implemented.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 08 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>

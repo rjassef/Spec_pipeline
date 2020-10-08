@@ -14,6 +14,20 @@ from .MC_errors_general import get_error
 
 class Complex_Line_fit(Line_fit):
 
+    """
+    Flexible method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.
+
+    Parameters
+    ----------
+    line_name : string, optional
+        Name of the emission line. Only for user identification.
+
+    spec : spec object, optional
+        Spec object to be used as the default spectrum to be fit. Highly recommended to be used.
+
+    """
+
+
     def __init__(self, line_name=None, spec=None):
         super(Complex_Line_fit,self).__init__(line_name, spec)
         self.multi_line = []
