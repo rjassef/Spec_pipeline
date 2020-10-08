@@ -1,0 +1,8 @@
+.. doctest-skip-all
+
+Spec Pipeline
+#############
+.. automodule:: Spec_pipeline.Spec_Reader.LRIS_Spec
+   :members:
+   :inherited-members:
+   :show-inheritance:

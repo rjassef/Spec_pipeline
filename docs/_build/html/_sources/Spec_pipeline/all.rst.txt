@@ -1,0 +1,12 @@
+.. doctest-skip-all
+.. currentmodule:: Spec_pipeline
+
+Implemented Spec Classes
+************************
+
+:class:`LRIS_Spec`
+===================
+.. autoclass:: LRIS_Spec
+   :members:
+   :inherited-members:
+   :show-inheritance:

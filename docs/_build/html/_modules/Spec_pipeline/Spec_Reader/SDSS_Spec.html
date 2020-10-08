@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spec_pipeline.Spec_Reader.SDSS_Spec &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../../../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../../../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Spec_pipeline.Spec_Reader.SDSS_Spec</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="k">import</span> <span class="n">fits</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">from</span> <span class="nn">astropy.constants</span> <span class="k">import</span> <span class="n">h</span><span class="p">,</span><span class="n">c</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1">#from .spectrum1d import read_fits_spectrum1d</span>
+<span class="kn">from</span> <span class="nn">.Spec</span> <span class="k">import</span> <span class="n">Spec</span>
+<span class="kn">from</span> <span class="nn">.rebin_spec</span> <span class="k">import</span> <span class="n">rebin_spec</span>
+
+<span class="c1">#As there are too many different things to keep in minds, we&#39;ll load</span>
+<span class="c1">#the spectra as objects, so we can load the appropiate sensitivity</span>
+<span class="c1">#curves and sky spectra without having to think too much about it</span>
+<span class="c1">#during the code execution.</span>
+
+<div class="viewcode-block" id="SDSS_Spec"><a class="viewcode-back" href="../../../Spec_pipeline/implemented.html#Spec_pipeline.SDSS_Spec">[docs]</a><span class="k">class</span> <span class="nc">SDSS_Spec</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module that read an SDSS spectrum and returns a spec object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        Object name or ID.</span>
+
+<span class="sd">    zspec : float</span>
+<span class="sd">        Spectroscopic redshift.</span>
+
+<span class="sd">    fits_file : string</span>
+<span class="sd">        Spectrum file name. Has to be a one element list.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">zspec</span><span class="p">,</span> <span class="n">fits_file</span><span class="p">):</span>
+
+        <span class="n">RT</span>   <span class="o">=</span> <span class="mf">1.25</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">m</span> <span class="c1">#Telescope radius.</span>
+        <span class="n">instrument</span> <span class="o">=</span> <span class="s2">&quot;SDSS&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">SDSS_Spec</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">zspec</span><span class="p">,</span> <span class="n">fits_file</span><span class="p">,</span> <span class="n">RT</span><span class="o">=</span><span class="n">RT</span><span class="p">,</span> <span class="n">instrument</span><span class="o">=</span><span class="n">instrument</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__flam</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__flam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_prefix</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">fits_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lam_obs</span>   <span class="o">=</span> <span class="mf">10.</span><span class="o">**</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;loglam&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+
+        <span class="n">flux_unit</span> <span class="o">=</span> <span class="mf">1e-17</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flam</span>      <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">flux_unit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;ivar&#39;</span><span class="p">]</span><span class="o">**-</span><span class="mf">0.5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;ivar&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span><span class="p">,</span><span class="mf">1e32</span><span class="p">)</span> <span class="o">*</span> <span class="n">flux_unit</span>
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">flam_err</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flam_err</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">))</span>
+
+    <span class="c1">#From http://www.sdss3.org/dr9/spectro/spectro_basics.php. Resolution is about 2.5A at 3800A and about 3.5 at 9000A. We&#39;ll just set it to 2.5A since the main goal is to just set a lower limit for sigma_v.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sigma_res</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">FWHM_res</span> <span class="o">=</span> <span class="mf">2.5</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+        <span class="n">sigma_res</span> <span class="o">=</span> <span class="n">FWHM_res</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sigma_res</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 07 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>

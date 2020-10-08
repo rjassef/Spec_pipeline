@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Spec_pipeline.Spec_Reader.DBSP_Spec &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../../../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../../../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Spec_pipeline.Spec_Reader.DBSP_Spec</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">.iraf_spectrum1d</span> <span class="k">import</span> <span class="n">read_fits_spectrum1d</span>
+<span class="kn">from</span> <span class="nn">.Spec</span> <span class="k">import</span> <span class="n">Spec</span>
+
+<span class="c1">#As there are too many different things to keep in minds, we&#39;ll load</span>
+<span class="c1">#the spectra as objects, so we can load the appropiate sensitivity</span>
+<span class="c1">#curves and sky spectra without having to think too much about it</span>
+<span class="c1">#during the code execution.</span>
+
+<div class="viewcode-block" id="DBSP_Spec"><a class="viewcode-back" href="../../../Spec_pipeline/implemented.html#Spec_pipeline.DBSP_Spec">[docs]</a><span class="k">class</span> <span class="nc">DBSP_Spec</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Module that reads a DBSP spectrum and returns a spec object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : string</span>
+<span class="sd">        Object name or ID.</span>
+
+<span class="sd">    zspec : float</span>
+<span class="sd">        Spectroscopic redshift.</span>
+
+<span class="sd">    fits_file : string</span>
+<span class="sd">        Spectrum file name.</span>
+
+<span class="sd">    blue : boolean, optional</span>
+<span class="sd">        Indicated the provided spectrum is from the blue arm of the spectrograph. Either blue or red must be provided.</span>
+
+<span class="sd">    red : boolean, optional</span>
+<span class="sd">        Indicated the provided spectrum is from the red arm of the spectrograph. Either blue or red must be provided.</span>
+
+<span class="sd">    show_err_plot : boolean, optional</span>
+<span class="sd">        True if error-fit plot is to be displayed.</span>
+
+<span class="sd">    local_sky_file : string, optional</span>
+<span class="sd">        Sky file if the default ones are not to be used.</span>
+
+<span class="sd">    local_sens_file : string, optional</span>
+<span class="sd">        Sensitivity file if the default ones are not to be used.</span>
+
+<span class="sd">    inst_conf : dict, optional</span>
+<span class="sd">        Configurations dictionary.</span>
+
+<span class="sd">    header_kws : dict, optional</span>
+<span class="sd">        Dictionary with header keywords to use. Have precedence over default header keywords.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">zspec</span><span class="p">,</span> <span class="n">fits_file</span><span class="p">,</span> <span class="n">blue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">red</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_err_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">local_sky_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">local_sens_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inst_conf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">header_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="c1">#Set basic instrument properties.</span>
+        <span class="n">RT</span>   <span class="o">=</span> <span class="mf">2.5</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">m</span> <span class="c1">#Telescope radius.</span>
+        <span class="n">instrument</span> <span class="o">=</span> <span class="s2">&quot;DBSP&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dual_spec</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blue</span> <span class="o">=</span> <span class="n">blue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">red</span>  <span class="o">=</span> <span class="n">red</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_drop</span> <span class="o">=</span> <span class="mf">75.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+
+        <span class="c1">#Load the super class.</span>
+        <span class="n">iinit</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DBSP_Spec</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">zspec</span><span class="p">,</span> <span class="n">fits_file</span><span class="p">,</span> <span class="n">show_err_plot</span><span class="o">=</span><span class="n">show_err_plot</span><span class="p">,</span> <span class="n">local_sky_file</span><span class="o">=</span><span class="n">local_sky_file</span><span class="p">,</span> <span class="n">local_sens_file</span><span class="o">=</span><span class="n">local_sens_file</span><span class="p">,</span> <span class="n">inst_conf</span><span class="o">=</span><span class="n">inst_conf</span><span class="p">,</span> <span class="n">header_kws</span><span class="o">=</span><span class="n">header_kws</span><span class="p">,</span> <span class="n">RT</span><span class="o">=</span><span class="n">RT</span><span class="p">,</span> <span class="n">instrument</span><span class="o">=</span><span class="n">instrument</span><span class="p">)</span>
+
+        <span class="c1">#Problem loading super class. Do not continue.</span>
+        <span class="k">if</span> <span class="n">iinit</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1">#Load the spectra</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__flam</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Spec__flam_sky</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Spec__sens</span>
+
+        <span class="k">return</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__flam</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1">#Load the spectrum.</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">read_fits_spectrum1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_prefix</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">fits_file</span><span class="p">,</span> <span class="n">dispersion_unit</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">,</span> <span class="n">flux_unit</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">erg</span><span class="o">/</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">))</span>
+
+        <span class="c1">#Set the name of the error file.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_err_name</span> <span class="o">=</span> <span class="s2">&quot;error.&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">fits_file</span>
+
+        <span class="c1">#Set the channel.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="s1">&#39;b&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span>
+
+        <span class="c1">#Load attributes from header keywords.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_keyword_headers</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords_to_load</span><span class="p">)</span>
+
+        <span class="c1">#Dichroic</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dichroic</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dichroic</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dichroic</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dichroic_wave</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dichroic</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span><span class="o">*</span><span class="mf">100.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span>
+
+        <span class="c1">#Grating - there is a grating called sometimes 316/7150 and sometimes 316/7500, but it is the same grating with the same blaze as confirmed by the Palomar Observatory staff. We will alwayd use 316/7500.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grating</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grating</span>  <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;7150&quot;</span><span class="p">,</span><span class="s2">&quot;7500&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">grating</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grating</span>  <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span><span class="s2">&quot;-&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">grating</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grating</span> <span class="o">==</span> <span class="s2">&quot;3167500&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grating</span> <span class="o">=</span> <span class="s2">&quot;316-7500&quot;</span>
+
+        <span class="c1">#Slit width</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">slit_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">slit_width</span><span class="o">.</span><span class="n">unit</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">slit_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slit_width</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">arcsec</span>
+
+        <span class="c1">#Finish the setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_setup</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+
+        <span class="k">return</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 07 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>
