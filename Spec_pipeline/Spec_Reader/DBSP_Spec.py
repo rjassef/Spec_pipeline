@@ -15,35 +15,39 @@ from .Spec import Spec
 class DBSP_Spec(Spec):
 
     """
-Module that reads a DBSP spectrum and returns a spec object.
+    Module that reads a DBSP spectrum and returns a spec object.
 
-Args:
-   name (string)              : Object name or ID.
+    Parameters
+    ----------
+    name : string
+        Object name or ID.
 
-   zspec (float)              : Spectroscopic redshift.
+    zspec : float
+        Spectroscopic redshift.
 
-   fits_file (string)         : Spectrum file name.
+    fits_file : string
+        Spectrum file name.
 
-   blue (boolean)             : Optional. Indicated the provided spectrum is
-                                from the blue arm of the spectrograph. Either
-                                blue or red must be provided.
+    blue : boolean, optional
+        Indicated the provided spectrum is from the blue arm of the spectrograph. Either blue or red must be provided.
 
-   red (boolean)              : Optional. Indicated the provided spectrum is
-                                from the red arm of the spectrograph. Either
-                                blue or red must be provided.
+    red : boolean, optional
+        Indicated the provided spectrum is from the red arm of the spectrograph. Either blue or red must be provided.
 
-   show_err_plot (boolean)    : Optional. True if error-fit plot is to be
-                                displayed.
+    show_err_plot : boolean, optional
+        True if error-fit plot is to be displayed.
 
-   local_sky_file (string)    : Optional. Sky file if the default ones
-                                are not to be used.
+    local_sky_file : string, optional
+        Sky file if the default ones are not to be used.
 
-   local_sens_file (string)   : Optional. Sensitivity file if the
-                                default ones are not to be used.
+    local_sens_file : string, optional
+        Sensitivity file if the default ones are not to be used.
 
-   inst_conf (dict)           : Optional. Configurations dictionary.
+    inst_conf : dict, optional
+        Configurations dictionary.
 
-   header_kws (dict)          : Optional. Dictionary.
+    header_kws : dict, optional
+        Dictionary with header keywords to use. Have precedence over default header keywords.
 
    """
 

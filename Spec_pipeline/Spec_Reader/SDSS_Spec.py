@@ -17,14 +17,18 @@ from .rebin_spec import rebin_spec
 class SDSS_Spec(Spec):
 
     """
-Module that read an SDSS spectrum and returns a spec object.
+    Module that read an SDSS spectrum and returns a spec object.
 
-Args:
-   name (string)      : Object name or ID.
+    Parameters
+    ----------
+    name : string
+        Object name or ID.
 
-   zspec (float)      : Spectroscopic redshift.
+    zspec : float
+        Spectroscopic redshift.
 
-   fits_file (string) : Spectrum file name. Has to be a one element list.
+    fits_file : string
+        Spectrum file name. Has to be a one element list.
 
    """
 

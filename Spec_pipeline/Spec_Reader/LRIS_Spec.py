@@ -14,39 +14,43 @@ from .Spec import Spec
 #during the code execution.
 
 class LRIS_Spec(Spec):
+    """
+
+    Module that reads an LRIS spectrum and returns a spec object.
+
+    Parameters
+    ----------
+    name : string
+        Object name or ID.
+
+    zspec : float
+        Spectroscopic redshift.
+
+    fits_file : string
+        Spectrum file name.
+
+    blue : boolean, optional
+        Indicated the provided spectrum is from the blue arm of the spectrograph. Either blue or red must be provided.
+
+    red : boolean, optional
+        Indicated the provided spectrum is from the red arm of the spectrograph. Either blue or red must be provided.
+
+    show_err_plot : boolean, optional
+        True if error-fit plot is to be displayed.
+
+    local_sky_file : string, optional
+        Sky file if the default ones are not to be used.
+
+    local_sens_file : string, optional
+        Sensitivity file if the default ones are not to be used.
+
+    inst_conf : dictionary, optional
+        Configurations dictionary.
+
+    header_kws : dictionary, optional
+        Dictionary with header keywords to use. Have precedence over default header keywords.
 
     """
-Module that read an LRIS spectrum and returns a spec object.
-
-Args:
-   name (string)              : Object name or ID.
-
-   zspec (float)              : Spectroscopic redshift.
-
-   fits_file (string)         : Spectrum file name.
-
-   blue (boolean)             : Optional. Indicated the provided spectrum is
-                                from the blue arm of the spectrograph. Either
-                                blue or red must be provided.
-
-   red (boolean)              : Optional. Indicated the provided spectrum is
-                                from the red arm of the spectrograph. Either
-                                blue or red must be provided.
-
-   show_err_plot (boolean)    : Optional. True if error-fit plot is to be
-                                displayed.
-
-   local_sky_file (string)    : Optional. Sky file if the default ones
-                                are not to be used.
-
-   local_sens_file (string)   : Optional. Sensitivity file if the
-                                default ones are not to be used.
-
-   inst_conf (dict)           : Optional. Configurations dictionary.
-
-   header_kws                 : Optional. Dictionary.
-
-   """
 
     def __init__(self, name, zspec, fits_file, blue=False, red=False, show_err_plot=False, local_sky_file=None, local_sens_file=None, inst_conf=None, header_kws=None):
 

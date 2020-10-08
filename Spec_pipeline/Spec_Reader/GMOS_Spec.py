@@ -14,29 +14,36 @@ from .Spec import Spec
 class GMOS_Spec(Spec):
 
     """
-Module that read a GMOS spectrum and returns a spec object.
+    Module that read a GMOS spectrum and returns a spec object.
 
-Args:
-   name (string)              : Object name or ID.
+    Parameters
+    ----------
 
-   zspec (float)              : Spectroscopic redshift.
+    name : string
+        Object name or ID.
 
-   fits_file (string)         : Spectrum file name.
+    zspec : float
+        Spectroscopic redshift.
 
-   show_err_plot (boolean)    : Optional. True if error-fit plot is to be
-                                displayed.
+    fits_file : string
+        Spectrum file name.
 
-   local_sky_file (string)    : Optional. Sky file if the default ones
-                                are not to be used.
+    show_err_plot : boolean, optional
+        True if error-fit plot is to be displayed.
 
-   local_sens_file (string)   : Optional. Sensitivity file if the
-                                default ones are not to be used.
+    local_sky_file : string, optional
+        Sky file if the default ones are not to be used.
 
-   inst_conf (dict)           : Optional. Configurations dictionary.
+    local_sens_file : string, optional
+        Sensitivity file if the default ones are not to be used.
 
-   header_kws                 : Optional. Dictionary.
-   
-   """
+    inst_conf : dictionary, optional
+        Configurations dictionary.
+
+    header_kws: dictionary, optional
+        Dictionary with header keywords to use. Have precedence over default header keywords.
+
+    """
 
     def __init__(self, name, zspec, fits_file, show_err_plot=False, local_sky_file=None, local_sens_file=None, inst_conf=None, header_kws=None):
 
