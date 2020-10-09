@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>DBSP_Spec &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DEIMOS_Spec" href="Spec_pipeline.DEIMOS_Spec.html" />
+    <link rel="prev" title="Complex_Line_fit" href="Spec_pipeline.Complex_Line_fit.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">Spec_pipeline</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <!--<li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>-->
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="Spec_pipeline.DEIMOS_Spec.html" title="DEIMOS_Spec">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="Spec_pipeline.Complex_Line_fit.html" title="Complex_Line_fit">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      
+      <li>DBSP_Spec</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dbsp-spec">
+<h1>DBSP_Spec<a class="headerlink" href="#dbsp-spec" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="Spec_pipeline.DBSP_Spec">
+<em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">DBSP_Spec</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">zspec</em>, <em class="sig-param">fits_file</em>, <em class="sig-param">blue=False</em>, <em class="sig-param">red=False</em>, <em class="sig-param">show_err_plot=False</em>, <em class="sig-param">local_sky_file=None</em>, <em class="sig-param">local_sens_file=None</em>, <em class="sig-param">inst_conf=None</em>, <em class="sig-param">header_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Spec_Reader/DBSP_Spec.html#DBSP_Spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.DBSP_Spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../Spec_Reader/spec_class.html#Spec_pipeline.Spec_Reader.Spec.Spec" title="Spec_pipeline.Spec_Reader.Spec.Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spec_pipeline.Spec_Reader.Spec.Spec</span></code></a></p>
+<p>Module that reads a DBSP spectrum and returns a spec object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">string</span></dt><dd><p>Object name or ID.</p>
+</dd>
+<dt><strong>zspec</strong><span class="classifier">float</span></dt><dd><p>Spectroscopic redshift.</p>
+</dd>
+<dt><strong>fits_file</strong><span class="classifier">string</span></dt><dd><p>Spectrum file name.</p>
+</dd>
+<dt><strong>blue</strong><span class="classifier">boolean, optional</span></dt><dd><p>Indicated the provided spectrum is from the blue arm of the spectrograph. Either blue or red must be provided.</p>
+</dd>
+<dt><strong>red</strong><span class="classifier">boolean, optional</span></dt><dd><p>Indicated the provided spectrum is from the red arm of the spectrograph. Either blue or red must be provided.</p>
+</dd>
+<dt><strong>show_err_plot</strong><span class="classifier">boolean, optional</span></dt><dd><p>True if error-fit plot is to be displayed.</p>
+</dd>
+<dt><strong>local_sky_file</strong><span class="classifier">string, optional</span></dt><dd><p>Sky file if the default ones are not to be used.</p>
+</dd>
+<dt><strong>local_sens_file</strong><span class="classifier">string, optional</span></dt><dd><p>Sensitivity file if the default ones are not to be used.</p>
+</dd>
+<dt><strong>inst_conf</strong><span class="classifier">dict, optional</span></dt><dd><p>Configurations dictionary.</p>
+</dd>
+<dt><strong>header_kws</strong><span class="classifier">dict, optional</span></dt><dd><p>Dictionary with header keywords to use. Have precedence over default header keywords.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">DBSP_Spec</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/api/Spec_pipeline.DBSP_Spec.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 09 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>

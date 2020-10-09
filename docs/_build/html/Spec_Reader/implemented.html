@@ -19,16 +19,16 @@
     <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="The Spec Class" href="spec_class.html" />
-    <link rel="prev" title="Quick Start" href="../usage/quickstart.html" />
+    <link rel="next" title="The Line_fit Class" href="../Line_Fitter/line_class.html" />
+    <link rel="prev" title="The Spec Class" href="spec_class.html" />
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
 
   </head><body>
 <div class="topbar">
-  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">Spec_pipeline</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
   <ul>
     
-    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <!--<li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>-->
     <li><a title="General Index" href="../genindex.html">Index</a></li>
     <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
     <li>
@@ -48,12 +48,12 @@
     <h3>Navigation</h3>
     <ul>
       <li class="right">
-	<a href="spec_class.html" title="The Spec Class">
+	<a href="../Line_Fitter/line_class.html" title="The Line_fit Class">
 	  next &raquo;
 	</a>
       </li>
       <li class="right">
-	<a href="../usage/quickstart.html" title="Quick Start">
+	<a href="spec_class.html" title="The Spec Class">
 	  &laquo; previous
 	</a>
 	 |
@@ -77,7 +77,7 @@
 <h1>Implemented Spec Classes<a class="headerlink" href="#implemented-spec-classes" title="Permalink to this headline">¶</a></h1>
 <p>This page lists the modules built for the different instruments. All of them are implemented as a class that setups a spec object. For other instruments, it is better to modify one of these classes than to load it using the Spec superclass.</p>
 <div class="section" id="lris-spec">
-<h2><a class="reference internal" href="#Spec_pipeline.LRIS_Spec" title="Spec_pipeline.LRIS_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">LRIS_Spec</span></code></a><a class="headerlink" href="#lris-spec" title="Permalink to this headline">¶</a></h2>
+<h2><a class="reference internal" href="../api/Spec_pipeline.LRIS_Spec.html#Spec_pipeline.LRIS_Spec" title="Spec_pipeline.LRIS_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">LRIS_Spec</span></code></a><a class="headerlink" href="#lris-spec" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="Spec_pipeline.LRIS_Spec">
 <em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">LRIS_Spec</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">zspec</em>, <em class="sig-param">fits_file</em>, <em class="sig-param">blue=False</em>, <em class="sig-param">red=False</em>, <em class="sig-param">show_err_plot=False</em>, <em class="sig-param">local_sky_file=None</em>, <em class="sig-param">local_sens_file=None</em>, <em class="sig-param">inst_conf=None</em>, <em class="sig-param">header_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Spec_Reader/LRIS_Spec.html#LRIS_Spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.LRIS_Spec" title="Permalink to this definition">¶</a></dt>
@@ -113,7 +113,7 @@
 
 </div>
 <div class="section" id="gmos-spec">
-<h2><a class="reference internal" href="#Spec_pipeline.GMOS_Spec" title="Spec_pipeline.GMOS_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">GMOS_Spec</span></code></a><a class="headerlink" href="#gmos-spec" title="Permalink to this headline">¶</a></h2>
+<h2><a class="reference internal" href="../api/Spec_pipeline.GMOS_Spec.html#Spec_pipeline.GMOS_Spec" title="Spec_pipeline.GMOS_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">GMOS_Spec</span></code></a><a class="headerlink" href="#gmos-spec" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="Spec_pipeline.GMOS_Spec">
 <em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">GMOS_Spec</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">zspec</em>, <em class="sig-param">fits_file</em>, <em class="sig-param">show_err_plot=False</em>, <em class="sig-param">local_sky_file=None</em>, <em class="sig-param">local_sens_file=None</em>, <em class="sig-param">inst_conf=None</em>, <em class="sig-param">header_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Spec_Reader/GMOS_Spec.html#GMOS_Spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.GMOS_Spec" title="Permalink to this definition">¶</a></dt>
@@ -145,7 +145,7 @@
 
 </div>
 <div class="section" id="dbsp-spec">
-<h2><a class="reference internal" href="#Spec_pipeline.DBSP_Spec" title="Spec_pipeline.DBSP_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">DBSP_Spec</span></code></a><a class="headerlink" href="#dbsp-spec" title="Permalink to this headline">¶</a></h2>
+<h2><a class="reference internal" href="../api/Spec_pipeline.DBSP_Spec.html#Spec_pipeline.DBSP_Spec" title="Spec_pipeline.DBSP_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">DBSP_Spec</span></code></a><a class="headerlink" href="#dbsp-spec" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="Spec_pipeline.DBSP_Spec">
 <em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">DBSP_Spec</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">zspec</em>, <em class="sig-param">fits_file</em>, <em class="sig-param">blue=False</em>, <em class="sig-param">red=False</em>, <em class="sig-param">show_err_plot=False</em>, <em class="sig-param">local_sky_file=None</em>, <em class="sig-param">local_sens_file=None</em>, <em class="sig-param">inst_conf=None</em>, <em class="sig-param">header_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Spec_Reader/DBSP_Spec.html#DBSP_Spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.DBSP_Spec" title="Permalink to this definition">¶</a></dt>
@@ -181,7 +181,7 @@
 
 </div>
 <div class="section" id="deimos-spec">
-<h2><a class="reference internal" href="#Spec_pipeline.DEIMOS_Spec" title="Spec_pipeline.DEIMOS_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">DEIMOS_Spec</span></code></a><a class="headerlink" href="#deimos-spec" title="Permalink to this headline">¶</a></h2>
+<h2><a class="reference internal" href="../api/Spec_pipeline.DEIMOS_Spec.html#Spec_pipeline.DEIMOS_Spec" title="Spec_pipeline.DEIMOS_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">DEIMOS_Spec</span></code></a><a class="headerlink" href="#deimos-spec" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="Spec_pipeline.DEIMOS_Spec">
 <em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">DEIMOS_Spec</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">zspec</em>, <em class="sig-param">fits_file</em>, <em class="sig-param">blue=False</em>, <em class="sig-param">red=False</em>, <em class="sig-param">show_err_plot=False</em>, <em class="sig-param">local_sky_file=None</em>, <em class="sig-param">local_sens_file=None</em>, <em class="sig-param">inst_conf=None</em>, <em class="sig-param">header_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Spec_Reader/DEIMOS_Spec.html#DEIMOS_Spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.DEIMOS_Spec" title="Permalink to this definition">¶</a></dt>
@@ -217,7 +217,7 @@
 
 </div>
 <div class="section" id="sdss-spec">
-<h2><a class="reference internal" href="#Spec_pipeline.SDSS_Spec" title="Spec_pipeline.SDSS_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">SDSS_Spec</span></code></a><a class="headerlink" href="#sdss-spec" title="Permalink to this headline">¶</a></h2>
+<h2><a class="reference internal" href="../api/Spec_pipeline.SDSS_Spec.html#Spec_pipeline.SDSS_Spec" title="Spec_pipeline.SDSS_Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">SDSS_Spec</span></code></a><a class="headerlink" href="#sdss-spec" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="Spec_pipeline.SDSS_Spec">
 <em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">SDSS_Spec</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">zspec</em>, <em class="sig-param">fits_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Spec_Reader/SDSS_Spec.html#SDSS_Spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.SDSS_Spec" title="Permalink to this definition">¶</a></dt>
@@ -270,7 +270,7 @@
   <p>
     &copy; Copyright 2020, Roberto Assef.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
-    Last built 08 Oct 2020. <br/>
+    Last built 09 Oct 2020. <br/>
   </p>
 </footer>
   </body>

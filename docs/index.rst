@@ -6,6 +6,8 @@
 Welcome to Spec_pipeline's documentation!
 =========================================
 
+Here you can find the documentation for using this package. It was built for analyzing the Hot DOG spectra presented in Eisenhardt et al. (in prep.), but can be useful for analysis of more spectra. 
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -34,6 +36,8 @@ Classes to Fit Spectra
 
    Line_Fitter/line_class
    Line_Fitter/implemented
+
+.. automodapi:: Spec_pipeline
 
 Indices and tables
 ==================

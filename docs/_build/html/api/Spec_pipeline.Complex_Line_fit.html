@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Complex_Line_fit &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DBSP_Spec" href="Spec_pipeline.DBSP_Spec.html" />
+    <link rel="prev" title="Implemented Line Fitter Classes" href="../Line_Fitter/implemented.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">Spec_pipeline</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <!--<li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>-->
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="Spec_pipeline.DBSP_Spec.html" title="DBSP_Spec">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="../Line_Fitter/implemented.html" title="Implemented Line Fitter Classes">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      
+      <li>Complex_Line_fit</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="complex-line-fit">
+<h1>Complex_Line_fit<a class="headerlink" href="#complex-line-fit" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="Spec_pipeline.Complex_Line_fit">
+<em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">Complex_Line_fit</code><span class="sig-paren">(</span><em class="sig-param">line_name=None</em>, <em class="sig-param">spec=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../Line_Fitter/line_class.html#Spec_pipeline.Line_Fitter.line_class.Line_fit" title="Spec_pipeline.Line_Fitter.line_class.Line_fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spec_pipeline.Line_Fitter.line_class.Line_fit</span></code></a></p>
+<p>Flexible method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>line_name</strong><span class="classifier">string, optional</span></dt><dd><p>Name of the emission line. Only for user identification.</p>
+</dd>
+<dt><strong>spec</strong><span class="classifier">spec object, optional</span></dt><dd><p>Spec object to be used as the default spectrum to be fit. Highly recommended to be used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.continuum_regions" title="Spec_pipeline.Complex_Line_fit.continuum_regions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">continuum_regions</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.ncont_reg" title="Spec_pipeline.Complex_Line_fit.ncont_reg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ncont_reg</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.npar_cont" title="Spec_pipeline.Complex_Line_fit.npar_cont"><code class="xref py py-obj docutils literal notranslate"><span class="pre">npar_cont</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.npar_fit" title="Spec_pipeline.Complex_Line_fit.npar_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">npar_fit</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.npar_line" title="Spec_pipeline.Complex_Line_fit.npar_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">npar_line</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.add_line" title="Spec_pipeline.Complex_Line_fit.add_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_line</span></code></a>(line_name[, width_type])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.can_fit_be_run" title="Spec_pipeline.Complex_Line_fit.can_fit_be_run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">can_fit_be_run</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.cont_initial_fit_values" title="Spec_pipeline.Complex_Line_fit.cont_initial_fit_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cont_initial_fit_values</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.cont_par_parser" title="Spec_pipeline.Complex_Line_fit.cont_par_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cont_par_parser</span></code></a>(x_cont)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.flam_cont_model" title="Spec_pipeline.Complex_Line_fit.flam_cont_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flam_cont_model</span></code></a>(lam[, x_cont])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.flam_line_model" title="Spec_pipeline.Complex_Line_fit.flam_line_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flam_line_model</span></code></a>(lam[, x_line])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.flam_model" title="Spec_pipeline.Complex_Line_fit.flam_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flam_model</span></code></a>(lam[, x, chain_output])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.get_i_ban" title="Spec_pipeline.Complex_Line_fit.get_i_ban"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_i_ban</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.get_i_cont" title="Spec_pipeline.Complex_Line_fit.get_i_cont"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_i_cont</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.get_i_fit" title="Spec_pipeline.Complex_Line_fit.get_i_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_i_fit</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.get_i_line" title="Spec_pipeline.Complex_Line_fit.get_i_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_i_line</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.line_legends" title="Spec_pipeline.Complex_Line_fit.line_legends"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_legends</span></code></a>(ax)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.lines_initial_fit_values" title="Spec_pipeline.Complex_Line_fit.lines_initial_fit_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lines_initial_fit_values</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.meet_constraints" title="Spec_pipeline.Complex_Line_fit.meet_constraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meet_constraints</span></code></a>(x)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.meet_cont_constraints" title="Spec_pipeline.Complex_Line_fit.meet_cont_constraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meet_cont_constraints</span></code></a>(x_cont)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.meet_line_constraints" title="Spec_pipeline.Complex_Line_fit.meet_line_constraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meet_line_constraints</span></code></a>(x_line)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.parse_chain_output" title="Spec_pipeline.Complex_Line_fit.parse_chain_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_chain_output</span></code></a>(Output)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.set_cont_pars" title="Spec_pipeline.Complex_Line_fit.set_cont_pars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_cont_pars</span></code></a>(x_cont)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.set_initial_fit_values" title="Spec_pipeline.Complex_Line_fit.set_initial_fit_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_initial_fit_values</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.set_line_pars" title="Spec_pipeline.Complex_Line_fit.set_line_pars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_line_pars</span></code></a>(x_line)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Complex_Line_fit.set_pars" title="Spec_pipeline.Complex_Line_fit.set_pars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pars</span></code></a>(x)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="Spec_pipeline.Complex_Line_fit.continuum_regions">
+<code class="sig-name descname">continuum_regions</code><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.continuum_regions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Complex_Line_fit.ncont_reg">
+<code class="sig-name descname">ncont_reg</code><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.ncont_reg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Complex_Line_fit.npar_cont">
+<code class="sig-name descname">npar_cont</code><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.npar_cont" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Complex_Line_fit.npar_fit">
+<code class="sig-name descname">npar_fit</code><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.npar_fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Complex_Line_fit.npar_line">
+<code class="sig-name descname">npar_line</code><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.npar_line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods Documentation</p>
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.add_line">
+<code class="sig-name descname">add_line</code><span class="sig-paren">(</span><em class="sig-param">line_name</em>, <em class="sig-param">width_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.add_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.add_line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.can_fit_be_run">
+<code class="sig-name descname">can_fit_be_run</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.can_fit_be_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.can_fit_be_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.cont_initial_fit_values">
+<code class="sig-name descname">cont_initial_fit_values</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.cont_initial_fit_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.cont_initial_fit_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.cont_par_parser">
+<code class="sig-name descname">cont_par_parser</code><span class="sig-paren">(</span><em class="sig-param">x_cont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.cont_par_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.cont_par_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.flam_cont_model">
+<code class="sig-name descname">flam_cont_model</code><span class="sig-paren">(</span><em class="sig-param">lam</em>, <em class="sig-param">x_cont=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.flam_cont_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.flam_cont_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.flam_line_model">
+<code class="sig-name descname">flam_line_model</code><span class="sig-paren">(</span><em class="sig-param">lam</em>, <em class="sig-param">x_line=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.flam_line_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.flam_line_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.flam_model">
+<code class="sig-name descname">flam_model</code><span class="sig-paren">(</span><em class="sig-param">lam</em>, <em class="sig-param">x=None</em>, <em class="sig-param">chain_output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.flam_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.flam_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.get_i_ban">
+<code class="sig-name descname">get_i_ban</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.get_i_ban"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.get_i_ban" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.get_i_cont">
+<code class="sig-name descname">get_i_cont</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.get_i_cont"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.get_i_cont" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.get_i_fit">
+<code class="sig-name descname">get_i_fit</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.get_i_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.get_i_fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.get_i_line">
+<code class="sig-name descname">get_i_line</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.get_i_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.get_i_line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.line_legends">
+<code class="sig-name descname">line_legends</code><span class="sig-paren">(</span><em class="sig-param">ax</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.line_legends"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.line_legends" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.lines_initial_fit_values">
+<code class="sig-name descname">lines_initial_fit_values</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.lines_initial_fit_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.lines_initial_fit_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.meet_constraints">
+<code class="sig-name descname">meet_constraints</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.meet_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.meet_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.meet_cont_constraints">
+<code class="sig-name descname">meet_cont_constraints</code><span class="sig-paren">(</span><em class="sig-param">x_cont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.meet_cont_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.meet_cont_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.meet_line_constraints">
+<code class="sig-name descname">meet_line_constraints</code><span class="sig-paren">(</span><em class="sig-param">x_line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.meet_line_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.meet_line_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.parse_chain_output">
+<code class="sig-name descname">parse_chain_output</code><span class="sig-paren">(</span><em class="sig-param">Output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.parse_chain_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.parse_chain_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.set_cont_pars">
+<code class="sig-name descname">set_cont_pars</code><span class="sig-paren">(</span><em class="sig-param">x_cont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.set_cont_pars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.set_cont_pars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.set_initial_fit_values">
+<code class="sig-name descname">set_initial_fit_values</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.set_initial_fit_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.set_initial_fit_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.set_line_pars">
+<code class="sig-name descname">set_line_pars</code><span class="sig-paren">(</span><em class="sig-param">x_line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.set_line_pars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.set_line_pars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Complex_Line_fit.set_pars">
+<code class="sig-name descname">set_pars</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/complex_line.html#Complex_Line_fit.set_pars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Complex_Line_fit.set_pars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Complex_Line_fit</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/api/Spec_pipeline.Complex_Line_fit.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 09 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>

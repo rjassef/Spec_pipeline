@@ -23,10 +23,10 @@
 
   </head><body>
 <div class="topbar">
-  <a class="brand" title="Documentation Home" href="../../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <a class="brand" title="Documentation Home" href="../../../index.html"><span id="logotext1">Spec_pipeline</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
   <ul>
     
-    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <!--<li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>-->
     <li><a title="General Index" href="../../../genindex.html">Index</a></li>
     <li><a title="Module Index" href="../../../py-modindex.html">Modules</a></li>
     <li>
@@ -76,7 +76,7 @@
 <span class="kn">from</span> <span class="nn">.line_class</span> <span class="k">import</span> <span class="n">Line_fit</span>
 <span class="kn">from</span> <span class="nn">.MC_errors_general</span> <span class="k">import</span> <span class="n">get_error</span>
 
-<div class="viewcode-block" id="Multi_Line_fit"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit">[docs]</a><span class="k">class</span> <span class="nc">Multi_Line_fit</span><span class="p">(</span><span class="n">Line_fit</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit">[docs]</a><span class="k">class</span> <span class="nc">Multi_Line_fit</span><span class="p">(</span><span class="n">Line_fit</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Main method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.</span>
@@ -217,7 +217,7 @@
 
     <span class="c1">#Order is always [dv1, flam_line1, sigma_v1, dv2, flam_line2, ...]</span>
 
-    <span class="k">def</span> <span class="nf">line_par_translator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line_fit</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.line_par_translator"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.line_par_translator">[docs]</a>    <span class="k">def</span> <span class="nf">line_par_translator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line_fit</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_line_fit</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
             <span class="n">x_line_use</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
@@ -257,7 +257,7 @@
                 <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
 
 
-        <span class="k">return</span> <span class="n">x_line_use</span>
+        <span class="k">return</span> <span class="n">x_line_use</span></div>
 
 
     <span class="c1">###################</span>
@@ -265,7 +265,7 @@
     <span class="c1">###################</span>
 
     <span class="c1">#Complete model.</span>
-<div class="viewcode-block" id="Multi_Line_fit.flam_model"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.flam_model">[docs]</a>    <span class="k">def</span> <span class="nf">flam_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.flam_model"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.flam_model">[docs]</a>    <span class="k">def</span> <span class="nf">flam_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function that returns the best-fit model to the spectrum.</span>
@@ -305,7 +305,7 @@
 
 
     <span class="c1">#A Gaussian per line.</span>
-    <span class="k">def</span> <span class="nf">flam_line_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x_line</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.flam_line_model"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.flam_line_model">[docs]</a>    <span class="k">def</span> <span class="nf">flam_line_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x_line</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">x_line_use</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">x_line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x_line_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_translator</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
@@ -319,24 +319,24 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">flam_line_model</span> <span class="o">+=</span> <span class="n">flam_line</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">((</span><span class="n">v</span><span class="o">-</span><span class="n">dv</span><span class="p">)</span><span class="o">/</span><span class="n">sigma_v</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">flam_line_model</span>
+        <span class="k">return</span> <span class="n">flam_line_model</span></div>
 
     <span class="c1">#Continuum will be a straight line.</span>
-    <span class="k">def</span> <span class="nf">flam_cont_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x_cont</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.flam_cont_model"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.flam_cont_model">[docs]</a>    <span class="k">def</span> <span class="nf">flam_cont_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x_cont</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cont_par_parser</span><span class="p">(</span><span class="n">x_cont</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">a</span><span class="o">*</span><span class="n">lam</span><span class="o">+</span><span class="n">b</span>
+        <span class="k">return</span> <span class="n">a</span><span class="o">*</span><span class="n">lam</span><span class="o">+</span><span class="n">b</span></div>
 
 
-    <span class="k">def</span> <span class="nf">cont_par_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.cont_par_parser"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.cont_par_parser">[docs]</a>    <span class="k">def</span> <span class="nf">cont_par_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x_cont</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span>
             <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">a</span> <span class="o">=</span> <span class="n">x_cont</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span>
             <span class="n">b</span> <span class="o">=</span> <span class="n">x_cont</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
-        <span class="k">return</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span>
+        <span class="k">return</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span></div>
 
-    <span class="k">def</span> <span class="nf">line_par_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.line_par_parser"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.line_par_parser">[docs]</a>    <span class="k">def</span> <span class="nf">line_par_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x_line_use</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dv</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">flam_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -345,7 +345,7 @@
             <span class="n">dv</span>        <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span>  <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
             <span class="n">flam_line</span> <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
             <span class="n">sigma_v</span>   <span class="o">=</span> <span class="n">x_line_use</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
-        <span class="k">return</span> <span class="n">dv</span><span class="p">,</span> <span class="n">flam_line</span><span class="p">,</span> <span class="n">sigma_v</span>
+        <span class="k">return</span> <span class="n">dv</span><span class="p">,</span> <span class="n">flam_line</span><span class="p">,</span> <span class="n">sigma_v</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">line_SNR</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -400,7 +400,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">S</span><span class="o">/</span><span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
 
     <span class="c1">#Line flux or fluxes, depending on the case.</span>
-<div class="viewcode-block" id="Multi_Line_fit.line_flux"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.line_flux">[docs]</a>    <span class="k">def</span> <span class="nf">line_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_line</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">SNR_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.line_flux"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.line_flux">[docs]</a>    <span class="k">def</span> <span class="nf">line_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_line</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">SNR_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Flux of the emission line modeled. Can only be obtained after running run_fit.</span>
@@ -476,7 +476,7 @@
         <span class="k">return</span> <span class="n">flux</span>
 
     <span class="c1">#Note that this expression for the EW is only valid for cases in which the continuum is either constant with wavelength or antisymmetric around the peak wavelength (such as the case for the linear continuum used here).</span>
-<div class="viewcode-block" id="Multi_Line_fit.EW"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.EW">[docs]</a>    <span class="k">def</span> <span class="nf">EW</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.EW"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.EW">[docs]</a>    <span class="k">def</span> <span class="nf">EW</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Equivaleng width of the emission line modeled. Can only be obtained after running run_fit.</span>
@@ -526,13 +526,13 @@
     <span class="c1">#############</span>
 
     <span class="c1">#Check if constraints are met.</span>
-    <span class="k">def</span> <span class="nf">meet_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.meet_constraints"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.meet_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">meet_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>
         <span class="n">x_line</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span>
         <span class="n">x_cont</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meet_line_constraints</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">meet_cont_constraints</span><span class="p">(</span><span class="n">x_cont</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meet_line_constraints</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">meet_cont_constraints</span><span class="p">(</span><span class="n">x_cont</span><span class="p">))</span></div>
 
     <span class="c1">#Constraints on the continuum fit parameters.</span>
-    <span class="k">def</span> <span class="nf">meet_cont_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.meet_cont_constraints"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.meet_cont_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">meet_cont_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
         <span class="c1">#Require continuum to be non-negative over the entire range. Since it is just a straight line, it is enough to check the edges of the regions.</span>
         <span class="c1">#a, b = self.cont_par_parser(x_cont)</span>
         <span class="c1">#edge_fluxes = a*self.continuum_regions.flatten()+b</span>
@@ -542,10 +542,10 @@
         <span class="n">edge_fluxes</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">lam</span><span class="o">+</span><span class="n">b</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_fluxes</span><span class="p">[</span><span class="n">edge_fluxes</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="c1">#Constraints on the emission line fit parameters.</span>
-    <span class="k">def</span> <span class="nf">meet_line_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.meet_line_constraints"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.meet_line_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">meet_line_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line</span><span class="p">):</span>
 
         <span class="n">x_line_use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_translator</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
 
@@ -565,10 +565,10 @@
             <span class="k">if</span> <span class="n">flam_line</span><span class="o">&lt;</span><span class="mf">0.</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="c1">#This function is called to determine that the fit can indeed be run.</span>
-    <span class="k">def</span> <span class="nf">can_fit_be_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.can_fit_be_run"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.can_fit_be_run">[docs]</a>    <span class="k">def</span> <span class="nf">can_fit_be_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 
         <span class="c1">#Check if centroid of the emission line is within the</span>
         <span class="c1">#spectrum.</span>
@@ -580,24 +580,24 @@
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lines not within spectrum&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="c1">##################</span>
     <span class="c1"># Index functions</span>
     <span class="c1">##################</span>
 
-    <span class="k">def</span> <span class="nf">get_i_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.get_i_fit"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.get_i_fit">[docs]</a>    <span class="k">def</span> <span class="nf">get_i_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
         <span class="n">i_cont</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_cont</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
         <span class="n">i_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_line</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
         <span class="n">i_ban</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_ban</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
         <span class="n">i_all</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">i_cont</span><span class="p">,</span><span class="n">i_line</span><span class="p">)))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i_ban</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
             <span class="n">i_all</span> <span class="o">=</span> <span class="n">i_all</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">i_all</span><span class="p">,</span><span class="n">i_ban</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="n">i_all</span>
+        <span class="k">return</span> <span class="n">i_all</span></div>
 
     <span class="c1">#This function is called to determine the indices of the spectrum</span>
     <span class="c1">#to be used for fitting the continuum.</span>
-    <span class="k">def</span> <span class="nf">get_i_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.get_i_cont"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.get_i_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_i_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
 
         <span class="n">i_cont_use</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncont_reg</span><span class="p">):</span>
@@ -607,11 +607,11 @@
             <span class="p">)</span>
         <span class="n">i_cont_flat</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">i_cont_use</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
         <span class="n">i_cont</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">i_cont_flat</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">i_cont</span>
+        <span class="k">return</span> <span class="n">i_cont</span></div>
 
     <span class="c1">#This is one is called to determine the indices of the spectrum</span>
     <span class="c1">#used for fitting the emission line.</span>
-    <span class="k">def</span> <span class="nf">get_i_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.get_i_line"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.get_i_line">[docs]</a>    <span class="k">def</span> <span class="nf">get_i_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
         <span class="c1">#Only consider regions within a certain velocity range of the</span>
         <span class="c1">#canonical emission line center.</span>
         <span class="n">lam_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_center</span><span class="p">)</span>
@@ -630,27 +630,27 @@
 
         <span class="n">i_line</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">k_min</span><span class="p">,</span><span class="n">k_max</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">i_line</span>
+        <span class="k">return</span> <span class="n">i_line</span></div>
 
     <span class="c1">#This function is called to get the indices of wavelengths ranges that should be excised from the any fit. The first obvious regions to be omitted are the atmospheric A-band and B-band absorption lines. Taken from Smette et al. (2015), section 2.</span>
     <span class="c1">#Updated on Sep 1, 2020 to numbers suggested by Dan Stern over email.</span>
-    <span class="k">def</span> <span class="nf">get_i_ban</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.get_i_ban"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.get_i_ban">[docs]</a>    <span class="k">def</span> <span class="nf">get_i_ban</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
         <span class="c1">#A-band</span>
         <span class="n">i_banA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">((</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">&gt;=</span><span class="mf">7592.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">&lt;=</span><span class="mf">7677.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">))</span>
         <span class="c1">#B-band</span>
         <span class="n">i_banB</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">((</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">&gt;=</span><span class="mf">6864.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_obs</span><span class="o">&lt;=</span><span class="mf">6920.</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">))</span>
         <span class="n">i_ban</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">i_banA</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span><span class="n">i_banB</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
-        <span class="k">return</span> <span class="n">i_ban</span>
+        <span class="k">return</span> <span class="n">i_ban</span></div>
 
     <span class="c1">#####################</span>
     <span class="c1"># Useful properties.</span>
     <span class="c1">#####################</span>
 
 
-    <span class="k">def</span> <span class="nf">sigma_to_FWHM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sigma_v</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.sigma_to_FWHM"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.sigma_to_FWHM">[docs]</a>    <span class="k">def</span> <span class="nf">sigma_to_FWHM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sigma_v</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">sigma_v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">sigma_v</span><span class="o">*</span><span class="mf">2.</span><span class="o">*</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
+        <span class="k">return</span> <span class="n">sigma_v</span><span class="o">*</span><span class="mf">2.</span><span class="o">*</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">FWHM_v</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -686,15 +686,15 @@
     <span class="c1"># Parameter setters. #</span>
     <span class="c1">######################</span>
 
-    <span class="k">def</span> <span class="nf">set_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.set_pars"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.set_pars">[docs]</a>    <span class="k">def</span> <span class="nf">set_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>
         <span class="n">x_line</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span>
         <span class="n">x_cont</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_line_pars</span><span class="p">(</span><span class="n">x_line</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_cont_pars</span><span class="p">(</span><span class="n">x_cont</span><span class="p">)</span>
-        <span class="k">return</span>
+        <span class="k">return</span></div>
 
 
-    <span class="k">def</span> <span class="nf">set_line_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.set_line_pars"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.set_line_pars">[docs]</a>    <span class="k">def</span> <span class="nf">set_line_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_line</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vunit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span>
@@ -706,13 +706,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">dv_fit</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">flam_line_fit</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>\
                 <span class="bp">self</span><span class="o">.</span><span class="n">sigma_v_fit</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_par_parser</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">x_line_use</span><span class="p">)</span>
 
-        <span class="k">return</span>
+        <span class="k">return</span></div>
 
-    <span class="k">def</span> <span class="nf">set_cont_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cont_par_parser</span><span class="p">(</span><span class="n">x_cont</span><span class="p">)</span>
+<div class="viewcode-block" id="Multi_Line_fit.set_cont_pars"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.set_cont_pars">[docs]</a>    <span class="k">def</span> <span class="nf">set_cont_pars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_cont</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cont_par_parser</span><span class="p">(</span><span class="n">x_cont</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">set_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.set_initial_fit_values"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.set_initial_fit_values">[docs]</a>    <span class="k">def</span> <span class="nf">set_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
 
         <span class="c1">#Check that the fit can be run.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_fit_be_run</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -723,9 +723,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x0_line</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">x0_cont</span><span class="p">))</span>
 
-        <span class="k">return</span>
+        <span class="k">return</span></div>
 
-    <span class="k">def</span> <span class="nf">lines_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.lines_initial_fit_values"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.lines_initial_fit_values">[docs]</a>    <span class="k">def</span> <span class="nf">lines_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
 
         <span class="c1">#Set up the initial values.</span>
         <span class="n">dv_0</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">)</span> <span class="c1">#km/s</span>
@@ -749,18 +749,18 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_sigma</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
                 <span class="n">x0_line</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigma_v_0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
-        <span class="k">return</span> <span class="n">x0_line</span>
+        <span class="k">return</span> <span class="n">x0_line</span></div>
 
-    <span class="k">def</span> <span class="nf">cont_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.cont_initial_fit_values"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.cont_initial_fit_values">[docs]</a>    <span class="k">def</span> <span class="nf">cont_initial_fit_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">):</span>
         <span class="n">i_cont</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_i_cont</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
         <span class="n">mean_cont</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">flam</span><span class="p">[</span><span class="n">i_cont</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flamunit</span><span class="p">)</span>
         <span class="n">mean_lam</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">lam_rest</span><span class="p">[</span><span class="n">i_cont</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveunit</span><span class="p">)</span>
         <span class="n">a0</span> <span class="o">=</span> <span class="n">mean_cont</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">mean_lam</span><span class="o">.</span><span class="n">value</span>
         <span class="n">b0</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="n">x0_cont</span> <span class="o">=</span> <span class="p">[</span><span class="n">a0</span><span class="p">,</span><span class="n">b0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">x0_cont</span>
+        <span class="k">return</span> <span class="n">x0_cont</span></div>
 
-    <span class="k">def</span> <span class="nf">parse_chain_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">Output</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.parse_chain_output"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.parse_chain_output">[docs]</a>    <span class="k">def</span> <span class="nf">parse_chain_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">Output</span><span class="p">):</span>
 
         <span class="n">x_line</span> <span class="o">=</span> <span class="n">Output</span><span class="p">[:,:</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
         <span class="n">x_cont</span> <span class="o">=</span> <span class="n">Output</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">npar_line</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
@@ -799,14 +799,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">a_low</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_hig</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">b_low</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_hig</span> <span class="o">=</span> <span class="n">get_error</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
 
-        <span class="k">return</span>
+        <span class="k">return</span></div>
 
     <span class="c1">##########</span>
     <span class="c1"># Plotting</span>
     <span class="c1">##########</span>
 
     <span class="c1">#Textbox with fit results. We will use one box per emission line, below the spectrum. We have up to three emission lines.</span>
-    <span class="k">def</span> <span class="nf">line_legends</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.line_legends"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.line_legends">[docs]</a>    <span class="k">def</span> <span class="nf">line_legends</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
 
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
@@ -825,7 +825,7 @@
                 <span class="n">textbox</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">p   = </span><span class="si">{0:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.025</span><span class="o">+</span><span class="n">i</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">,</span> <span class="n">textbox</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">props</span><span class="p">)</span>
 
-        <span class="k">return</span>
+        <span class="k">return</span></div>
 
     <span class="c1">##########</span>
     <span class="c1"># Printing</span>
@@ -889,7 +889,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">EW_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">print_output</span>
 
-    <span class="k">def</span> <span class="nf">print_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.print_header"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.print_header">[docs]</a>    <span class="k">def</span> <span class="nf">print_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">print_output</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0:15s}</span><span class="s2"> </span><span class="si">{1:7s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Obj_ID&quot;</span><span class="p">,</span><span class="s2">&quot;z_spec&quot;</span><span class="p">)</span>
         <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;line_id&quot;</span><span class="p">)</span>
         <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:10s}</span><span class="s2"> </span><span class="si">{1:10s}</span><span class="s2"> </span><span class="si">{2:10s}</span><span class="s2"> </span><span class="si">{3:10s}</span><span class="s2"> </span><span class="si">{4:10s}</span><span class="s2"> </span><span class="si">{5:10s}</span><span class="s2"> </span><span class="si">{6:10s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;dv&quot;</span><span class="p">,</span> <span class="s2">&quot;flam_line&quot;</span><span class="p">,</span> <span class="s2">&quot;FWHM_v&quot;</span><span class="p">,</span> <span class="s2">&quot;lam_cen&quot;</span><span class="p">,</span> <span class="s2">&quot;line_flux&quot;</span><span class="p">,</span> <span class="s2">&quot;EW&quot;</span><span class="p">,</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
@@ -903,9 +903,9 @@
             <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14s}</span><span class="s2"> </span><span class="si">{1:14s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="s2">&quot;line_flux_low&quot;</span><span class="p">,</span> <span class="s2">&quot;line_flux_hig&quot;</span><span class="p">)</span>
             <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14s}</span><span class="s2"> </span><span class="si">{1:14s}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="s2">&quot;EW_low&quot;</span><span class="p">,</span> <span class="s2">&quot;EW_hig&quot;</span><span class="p">)</span>
         <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">print_output</span>
+        <span class="k">return</span> <span class="n">print_output</span></div>
 
-    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec_use</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.print"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.print">[docs]</a>    <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec_use</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_spec_use</span><span class="p">(</span><span class="n">spec_use</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_Ftest</span><span class="p">()</span>
         <span class="n">print_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -926,7 +926,7 @@
                 <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14.3e}</span><span class="s2"> </span><span class="si">{1:14.3e}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_flux_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
                 <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:14.3f}</span><span class="s2"> </span><span class="si">{1:14.3f}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">EW_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">EW_hig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
             <span class="n">print_output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">print_output</span></div>
+        <span class="k">return</span> <span class="n">print_output</span></div></div>
 </pre></div>
 
           </div>
@@ -946,7 +946,7 @@
   <p>
     &copy; Copyright 2020, Roberto Assef.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
-    Last built 08 Oct 2020. <br/>
+    Last built 09 Oct 2020. <br/>
   </p>
 </footer>
   </body>

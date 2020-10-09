@@ -1,0 +1,533 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Multi_Line_fit &#8212; Spec_pipeline 0.9.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SDSS_Spec" href="Spec_pipeline.SDSS_Spec.html" />
+    <link rel="prev" title="LRIS_Spec" href="Spec_pipeline.LRIS_Spec.html" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'/>
+
+  </head><body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">Spec_pipeline</span><span id="logotext2"></span><span id="logotext3">:docs</span></a>
+  <ul>
+    
+    <!--<li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>-->
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="Spec_pipeline.SDSS_Spec.html" title="SDSS_Spec">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="Spec_pipeline.LRIS_Spec.html" title="LRIS_Spec">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../index.html">Spec_pipeline 0.9.0 documentation</a>
+	 &#187;
+      </li>
+      
+      <li>Multi_Line_fit</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="multi-line-fit">
+<h1>Multi_Line_fit<a class="headerlink" href="#multi-line-fit" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="Spec_pipeline.Multi_Line_fit">
+<em class="property">class </em><code class="sig-prename descclassname">Spec_pipeline.</code><code class="sig-name descname">Multi_Line_fit</code><span class="sig-paren">(</span><em class="sig-param">line_name</em>, <em class="sig-param">lines_file=None</em>, <em class="sig-param">lines_center_file=None</em>, <em class="sig-param">spec=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../Line_Fitter/line_class.html#Spec_pipeline.Line_Fitter.line_class.Line_fit" title="Spec_pipeline.Line_Fitter.line_class.Line_fit"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spec_pipeline.Line_Fitter.line_class.Line_fit</span></code></a></p>
+<p>Main method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>line_name</strong><span class="classifier">string</span></dt><dd><p>Name of the emission line in the line file.</p>
+</dd>
+<dt><strong>lines_file</strong><span class="classifier">file_path, optional</span></dt><dd><p>Path of the file with the line definitions. If not provided, the default multi_lines.txt file in the Line_Fitter folder is used.</p>
+</dd>
+<dt><strong>lines_center_file</strong><span class="classifier">file_path, optional</span></dt><dd><p>Path of the file with the line centers. If not provided, the default line_centers.txt file in the Line_Fitter folder is used.</p>
+</dd>
+<dt><strong>spec</strong><span class="classifier">spec object, optional</span></dt><dd><p>Spec object to be used as the default spectrum to be fit. Highly recommended to be used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.FWHM_v" title="Spec_pipeline.Multi_Line_fit.FWHM_v"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FWHM_v</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.FWHM_v_hig" title="Spec_pipeline.Multi_Line_fit.FWHM_v_hig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FWHM_v_hig</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.FWHM_v_low" title="Spec_pipeline.Multi_Line_fit.FWHM_v_low"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FWHM_v_low</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.line_SNR" title="Spec_pipeline.Multi_Line_fit.line_SNR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_SNR</span></code></a></p></td>
+<td><p>SNR of the emission line modeled.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.line_SNR_wing" title="Spec_pipeline.Multi_Line_fit.line_SNR_wing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_SNR_wing</span></code></a></p></td>
+<td><p>SNR of the emission line modeled but estimated using only the wings of the PDF.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.npar_cont" title="Spec_pipeline.Multi_Line_fit.npar_cont"><code class="xref py py-obj docutils literal notranslate"><span class="pre">npar_cont</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.npar_fit" title="Spec_pipeline.Multi_Line_fit.npar_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">npar_fit</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.npar_line" title="Spec_pipeline.Multi_Line_fit.npar_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">npar_line</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.print_MC" title="Spec_pipeline.Multi_Line_fit.print_MC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_MC</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.print_MC_header" title="Spec_pipeline.Multi_Line_fit.print_MC_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_MC_header</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.print_fit" title="Spec_pipeline.Multi_Line_fit.print_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_fit</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.print_fit_header" title="Spec_pipeline.Multi_Line_fit.print_fit_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_fit_header</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.EW" title="Spec_pipeline.Multi_Line_fit.EW"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EW</span></code></a>([x, MC, chain_output])</p></td>
+<td><p>Equivaleng width of the emission line modeled.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.can_fit_be_run" title="Spec_pipeline.Multi_Line_fit.can_fit_be_run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">can_fit_be_run</span></code></a>(spec[, verbose])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.cont_initial_fit_values" title="Spec_pipeline.Multi_Line_fit.cont_initial_fit_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cont_initial_fit_values</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.cont_par_parser" title="Spec_pipeline.Multi_Line_fit.cont_par_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cont_par_parser</span></code></a>(x_cont)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.flam_cont_model" title="Spec_pipeline.Multi_Line_fit.flam_cont_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flam_cont_model</span></code></a>(lam[, x_cont])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.flam_line_model" title="Spec_pipeline.Multi_Line_fit.flam_line_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flam_line_model</span></code></a>(lam[, x_line])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.flam_model" title="Spec_pipeline.Multi_Line_fit.flam_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flam_model</span></code></a>(lam[, x, chain_output])</p></td>
+<td><p>Function that returns the best-fit model to the spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.get_i_ban" title="Spec_pipeline.Multi_Line_fit.get_i_ban"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_i_ban</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.get_i_cont" title="Spec_pipeline.Multi_Line_fit.get_i_cont"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_i_cont</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.get_i_fit" title="Spec_pipeline.Multi_Line_fit.get_i_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_i_fit</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.get_i_line" title="Spec_pipeline.Multi_Line_fit.get_i_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_i_line</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.line_flux" title="Spec_pipeline.Multi_Line_fit.line_flux"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_flux</span></code></a>([x_line, MC, SNR_mode, chain_output])</p></td>
+<td><p>Flux of the emission line modeled.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.line_legends" title="Spec_pipeline.Multi_Line_fit.line_legends"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_legends</span></code></a>(ax)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.line_par_parser" title="Spec_pipeline.Multi_Line_fit.line_par_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_par_parser</span></code></a>(i, x_line_use)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.line_par_translator" title="Spec_pipeline.Multi_Line_fit.line_par_translator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line_par_translator</span></code></a>(x_line_fit)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.lines_initial_fit_values" title="Spec_pipeline.Multi_Line_fit.lines_initial_fit_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lines_initial_fit_values</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.meet_constraints" title="Spec_pipeline.Multi_Line_fit.meet_constraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meet_constraints</span></code></a>(x)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.meet_cont_constraints" title="Spec_pipeline.Multi_Line_fit.meet_cont_constraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meet_cont_constraints</span></code></a>(x_cont)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.meet_line_constraints" title="Spec_pipeline.Multi_Line_fit.meet_line_constraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meet_line_constraints</span></code></a>(x_line)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.parse_chain_output" title="Spec_pipeline.Multi_Line_fit.parse_chain_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_chain_output</span></code></a>(Output)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.print" title="Spec_pipeline.Multi_Line_fit.print"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print</span></code></a>([spec_use, MC])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.print_header" title="Spec_pipeline.Multi_Line_fit.print_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_header</span></code></a>([MC])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.set_cont_pars" title="Spec_pipeline.Multi_Line_fit.set_cont_pars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_cont_pars</span></code></a>(x_cont)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.set_initial_fit_values" title="Spec_pipeline.Multi_Line_fit.set_initial_fit_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_initial_fit_values</span></code></a>(spec)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.set_line_pars" title="Spec_pipeline.Multi_Line_fit.set_line_pars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_line_pars</span></code></a>(x_line)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.set_pars" title="Spec_pipeline.Multi_Line_fit.set_pars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pars</span></code></a>(x)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Spec_pipeline.Multi_Line_fit.sigma_to_FWHM" title="Spec_pipeline.Multi_Line_fit.sigma_to_FWHM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sigma_to_FWHM</span></code></a>(sigma_v)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.FWHM_v">
+<code class="sig-name descname">FWHM_v</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.FWHM_v" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.FWHM_v_hig">
+<code class="sig-name descname">FWHM_v_hig</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.FWHM_v_hig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.FWHM_v_low">
+<code class="sig-name descname">FWHM_v_low</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.FWHM_v_low" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.line_SNR">
+<code class="sig-name descname">line_SNR</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_SNR" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNR of the emission line modeled. Can only be obtained after running run_MC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>SNR</strong><span class="classifier">float</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.line_SNR_wing">
+<code class="sig-name descname">line_SNR_wing</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_SNR_wing" title="Permalink to this definition">¶</a></dt>
+<dd><p>SNR of the emission line modeled but estimated using only the wings of the PDF. Not recommended to be used, will be deprecated. Can only be obtained after running run_MC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>SNR_wing</strong><span class="classifier">float</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.npar_cont">
+<code class="sig-name descname">npar_cont</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.npar_cont" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.npar_fit">
+<code class="sig-name descname">npar_fit</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.npar_fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.npar_line">
+<code class="sig-name descname">npar_line</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.npar_line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.print_MC">
+<code class="sig-name descname">print_MC</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.print_MC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.print_MC_header">
+<code class="sig-name descname">print_MC_header</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.print_MC_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.print_fit">
+<code class="sig-name descname">print_fit</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.print_fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spec_pipeline.Multi_Line_fit.print_fit_header">
+<code class="sig-name descname">print_fit_header</code><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.print_fit_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods Documentation</p>
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.EW">
+<code class="sig-name descname">EW</code><span class="sig-paren">(</span><em class="sig-param">x=None</em>, <em class="sig-param">MC=False</em>, <em class="sig-param">chain_output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.EW"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.EW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equivaleng width of the emission line modeled. Can only be obtained after running run_fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">array of npar length, optional</span></dt><dd><p>Fit parameters. Not really useful, as best-fit parameters are used by default.</p>
+</dd>
+<dt><strong>MC</strong><span class="classifier">boolean, optional</span></dt><dd><p>If True, estimate the EW for the whole MC chain instead of the best fit.</p>
+</dd>
+<dt><strong>chain_output</strong><span class="classifier">array of nrep x npar shape, optional</span></dt><dd><p>Provide an MC chain output different than the default one obtained from run_MC. If MC=True, the default one is preferred. Kept for legacy with earlier code, but not really useful.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>EW</strong><span class="classifier">float or array of nrep x float if MC=True</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.can_fit_be_run">
+<code class="sig-name descname">can_fit_be_run</code><span class="sig-paren">(</span><em class="sig-param">spec</em>, <em class="sig-param">verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.can_fit_be_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.can_fit_be_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.cont_initial_fit_values">
+<code class="sig-name descname">cont_initial_fit_values</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.cont_initial_fit_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.cont_initial_fit_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.cont_par_parser">
+<code class="sig-name descname">cont_par_parser</code><span class="sig-paren">(</span><em class="sig-param">x_cont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.cont_par_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.cont_par_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.flam_cont_model">
+<code class="sig-name descname">flam_cont_model</code><span class="sig-paren">(</span><em class="sig-param">lam</em>, <em class="sig-param">x_cont=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.flam_cont_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.flam_cont_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.flam_line_model">
+<code class="sig-name descname">flam_line_model</code><span class="sig-paren">(</span><em class="sig-param">lam</em>, <em class="sig-param">x_line=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.flam_line_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.flam_line_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.flam_model">
+<code class="sig-name descname">flam_model</code><span class="sig-paren">(</span><em class="sig-param">lam</em>, <em class="sig-param">x=None</em>, <em class="sig-param">chain_output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.flam_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.flam_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns the best-fit model to the spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>lam</strong><span class="classifier">float with astropy units of wavelength</span></dt><dd><p>Wavelengths for which to return the model.</p>
+</dd>
+<dt><strong>x</strong><span class="classifier">array, optional</span></dt><dd><p>Parameters for the model. Only meant to be used by the fitter, not the user. npar_line parameters for the line(s) followed by the parameters for the continuum.</p>
+</dd>
+<dt><strong>chain_output</strong><span class="classifier">two dimensional array, optional</span></dt><dd><p>MC parameters for the model. Only meant to be used by the fitter, not the user. nrep x (npar_line parameters for the line(s) followed by the parameters for the continuum).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>flam_model</strong><span class="classifier">array</span></dt><dd><p>Model spectrum. Same shape as lam if chain_output not provided. Otherwise, nrep x len(lam) shape.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.get_i_ban">
+<code class="sig-name descname">get_i_ban</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.get_i_ban"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.get_i_ban" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.get_i_cont">
+<code class="sig-name descname">get_i_cont</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.get_i_cont"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.get_i_cont" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.get_i_fit">
+<code class="sig-name descname">get_i_fit</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.get_i_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.get_i_fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.get_i_line">
+<code class="sig-name descname">get_i_line</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.get_i_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.get_i_line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.line_flux">
+<code class="sig-name descname">line_flux</code><span class="sig-paren">(</span><em class="sig-param">x_line=None</em>, <em class="sig-param">MC=False</em>, <em class="sig-param">SNR_mode=False</em>, <em class="sig-param">chain_output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.line_flux"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flux of the emission line modeled. Can only be obtained after running run_fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x_line</strong><span class="classifier">array of npar_line length, optional</span></dt><dd><p>Emission line fit parameters. Only intended for internal use to estimate SNR.</p>
+</dd>
+<dt><strong>MC</strong><span class="classifier">boolean, optional</span></dt><dd><p>If True, estimate the line flux for the whole MC chain instead of the best fit.</p>
+</dd>
+<dt><strong>SNR_mode</strong><span class="classifier">boolean, optional</span></dt><dd><p>If True, only estimates the flux within the spectrum wavelength range. Useful for the SNR calculation.</p>
+</dd>
+<dt><strong>chain_output</strong><span class="classifier">array of nrep x npar shape, optional</span></dt><dd><p>Provide an MC chain output different than the default one obtained from run_MC. If MC=True, the default one is preferred. Kept for legacy with earlier code, but not really useful.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>flux</strong><span class="classifier">float or array of nrep x float if MC=True</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.line_legends">
+<code class="sig-name descname">line_legends</code><span class="sig-paren">(</span><em class="sig-param">ax</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.line_legends"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_legends" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.line_par_parser">
+<code class="sig-name descname">line_par_parser</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">x_line_use</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.line_par_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_par_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.line_par_translator">
+<code class="sig-name descname">line_par_translator</code><span class="sig-paren">(</span><em class="sig-param">x_line_fit</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.line_par_translator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.line_par_translator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.lines_initial_fit_values">
+<code class="sig-name descname">lines_initial_fit_values</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.lines_initial_fit_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.lines_initial_fit_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.meet_constraints">
+<code class="sig-name descname">meet_constraints</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.meet_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.meet_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.meet_cont_constraints">
+<code class="sig-name descname">meet_cont_constraints</code><span class="sig-paren">(</span><em class="sig-param">x_cont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.meet_cont_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.meet_cont_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.meet_line_constraints">
+<code class="sig-name descname">meet_line_constraints</code><span class="sig-paren">(</span><em class="sig-param">x_line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.meet_line_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.meet_line_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.parse_chain_output">
+<code class="sig-name descname">parse_chain_output</code><span class="sig-paren">(</span><em class="sig-param">Output</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.parse_chain_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.parse_chain_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.print">
+<code class="sig-name descname">print</code><span class="sig-paren">(</span><em class="sig-param">spec_use=None</em>, <em class="sig-param">MC=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.print_header">
+<code class="sig-name descname">print_header</code><span class="sig-paren">(</span><em class="sig-param">MC=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.print_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.print_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.set_cont_pars">
+<code class="sig-name descname">set_cont_pars</code><span class="sig-paren">(</span><em class="sig-param">x_cont</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.set_cont_pars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.set_cont_pars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.set_initial_fit_values">
+<code class="sig-name descname">set_initial_fit_values</code><span class="sig-paren">(</span><em class="sig-param">spec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.set_initial_fit_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.set_initial_fit_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.set_line_pars">
+<code class="sig-name descname">set_line_pars</code><span class="sig-paren">(</span><em class="sig-param">x_line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.set_line_pars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.set_line_pars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.set_pars">
+<code class="sig-name descname">set_pars</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.set_pars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.set_pars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Spec_pipeline.Multi_Line_fit.sigma_to_FWHM">
+<code class="sig-name descname">sigma_to_FWHM</code><span class="sig-paren">(</span><em class="sig-param">sigma_v</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Spec_pipeline/Line_Fitter/multi_line.html#Multi_Line_fit.sigma_to_FWHM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spec_pipeline.Multi_Line_fit.sigma_to_FWHM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Multi_Line_fit</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/api/Spec_pipeline.Multi_Line_fit.rst.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2020, Roberto Assef.<br/>
+    Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
+    Last built 09 Oct 2020. <br/>
+  </p>
+</footer>
+  </body>
+</html>
