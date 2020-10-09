@@ -69,12 +69,12 @@ class Multi_Line_fit(Line_fit):
             if not line.strip():
                 continue
             x = line.split()
-            if x[0]==_line_name:
+            if x[0]==line_name:
                 line_found = True
                 break
         cat.close()
         if not line_found:
-            print("Error: Line",_line_name,"not found in file",lines_file)
+            print("Error: Line",line_name,"not found in file",lines_file)
             sys.exit()
         #x[1:] = [float(ix) for ix in x[1:]]
 
