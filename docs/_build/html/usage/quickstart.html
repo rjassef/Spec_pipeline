@@ -75,7 +75,38 @@
             
   <div class="section" id="quick-start">
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
-<p>TBA.</p>
+<div class="section" id="reading-a-spectrum">
+<h2>Reading a Spectrum<a class="headerlink" href="#reading-a-spectrum" title="Permalink to this headline">¶</a></h2>
+<p>First, create a folder in which you will be working. We will call this folder <code class="xref py py-obj docutils literal notranslate"><span class="pre">work-folder</span></code>. Inside that folder, create a directory called <code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code> and copy your fits files there.</p>
+<p>Once you have done that, you can load your spectrum in a python shell. For this example, we will assume your object is called <code class="xref py py-obj docutils literal notranslate"><span class="pre">W0123+4567</span></code> with redshift 1.234, and that the spectrum you want load corresponds to the blue arm of the LRIS spectrograph in the Keck telescope. Assuming the fits file with the spectrum is called <code class="xref py py-obj docutils literal notranslate"><span class="pre">w0123p4567_b.f.fits</span></code>, you would load it as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">Spec_pipeline</span> <span class="k">import</span> <span class="n">LRIS_Spec</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">LRIS_Spec</span><span class="p">(</span><span class="s2">&quot;W0123+4567&quot;</span><span class="p">,</span> <span class="mf">1.234</span><span class="p">,</span> <span class="s2">&quot;w0123p4567_b.f.fits&quot;</span><span class="p">,</span> <span class="n">blue</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can find a list of all the currently implemented instrument classes in <a class="reference internal" href="../Spec_Reader/implemented.html#implemented-spec-classes"><span class="std std-ref">Implemented Spec Classes</span></a>. Once the spectrum is loaded, an error spectrum is immediately created by following the process described in Eisenhardt et al. (2020).</p>
+</div>
+<div class="section" id="fitting-an-emission-line-to-the-spectrum">
+<h2>Fitting an Emission Line to the Spectrum<a class="headerlink" href="#fitting-an-emission-line-to-the-spectrum" title="Permalink to this headline">¶</a></h2>
+<p>One you have loaded an spectrum, you can fit an emission line to it. For this example, we will use the Multi_Line_fit module, which is capable of fitting simultaneous single Gaussian emission lines and a linear continuum to an spectrum. You can find details of the currently implemented fitting models at <a class="reference internal" href="../Line_Fitter/implemented.html#implemented-line-fitters"><span class="std std-ref">Implemented Line Fitter Classes</span></a>.</p>
+<p>To fit the <code class="xref py py-obj docutils literal notranslate"><span class="pre">[OII]</span></code> doublet and plot the results, you would type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">Spec_pipeline</span> <span class="k">import</span> <span class="n">Multi_Line_fit</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">oii_fitter</span> <span class="o">=</span> <span class="n">Multi_Line_fit</span><span class="p">(</span><span class="s2">&quot;[OII]&quot;</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">oii_fitter</span><span class="o">.</span><span class="n">run_fit</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">oii_fitter</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To obtain uncertainties in the parameters, you can also run a Monte Carlo process to produce nrep re-sampled spectra, fit them, and get the uncertainties from the dispersion of the chain of best-fit parameters. This is done by typing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">oii_fitter</span><span class="o">.</span><span class="n">run_MC</span><span class="p">(</span><span class="n">nrep</span><span class="o">=</span><span class="n">nrep</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">oii_fitter</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Note that this MC process runs by default in parallel mode using all available cores.</p>
+</div>
 </div>
 
 
@@ -85,7 +116,11 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
-<li><a class="reference internal" href="#">Quick Start</a></li>
+<li><a class="reference internal" href="#">Quick Start</a><ul>
+<li><a class="reference internal" href="#reading-a-spectrum">Reading a Spectrum</a></li>
+<li><a class="reference internal" href="#fitting-an-emission-line-to-the-spectrum">Fitting an Emission Line to the Spectrum</a></li>
+</ul>
+</li>
 </ul>
 
 

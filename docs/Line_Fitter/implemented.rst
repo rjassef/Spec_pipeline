@@ -1,5 +1,6 @@
 .. doctest-skip-all
 .. currentmodule:: Spec_pipeline
+.. _implemented-line-fitters:
 
 Implemented Line Fitter Classes
 *******************************

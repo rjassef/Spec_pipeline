@@ -1,5 +1,6 @@
 .. doctest-skip-all
 .. currentmodule:: Spec_pipeline
+.. _implemented-spec-classes:
 
 Implemented Spec Classes
 ************************

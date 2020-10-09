@@ -75,7 +75,30 @@
             
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>TBA.</p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>TBA</p>
+</div>
+<div class="section" id="installing-spec-pipeline">
+<h2>Installing Spec_pipeline<a class="headerlink" href="#installing-spec-pipeline" title="Permalink to this headline">¶</a></h2>
+<p>Download the source from the <a class="reference external" href="https://github.com/rjassef/Spec_pipeline/tree/v0.5">github</a> repository and unpack.</p>
+<p>Before using, you need to add the path to the folder to your <code class="xref py py-obj docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>. In bash and zsh, you can do this by executing the included script setup_bash in the root folder of the package run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">setup_bash</span>
+</pre></div>
+</div>
+<p>You can also add it to your .bashrc, .zshrc or similar by inluding the following lines run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SPEC_PIPE_LOC=path_to_Spec_pipeline
+export SPEC_PIPE_LOC
+
+PYTHONPATH=$PYTHONPATH:$SPEC_PIPE_LOC
+export PYTHONPATH
+</pre></div>
+</div>
+</div>
+<div class="section" id="testing-the-installation">
+<h2>Testing the Installation<a class="headerlink" href="#testing-the-installation" title="Permalink to this headline">¶</a></h2>
+<p>TBA</p>
+</div>
 </div>
 
 
@@ -85,7 +108,12 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
-<li><a class="reference internal" href="#">Installation</a></li>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#installing-spec-pipeline">Installing Spec_pipeline</a></li>
+<li><a class="reference internal" href="#testing-the-installation">Testing the Installation</a></li>
+</ul>
+</li>
 </ul>
 
 
