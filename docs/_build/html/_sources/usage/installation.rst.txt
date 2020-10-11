@@ -4,7 +4,16 @@ Installation
 Requirements
 ============
 
-TBA
+``Spec_pipeline`` requires a number of packages. The version number is the one the code has been tested with.
+
+- `Python <https://www.python.org/>`_ 3.6.9
+- `Numpy <https://numpy.org/>`_ 1.18.5
+- `Astropy <https://www.astropy.org/>`_ 4.0.1
+- `Matplotlib <https://matplotlib.org/>`_ 4.1.1
+
+You should be able to obtain all of these packages trough `Astroconda <https://astroconda.readthedocs.io/en/latest/>`_ .
+
+This documentation was written using `astropy-sphinx`. 
 
 Installing Spec_pipeline
 ========================

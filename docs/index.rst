@@ -6,7 +6,7 @@
 Welcome to Spec_pipeline's documentation!
 =========================================
 
-Here you can find the documentation for using this package. It was built for analyzing the Hot DOG spectra presented in Eisenhardt et al. (in prep.), but can be useful for analysis of more spectra. 
+Here you can find the documentation for using this package. It was built for analyzing the Hot DOG spectra presented in Eisenhardt et al. (in prep.), but can be useful for analysis of other spectra as well. 
 
 .. toctree::
    :maxdepth: 2

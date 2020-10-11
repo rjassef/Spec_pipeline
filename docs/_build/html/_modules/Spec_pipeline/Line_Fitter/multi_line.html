@@ -76,7 +76,7 @@
 <span class="kn">from</span> <span class="nn">.line_class</span> <span class="k">import</span> <span class="n">Line_fit</span>
 <span class="kn">from</span> <span class="nn">.MC_errors_general</span> <span class="k">import</span> <span class="n">get_error</span>
 
-<div class="viewcode-block" id="Multi_Line_fit"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit">[docs]</a><span class="k">class</span> <span class="nc">Multi_Line_fit</span><span class="p">(</span><span class="n">Line_fit</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit">[docs]</a><span class="k">class</span> <span class="nc">Multi_Line_fit</span><span class="p">(</span><span class="n">Line_fit</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Main method to fit emission lines. Lines are defined in the multi_lines.txt file, and can combine many emission lines to be fit at the same time.</span>
@@ -265,7 +265,7 @@
     <span class="c1">###################</span>
 
     <span class="c1">#Complete model.</span>
-<div class="viewcode-block" id="Multi_Line_fit.flam_model"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.flam_model">[docs]</a>    <span class="k">def</span> <span class="nf">flam_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.flam_model"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.flam_model">[docs]</a>    <span class="k">def</span> <span class="nf">flam_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lam</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function that returns the best-fit model to the spectrum.</span>
@@ -400,7 +400,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">S</span><span class="o">/</span><span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
 
     <span class="c1">#Line flux or fluxes, depending on the case.</span>
-<div class="viewcode-block" id="Multi_Line_fit.line_flux"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.line_flux">[docs]</a>    <span class="k">def</span> <span class="nf">line_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_line</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">SNR_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.line_flux"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.line_flux">[docs]</a>    <span class="k">def</span> <span class="nf">line_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_line</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">SNR_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Flux of the emission line modeled. Can only be obtained after running run_fit.</span>
@@ -476,7 +476,7 @@
         <span class="k">return</span> <span class="n">flux</span>
 
     <span class="c1">#Note that this expression for the EW is only valid for cases in which the continuum is either constant with wavelength or antisymmetric around the peak wavelength (such as the case for the linear continuum used here).</span>
-<div class="viewcode-block" id="Multi_Line_fit.EW"><a class="viewcode-back" href="../../../Line_Fitter/implemented.html#Spec_pipeline.Multi_Line_fit.EW">[docs]</a>    <span class="k">def</span> <span class="nf">EW</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multi_Line_fit.EW"><a class="viewcode-back" href="../../../api/Spec_pipeline.Multi_Line_fit.html#Spec_pipeline.Multi_Line_fit.EW">[docs]</a>    <span class="k">def</span> <span class="nf">EW</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MC</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chain_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Equivaleng width of the emission line modeled. Can only be obtained after running run_fit.</span>
@@ -946,7 +946,7 @@
   <p>
     &copy; Copyright 2020, Roberto Assef.<br/>
     Created using <a href="http://www.sphinx-doc.org/en/stable/">Sphinx</a> 2.4.0. &nbsp;
-    Last built 09 Oct 2020. <br/>
+    Last built 10 Oct 2020. <br/>
   </p>
 </footer>
   </body>
