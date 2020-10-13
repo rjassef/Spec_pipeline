@@ -126,12 +126,12 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
 
     #Shade the regions banned because of sky absorption.
     try:
-        i_ban = line_fitter.get_i_ban(spec)
+        i_ban = np.sort(line_fitter.get_i_ban(spec))
         di_ban1 = np.zeros(len(i_ban),dtype=np.int32)
         di_ban1[1:-1] = i_ban[2:]-i_ban[1:-1]
         di_ban2 = np.zeros(len(i_ban),dtype=np.int32)
         di_ban2[1:-1] = i_ban[1:-1]-i_ban[:-2]
-        i_ban_edges = i_ban[(di_ban1!=1) & (di_ban2!=1)] #Must have an even number of elements.
+        i_ban_edges = i_ban[(di_ban1!=1) | (di_ban2!=1)] #Must have an even number of elements.
         i_ban_edges = np.sort(i_ban_edges)
         for k in range(int(len(i_ban_edges)/2)):
             lam_ban = spec.lam_rest[i_ban_edges[2*k]:i_ban_edges[2*k+1]]
