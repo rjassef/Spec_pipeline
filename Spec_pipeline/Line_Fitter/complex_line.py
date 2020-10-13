@@ -66,7 +66,11 @@ class Complex_Line_fit(Line_fit):
     def add_line(self,line_name,width_type=None):
 
         #Setup the emission line.
-        self.multi_line.append(Multi_Line_fit(line_name,spec=self.default_spec))
+        line_aux = Multi_Line_fit(line_name,spec=self.default_spec)
+        if not line_aux.can_fit_be_run(self.default_spec):
+            print("Cannot add emission line ",line_name)
+            return
+        self.multi_line.append(line_aux)
         self.multi_line[-1].width_type = width_type
 
         #Replace its continuum model with the local one.
