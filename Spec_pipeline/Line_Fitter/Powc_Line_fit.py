@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import re
 
 from .complex_line import Complex_Line_fit
-from .new_fit_general as fit
+from . import new_fit_general as fit
 
 class Powc_Line_fit(Complex_Line_fit):
 
