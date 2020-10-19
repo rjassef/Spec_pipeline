@@ -5,8 +5,8 @@ from scipy.special import betainc
 import matplotlib.pyplot as plt
 import re
 
-from Spec_pipeline import DBSP_Spec, Complex_Line_fit
-from Spec_pipeline.Line_Fitter import new_fit_general as fit
+from .complex_line import Complex_Line_fit
+from .new_fit_general as fit
 
 class Powc_Line_fit(Complex_Line_fit):
 
