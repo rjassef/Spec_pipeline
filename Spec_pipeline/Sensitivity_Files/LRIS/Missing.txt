@@ -1,4 +1,3 @@
-blue e2v  400/3400  680 dichroic
 red  LBNL 400/8500  680 dichroic
 
 For R400 cannot tell which detector is being used. Will assume for now that those before 2011 are LBNL and those afterwards (starting in 2011) are Mark 2.
