@@ -114,7 +114,10 @@ class LRIS_Spec(Spec):
                 self.slit_width.unit
             except AttributeError:
                 m = re.match("long_(.*)",self.slit_width)
-                self.slit_width = float(m.group(1)) * u.arcsec
+                if m:
+                    self.slit_width = float(m.group(1)) * u.arcsec
+                else:
+                    self.slit_width = float(self.slit_width) * u.arcsec
 
         #Finish the setup
         self.run_setup(spec)
