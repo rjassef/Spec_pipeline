@@ -1,7 +1,0 @@
-It is not clear from the GMOS website what slit width and grating this spectrum was taken with. In fact, it says it is only used for broad-band imaging, so it would not matter there. Need real templates from Dan.
-
-For the moment, using the same for both gratings, assuming a 1.5 arcsec slit.
-
-B600  1.50"
-R400  1.50"
-R400  0.75" --- Not needed. Only W2042 observed with this slit and we got a blank detection.

@@ -2,31 +2,19 @@
 
 import numpy as np
 import astropy.units as u
-from astropy.constants import h,c
+from astropy.constants import c
+from Spec_pipeline.Spec_Reader.iraf_spectrum1d import read_fits_spectrum1d
 
-#####
-# Gemini South
-#####
+#B600
+spec = read_fits_spectrum1d("gemini_sky_b600_w1049m2834_11may.f.fits")
+fnu = spec[0].data * spec[0].unit
+lam = spec[0].dispersion
+flam = (fnu * c/lam**2).to(u.erg/u.s/u.cm**2/u.AA)
+np.savetxt("template_sky_GMOS_B600_1.50arcsec.txt", np.array([lam.value, flam.value]).T)
 
-def proc_geminis_sky(outname):
-
-    #Obtained from
-    #http://www.gemini.edu/sciops/telescopes-and-sites/observing-condition-constraints/optical-sky-background
-
-    #Read the sky spectrum. Assume a 1" slit and 0.1" pixels.
-    sky = np.loadtxt("skybg_50_10.GeminiS.dat")
-    lam_sky  = sky[:,0]*u.nm
-    flam_sky = sky[:,1] * 1./u.s/u.nm/u.arcsec**2/u.m**2
-
-    #Convert sky spectrum to energy units.
-    flam_sky *= (h*c/lam_sky) * (1.*u.arcsec * 0.1*u.arcsec)
-
-    #Write file. Strip the units.
-    lam_sky  = lam_sky.to(u.AA).value
-    flam_sky = flam_sky.to(u.erg/u.s/u.cm**2/u.AA).value
-    np.savetxt(outname,np.array([lam_sky, flam_sky]).T,
-               fmt='%15.8e %15.8e')
-
-####
-
-proc_geminis_sky("template_sky_GMOS.dat")
+#R400
+spec = read_fits_spectrum1d("gemini_sky_r400_w0730m7218_11may.f.fits")
+fnu = spec[0].data * spec[0].unit
+lam = spec[0].dispersion
+flam = (fnu * c/lam**2).to(u.erg/u.s/u.cm**2/u.AA)
+np.savetxt("template_sky_GMOS_R400_1.50arcsec.txt", np.array([lam.value, flam.value]).T)
