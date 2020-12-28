@@ -52,7 +52,7 @@ class Spec(object):
         Aperture radius of the telescope. Default is 1.0 m.
 
     instrument : string, optional
-        Instrument's name. Should be consistent with the name used in the default configuration files. 
+        Instrument's name. Should be consistent with the name used in the default configuration files.
 
     """
 
@@ -335,8 +335,13 @@ class Spec(object):
         except AttributeError:
             self.texp = np.float(self.texp) * u.s
 
-        #Convert fnu to flambda.
-        self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
+        #Convert fnu to flambda if in fnu units. If not, raise a warning.
+        try:
+            (fnu/(u.erg/u.s/u.cm**2/u.Hz)).to(u.dimensionless_unscaled)
+            self.flam = (fnu*c/self.lam_obs**2).to(u.erg/(u.cm**2*u.s*u.AA))
+        except u.UnitConversionError:
+            print("Could not convert fnu to flam due to units issue. Leaving spectrum with original units.")
+            self.flam = fnu
 
         return
 

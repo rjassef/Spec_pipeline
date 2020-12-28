@@ -144,7 +144,9 @@ class spectrum1d(object):
                     self.data *= conv.value
                 except u.UnitConversionError:
                     print("Error: Flux units requested not equivalent to flux units in header.")
-                    sys.exit()
+                    self.unit = self.native_unit
+                    #sys.exit()
+                    return
         self.data *= (self.native_unit*conv.unit).to(self.unit)
 
         return
