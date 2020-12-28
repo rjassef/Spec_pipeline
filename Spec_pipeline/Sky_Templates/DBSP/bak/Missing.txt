@@ -1,0 +1,3 @@
+The blue side D55 sky spectrum was obtained with a 2.0" slit width while the D68 side was taken with a 1.5". I have asked Dan already for the D55 one with the 1.5" slit (Nov. 05, 2020)
+
+The red side was taken with the 316 grating, so the 600 grating template is just a copy of the lower resolution one.
