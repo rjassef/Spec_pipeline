@@ -1,1 +1,18 @@
-Need details. For now, just assuming all blue are the same, as well as all red. We are only using the 1.5" slit, so assuming that as well for now. 
+Need details. For now, just assuming all blue are the same, as well as all red. We are only using the 1.5" slit, so assuming that as well for now.
+
+Details sent by Dan (11/01/2021) on the files sent on 09/10/2019: sky_keck_b.w.fits and sky_keck_r.w.fits. He says that:
+
+"Looking on my laptop, I have processed data from an LRIS run on UT 2019 February 6.  George Djorgovski was the observer.
+
+Looks like the whole night was done with the following configuration:
+
+1.0" slit
+D560 dichroic
+600/4000 grism
+400/8500 grating
+
+"
+
+Note also from original email that:
+
+"And here's an example of the Keck/LRIS sky, in cts, from February 2019 observations (of CRTS J1241+2034, for the sake of completeness)."
