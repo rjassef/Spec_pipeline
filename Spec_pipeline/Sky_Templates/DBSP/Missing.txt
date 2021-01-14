@@ -1,1 +1,2 @@
 Missing the red side sky template with the 600 grating.
+- On 01/11/21 Dan sent the spectrum of W1535+3100, observed during the February 2013 observing run (which used the 600/10000 grating) and undetected on the red side to use as a sky template.
