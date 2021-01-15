@@ -9,6 +9,7 @@ import subprocess
 from copy import deepcopy
 
 from Spec_pipeline import DBSP_Spec
+from Spec_pipeline.Spec_Reader.rebin_spec import rebin_spec
 
 #####
 
@@ -30,6 +31,37 @@ def decrease_resolution(spec, slit_width_targ):
 
     return spec_conv
 
+
+def combine(spec1, spec2, lam_cross, dlam_cross):
+
+    #Get the minimum and maximum wavelengths and the mean wavelength bin size.
+    lam_min = np.min(np.concatenate([spec1.lam_obs, spec2.lam_obs]))
+    lam_max = np.max(np.concatenate([spec1.lam_obs, spec2.lam_obs]))
+    dlam = np.mean(np.concatenate([spec1.lam_obs[1:]-spec1.lam_obs[:-1], spec2.lam_obs[1:]-spec2.lam_obs[:-1]]))
+
+    #Set the final wavelength grid and rebin the current spectra.
+    lam_interp = np.arange(lam_min.to(u.AA).value, lam_max.to(u.AA).value, dlam.to(u.AA).value)*u.AA
+    flam1 = rebin_spec(spec1.lam_obs, spec1.flam, lam_interp)
+    flam2 = rebin_spec(spec2.lam_obs, spec2.flam, lam_interp)
+
+    #Renormalize flam2 to match flam1 in the crossover region.
+    kcross = (lam_interp>lam_cross-dlam_cross) & (lam_interp<lam_cross+dlam_cross)
+    norm = np.sum(flam1[kcross]*flam2[kcross])/np.sum(flam2[kcross]**2)
+    flam2 *= norm
+
+    #Create the final spectrum.
+    flam = np.zeros(len(flam1))*flam1.unit
+    flam[lam_interp<=lam_cross-dlam_cross] = flam1[lam_interp<=lam_cross - dlam_cross]
+    flam[lam_interp>=lam_cross+dlam_cross] = flam2[lam_interp>=lam_cross + dlam_cross]
+    n = len(kcross[kcross==True])
+    frac = np.arange(0,n,1)/float(n-1)
+    flam[kcross] = (1.0-frac)*flam1[kcross] + frac*flam2[kcross]
+
+    spec = deepcopy(spec1)
+    spec.lam_obs = lam_interp
+    spec.flam = flam
+
+    return spec
 
 #####
 
@@ -63,31 +95,58 @@ for fname in fnames:
         spec.flam = spec.flam/spec.eps()
 
     temp_name = "{0:s}_{1:.02f}arcsec_{2:s}".format(spec.grating, spec.slit_width.to(u.arcsec).value, spec.channel)
-    if temp_name in template.keys():
-        #Select the one with the longest baseline.
-        dlam_temp = np.max(template[temp_name].flam)-np.min(template[temp_name].flam)
-        dlam = np.max(spec.flam)-np.min(spec.flam)
-        if dlam > dlam_temp:
-            template[temp_name] = spec
-    else:
-        template[temp_name] = spec
 
-#Now, check that for each template that we have a 1.5" slit, we also have a 2.0" slit one. If not, the we need to build it by convolving the 1.5" spectrum with a Gaussian.
-temp_names = list(template.keys())
+    if temp_name in template.keys():
+        if spec.dichroic not in template[temp_name].keys():
+            template[temp_name][spec.dichroic] = spec
+        else:
+            #Select the one with the longest baseline.
+            temp = template[temp_name][spec.dichroic]
+            dlam_temp = np.max(temp.flam)-np.min(temp.flam)
+            dlam = np.max(spec.flam)-np.min(spec.flam)
+            if dlam > dlam_temp:
+                template[temp_name][spec.dichroic] = spec
+    else:
+        template[temp_name] = dict()
+        template[temp_name][spec.dichroic] = spec
+
+#Now, if for any template we have both dichroics, D55 and D68, then join them by interpolation in the 4900 +/- 100 AA range.
+combined_template = dict()
+for temp_name in template.keys():
+    #If only one, just use that one.
+    dichs = list(template[temp_name].keys())
+    if len(dichs)==1:
+        combined_template[temp_name] = template[temp_name][dichs[0]]
+
+    #Otherwise, interpolate them.
+    elif len(dichs)==2:
+        spec1 = template[temp_name]['D55']
+        spec2 = template[temp_name]['D68']
+        combined_template[temp_name] = combine(spec1, spec2, 4900*u.AA, 100.*u.AA)
+
+    else:
+        print("Error. Too many dichroics for temp_name: ",temp_name)
+        exit()
+
+#Now, check that for each template that we have a 1.5" slit, we also have a 2.0" slit one. If not, or if the 2.0" one has a shorter wavelength range, then we need to build it by convolving the 1.5" spectrum with a Gaussian.
+temp_names = list(combined_template.keys())
 for temp_name in temp_names:
     if re.search("1.50arcsec", temp_name):
         temp_name2 = re.sub("1.50arcsec", "2.00arcsec", temp_name)
-        if temp_name2 in template.keys():
-            continue
-        else:
-            print("Decreasing resolution",temp_name,"to get",temp_name2)
-            spec = decrease_resolution(template[temp_name], 2.*u.arcsec)
-            template[temp_name2] = spec
+        if temp_name2 in combined_template.keys():
+            lam1_range = np.max(combined_template[temp_name].lam_obs.to(u.AA).value) - np.min(combined_template[temp_name].lam_obs.to(u.AA).value)
+            lam2_range = np.max(combined_template[temp_name2].lam_obs.to(u.AA).value) - np.min(combined_template[temp_name2].lam_obs.to(u.AA).value)
+            if lam2_range>=lam1_range:
+                continue
+
+        print("Decreasing resolution",temp_name,"to get",temp_name2)
+        spec = decrease_resolution(combined_template[temp_name], 2.*u.arcsec)
+        combined_template[temp_name2] = spec
 
 #Save the templates.
-for temp_name in template.keys():
-    lam = template[temp_name].lam_obs.to(u.AA).value
-    flam = template[temp_name].flam.to(u.erg/u.cm**2/u.s/u.AA).value
+for temp_name in combined_template.keys():
+    lam = combined_template[temp_name].lam_obs.to(u.AA).value
+    flam = combined_template[temp_name].flam.to(u.erg/u.cm**2/u.s/u.AA).value
     np.savetxt("template_sky_DBSP_"+temp_name+".txt", np.array([lam,flam]).T)
 
     plt.plot(lam, flam, 'b-')
