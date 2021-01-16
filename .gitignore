@@ -12,3 +12,4 @@ err*.png
 MCfiles
 plots
 old
+.DS_Store
