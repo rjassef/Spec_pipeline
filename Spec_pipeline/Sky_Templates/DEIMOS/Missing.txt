@@ -1,1 +1,5 @@
+Blue side issues solved on Feb 7, 2021.
+
+###
+
 No information about the grating and longslit used to get the sky template. Assuming 600ZD and 1.5". Will just make red and blue exact copies, since it is not really a dual spectrograph and sky template should be long enough.
