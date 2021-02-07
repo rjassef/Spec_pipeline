@@ -1,3 +1,7 @@
+All issues solved by Feb 7, 2021. 
+
+###
+
 Need details. For now, just assuming all blue are the same, as well as all red. We are only using the 1.5" slit, so assuming that as well for now.
 
 Details sent by Dan (11/01/2021) on the files sent on 09/10/2019: sky_keck_b.w.fits and sky_keck_r.w.fits. He says that:
