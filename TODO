@@ -1,11 +1,3 @@
-- Setup sky templates to be generated from flux calibrated spectra. If not flux calibrated, then make sure to apply the sensitivity corrections before adding it to the list of templates.
-
-  For DBSP we are missing the sky for the 600/10000 grating.
-
-  For LRIS we are missing on the blue sky templates, but we don't know which.
-
-  Nothing missing for GMOS or DEIMOS.
-
 - Ftest is currently wrong, but should work for what we need (a rough discriminant of the line detection) for the time being. But the number of fit parameters can be off.
 
 - Add IGM absorption. A test version of this already implemented in the test fit module in the LRIS folder.
@@ -138,3 +130,13 @@ Done
 - When calculating the flux of an emission line for the S/N, we should only use the regions within the spectrum. DONE
 
 - Fix negative fluxes in sky template for DBSP - WILL NOT NEED TO DO. Requested new templates from Dan.
+
+- Setup sky templates to be generated from flux calibrated spectra. If not flux calibrated, then make sure to apply the sensitivity corrections before adding it to the list of templates.
+
+  For DBSP we are missing the sky for the 600/10000 grating.
+
+  For LRIS we are missing on the blue sky templates, but we don't know which.
+
+  Nothing missing for GMOS or DEIMOS.
+
+  DONE.
