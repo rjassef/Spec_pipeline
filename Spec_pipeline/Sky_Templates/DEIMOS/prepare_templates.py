@@ -31,10 +31,17 @@ plt.savefig("template_sky_DEIMOS_600ZD_1.50arcsec_b.png")
 plt.close()
 
 #Red side
-temp_r = np.loadtxt("sky_deimos.dat")
-temp_r = temp_r[temp_r[:,0]>=6500.,:]
-lam_r  = temp_r[:,0]*u.AA
-fnu_r  = temp_r[:,1]*u.erg/u.s/u.cm**2/u.Hz
+# temp_r = np.loadtxt("sky_deimos.dat")
+# temp_r = temp_r[temp_r[:,0]>=6500.,:]
+# lam_r  = temp_r[:,0]*u.AA
+# fnu_r  = temp_r[:,1]*u.erg/u.s/u.cm**2/u.Hz
+# flam_r = fnu_r * c/lam_r**2
+# flam_r = flam_r.to(u.erg/u.s/u.cm**2/u.AA)
+# np.savetxt("template_sky_DEIMOS_600ZD_1.50arcsec_r.txt", np.array([lam_r.value, flam_r.value]).T)
+
+temp_r = spec_read("deimos_600zd_sky_r.f.fits")
+lam_r  = temp_r[0].dispersion.to(u.AA)
+fnu_r  = temp_r[0].data * temp_b[0].unit
 flam_r = fnu_r * c/lam_r**2
 flam_r = flam_r.to(u.erg/u.s/u.cm**2/u.AA)
 np.savetxt("template_sky_DEIMOS_600ZD_1.50arcsec_r.txt", np.array([lam_r.value, flam_r.value]).T)
