@@ -28,7 +28,7 @@ plt.close()
 
 
 #R400
-spec = read_fits_spectrum1d("gemini_r400_sky.f.fits")
+spec = read_fits_spectrum1d("gemini_sky_r400_w0730m7218_11may.f.fits")
 fnu = spec[0].data * spec[0].unit
 lam = spec[0].dispersion
 flam = (fnu * c/lam**2).to(u.erg/u.s/u.cm**2/u.AA)
