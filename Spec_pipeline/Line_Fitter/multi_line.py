@@ -524,6 +524,8 @@ class Multi_Line_fit(Line_fit):
 
     def get_i_fit(self,spec):
         i_cont = self.get_i_cont(spec)
+        if len(i_cont)==0:
+            i_cont = np.array(i_cont, dtype=np.int32)
         i_line = self.get_i_line(spec)
         i_ban  = self.get_i_ban(spec)
         i_all  = np.unique(np.concatenate((i_cont,i_line)))
@@ -689,9 +691,12 @@ class Multi_Line_fit(Line_fit):
 
     def cont_initial_fit_values(self,spec):
         i_cont = self.get_i_cont(spec)
-        mean_cont = np.mean(spec.flam[i_cont]).to(self.flamunit)
-        mean_lam  = np.mean(spec.lam_rest[i_cont]).to(self.waveunit)
-        a0 = mean_cont.value/mean_lam.value
+        if len(i_cont)==0:
+            a0 = 1.0
+        else:
+            mean_cont = np.mean(spec.flam[i_cont]).to(self.flamunit)
+            mean_lam  = np.mean(spec.lam_rest[i_cont]).to(self.waveunit)
+            a0 = mean_cont.value/mean_lam.value
         b0 = 0.
         x0_cont = [a0,b0]
         return x0_cont

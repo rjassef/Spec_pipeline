@@ -42,8 +42,12 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
     i_cont = line_fitter.get_i_cont(spec)
     xminl = np.min(spec.lam_rest[i_line])
     xmaxl = np.max(spec.lam_rest[i_line])
-    xminc = np.min(spec.lam_rest[i_cont])
-    xmaxc = np.max(spec.lam_rest[i_cont])
+    if len(i_cont)==0:
+        xminc = xminl
+        xmaxc = xmaxl
+    else:
+        xminc = np.min(spec.lam_rest[i_cont])
+        xmaxc = np.max(spec.lam_rest[i_cont])
     xmincr = np.min(line_fitter.continuum_regions)
     xmaxcr = np.max(line_fitter.continuum_regions)
     xmin = np.min([xminl.value,xminc.value,xmincr.value])
