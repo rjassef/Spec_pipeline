@@ -1,6 +1,7 @@
 dichroic          DICHNAME      both
 slit_width        SLITNAME      both
 texp              EXPTIME       both
+date_obs          DATE-OBS      both
 
 #Blue Arm
 grating           GRISNAME      blue
