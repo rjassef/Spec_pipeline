@@ -18,7 +18,7 @@ linename_latex = {
     "Hepsilon": r"H$\epsilon$"
 }
 
-def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA):
+def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False):
     """
     This function receives a list of spec objects and makes a Stern-style spectrum plot with the possible emission/absorption lines marked. Note that all lines in em_lines are marked, regardless of whether they where found.
 
@@ -73,7 +73,7 @@ def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=No
     ax.set_ylim([ymin, ymax])
 
     #Set the xlimits to match the spectrum range.
-    ax.set_xlim([xmin, xmax])
+    ax.set_xlim([0.95*xmin, 1.02*xmax])
 
     #Mark the emission/absorption lines.
     for k in range(len(em_lines)):
@@ -140,21 +140,46 @@ def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=No
     ax.tick_params(axis='both', which='both', direction='in', top=True, right=True)
 
     #Make the legend box.
-    yloc   = 0.95
-    dyloc  = 0.06
-    va_leg = 'top'
-    if x_fmax > 0.5*(xmax+xmin):
-        xloc   = 0.05
-        ha_leg = 'left'
-    else:
-        xloc   = 0.95
-        ha_leg = 'right'
-    ax.annotate(specs[0].name, xy=(xloc, yloc), xycoords='axes fraction', ha=ha_leg, va=va_leg, size=14)
-    ax.annotate("{} - UT {}".format(specs[0].instrument, date), xy=(xloc, yloc-dyloc), xycoords='axes fraction', ha=ha_leg, va=va_leg, size=11)
+    date_legend = "{} - UT {}".format(specs[0].instrument, date)
     if hasattr(specs[0],'dzspec'):
-        ax.annotate("$z = {0:f}\pm{1:f}$".format(specs[0].zspec, specs[0].dzspec), xy=(xloc, yloc-1.8*dyloc), xycoords='axes fraction', ha=ha_leg, va=va_leg, size=11)
+        z_legend = "$z = {0:.4f}\pm{1:.4f}$".format(specs[0].zspec, specs[0].dzspec)
     else:
-        ax.annotate("$z = {}$".format(specs[0].zspec), xy=(xloc, yloc-1.8*dyloc), xycoords='axes fraction', ha=ha_leg, va=va_leg, size=11)
+        z_legend = "$z = {0:.3f}$".format(specs[0].zspec)
+    if legend_inside:
+        yloc   = 0.95
+        dyloc  = 0.06
+        va_leg = 'top'
+        if x_fmax > 0.5*(xmax+xmin):
+            xloc   = 0.05
+            ha_leg = 'left'
+        else:
+            xloc   = 0.95
+            ha_leg = 'right'
+        xdate = xloc
+        ydate = yloc-dyloc
+        xz    = xloc
+        yz    = yloc-1.8*dyloc
+        ha_date = ha_leg
+        va_date = va_leg
+        ha_z    = ha_leg
+        va_z    = va_leg
+    else:
+        xloc = 0.5
+        yloc = 1.14
+        xdate = 0.50 #0.30
+        ydate = 1.085
+        xz    = 0.50 #0.70
+        yz    = 1.05
+        ha_leg  = 'center'
+        va_leg  = 'top'
+        ha_date = 'center'
+        va_date = 'top'
+        ha_z    = 'center'
+        va_z    = 'top'
+    ax.annotate(specs[0].name, xy=(xloc , yloc ), xycoords='axes fraction', ha=ha_leg , va=va_leg , size=14)
+    ax.annotate(date_legend  , xy=(xdate, ydate), xycoords='axes fraction', ha=ha_date, va=va_date, size=10)
+    ax.annotate(z_legend     , xy=(xz   , yz   ), xycoords='axes fraction', ha=ha_z   , va=va_z   , size=11)
+
 
     #Draw the axis labels
     xlabel = r"Observed Wavelength ({})".format(lam_units)
