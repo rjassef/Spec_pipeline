@@ -18,7 +18,7 @@ linename_latex = {
     "Hepsilon": r"H$\epsilon$"
 }
 
-def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False):
+def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False):
     """
     This function receives a list of spec objects and makes a Stern-style spectrum plot with the possible emission/absorption lines marked. Note that all lines in em_lines are marked, regardless of whether they where found.
 
@@ -30,7 +30,7 @@ def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=No
     date: str
         UT Date on which the observations were carried out.
 
-    em_line: list, optional
+    em_lines_list: list, optional
         List of emission line names to plot. Default is to load all the lines in Line_Fitter/multi_lines.txt.
 
     sv_wl: int, optional
@@ -44,8 +44,17 @@ def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=No
     """
 
     #If no list of emission lines has been provided, load the full list. This is a bad idea though, much better to provide them.
-    if em_lines is None:
+    if em_lines_list is None:
         em_lines = np.genfromtxt("{}/Spec_pipeline/Line_Fitter/multi_lines.txt".format(os.environ.get('SPEC_PIPE_LOC')), usecols=[0], dtype='U')
+
+    #Find the minimum line center and create all the line objects.
+    em_lines = list()
+    for k, em_line_name in enumerate(em_lines_list):
+        #Start by loading the emission line in question.
+        em_lines.append(Multi_Line_fit(em_line_name))
+        #Check if we have a minimum.
+        if k==0 or line_center_min > np.min(em_lines[-1].line_center):
+            line_center_min = np.min(em_lines[-1].line_center)
 
     #Create the figure.
     fig, ax = plt.subplots()
@@ -54,12 +63,16 @@ def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=No
     for k, spec in enumerate(specs):
         spec.flam_smooth = savgol_filter(spec.flam.to(flam_units).value, sv_wl, sv_polyorder)
 
-    #Find the minimum and maximum value of F_lam and lambda for setting the plot x and y range.
+    #Find the minimum and maximum value of F_lam and lambda for setting the plot x and y range. Only consider wavelengths longer than about the shortest wavelength in the list of line centers.
     for k, spec in enumerate(specs):
-        if k==0 or ymax<np.max(spec.flam_smooth):
-            ymax = np.max(spec.flam_smooth)
-            x_fmax = spec.lam_obs[np.argmax(spec.flam_smooth)].to(lam_units).value
-            #print(ymax, np.max(spec.flam_smooth), x_fmax)
+        cond = spec.lam_rest>0.999*line_center_min
+        if k==0 or ymax<np.max(spec.flam_smooth[cond]):
+            if cond.sum()>0:
+                kw_max = np.argmax(spec.flam_smooth[cond])
+                ymax = spec.flam_smooth[cond][kw_max]
+                x_fmax = spec.lam_obs[cond][kw_max].to(lam_units).value
+            else:
+                ymax = 0
         if k==0 or xmin>np.min(spec.lam_obs):
             xmin = np.min(spec.lam_obs)
         if k==0 or xmax<np.min(spec.lam_obs):
@@ -76,10 +89,7 @@ def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=No
     ax.set_xlim([0.95*xmin, 1.02*xmax])
 
     #Mark the emission/absorption lines.
-    for k in range(len(em_lines)):
-
-        #Start by loading the emission line in question.
-        em_line = Multi_Line_fit(em_lines[k])
+    for k, em_line in enumerate(em_lines):
 
         #Set the observed-frame line center.
         line_center = em_line.line_center.value*(1+specs[0].zspec)
@@ -100,7 +110,11 @@ def stern_plot(specs, date, em_lines=None, sv_wl=21, sv_polyorder=5, hardcopy=No
             lnames = re.sub("red","",em_line.line_name)
             line_names = lnames.split("_")
         else:
-            line_names = [em_line.line_name]#*em_line.nlines
+            #The [NeV] lines are separate enough that we want to label both for clarity. Should do something more general based on the wavelength separation of the emission lines.
+            if em_line.line_name == '[NeV]':
+                line_names = [em_line.line_name]*em_line.nlines
+            else:
+                line_names = [em_line.line_name]#*em_line.nlines
 
         #Draw a vertical dashed gray line with a label at the location of every emission line within the x-axis range. For multiple line fits. draw the label of the first one on the left, and the rest on the right.
         #for k, lam in enumerate(line_center):
