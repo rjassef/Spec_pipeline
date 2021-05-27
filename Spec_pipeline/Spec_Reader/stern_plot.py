@@ -43,6 +43,15 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
         File name of the hard copy of the plot. Can be any format supported by matplotlib.
     """
 
+    #Find the maximum and minimum wavelength of the spectrum.
+    for k, spec in enumerate(specs):
+        if k==0 or xmin>np.min(spec.lam_obs):
+            xmin = np.min(spec.lam_obs)
+        if k==0 or xmax<np.min(spec.lam_obs):
+            xmax = np.max(spec.lam_obs)
+        xmin_rest = xmin/(1+specs[0].zspec)
+        xmax_rest = xmax/(1+specs[0].zspec)
+
     #If no list of emission lines has been provided, load the full list. This is a bad idea though, much better to provide them.
     if em_lines_list is None:
         em_lines = np.genfromtxt("{}/Spec_pipeline/Line_Fitter/multi_lines.txt".format(os.environ.get('SPEC_PIPE_LOC')), usecols=[0], dtype='U')
@@ -52,10 +61,22 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
     for k, em_line_name in enumerate(em_lines_list):
         #Start by loading the emission line in question.
         em_lines.append(Multi_Line_fit(em_line_name))
-        #Check if we have a minimum.
-        if k==0 or line_center_min > np.min(em_lines[-1].line_center):
-            line_center_min = np.min(em_lines[-1].line_center)
 
+        lam_centers = em_lines[-1].line_center
+        lam_centers = lam_centers[(lam_centers>=xmin_rest) & (lam_centers<=xmax_rest)]
+        if len(lam_centers)==0:
+            continue
+        try:
+            if line_center_min > np.min(lam_centers):
+                line_center_min = np.min(lam_centers)
+            if line_center_max < np.max(lam_centers):
+                line_center_max = np.max(lam_centers)
+        except UnboundLocalError:
+            line_center_min = np.min(lam_centers)
+            line_center_max = np.max(lam_centers)
+
+
+    print(line_center_min, line_center_max)
     #Create the figure.
     fig, ax = plt.subplots()
 
@@ -65,7 +86,7 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
     #Find the minimum and maximum value of F_lam and lambda for setting the plot x and y range. Only consider wavelengths longer than about the shortest wavelength in the list of line centers.
     for k, spec in enumerate(specs):
-        cond = spec.lam_rest>0.999*line_center_min
+        cond = (spec.lam_rest>0.999*line_center_min) & (spec.lam_rest<1.001*line_center_max)
         if k==0 or ymax<np.max(spec.flam_smooth[cond]):
             if cond.sum()>0:
                 kw_max = np.argmax(spec.flam_smooth[cond])
@@ -73,12 +94,8 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
                 x_fmax = spec.lam_obs[cond][kw_max].to(lam_units).value
             else:
                 ymax = 0
-        if k==0 or xmin>np.min(spec.lam_obs):
-            xmin = np.min(spec.lam_obs)
-        if k==0 or xmax<np.min(spec.lam_obs):
-            xmax = np.max(spec.lam_obs)
-    xmin   = xmin.to(lam_units).value
-    xmax   = xmax.to(lam_units).value
+    xmin = xmin.to(lam_units).value
+    xmax = xmax.to(lam_units).value
 
     #For the y range, set it to be 20% higher than the highest point in the plot. The minimum should be -5% of the maximum.
     ymax *= 1.2
