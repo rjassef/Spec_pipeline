@@ -61,4 +61,4 @@ LyA_NVred  2	Lyalpha	   NV         0	0	-1      5000.  1260.   1360.
 #15 Continuum region(s) (AA)
 Ha_[NII]_[NII]        3  Halpha   [NII]6584  [NII]6548  0 0 1 0 0 1 -1 -1 2.96 10000. 6300. 6350. 6750. 6800.
 Ha_[NII]_[NII]_narrow 3  Halpha   [NII]6584  [NII]6548  1 1 1 1 1 1 -1 -1 2.96 10000. 6300. 6350. 6750. 6800.
-Hb_[OIII]_[OIII]      3  Hbeta    [OIII]4959 [OIII]5007 0 0 1 0 0 1 -1 -1 2.98
+Hb_[OIII]_[OIII]      3  Hbeta    [OIII]5007 [OIII]4959 0 0 1 0 0 1 -1 -1 2.98
