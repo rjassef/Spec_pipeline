@@ -869,7 +869,7 @@ class Multi_Line_fit(Line_fit):
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.line_center[i].value*(self.dv_low[i]/c).to(1.).value, self.line_center[i].value*(self.dv_hig[i]/c).to(1.).value)
                 print_output += "{0:14.3e} {1:14.3e} ".format( self.line_flux_low[i].value, self.line_flux_hig[i].value)
                 print_output += "{0:14.3f} {1:14.3f} ".format( self.EW_low[i].value, self.EW_hig[i].value)
-                print_output += "{0:14.3e} {1:14.3e} ".format( self.a_low[i].value, self.a_hig[i].value)
-                print_output += "{0:14.3e} {1:14.3e} ".format( self.b_low[i].value, self.b_hig[i].value)
+                print_output += "{0:14.3e} {1:14.3e} ".format( self.a_low.value, self.a_hig.value)
+                print_output += "{0:14.3e} {1:14.3e} ".format( self.b_low.value, self.b_hig.value)
             print_output += "\n"
         return print_output
