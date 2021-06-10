@@ -76,7 +76,7 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
             line_center_max = np.max(lam_centers)
 
 
-    print(line_center_min, line_center_max)
+    #print(line_center_min, line_center_max)
     #Create the figure.
     fig, ax = plt.subplots()
 
@@ -133,6 +133,13 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
             else:
                 line_names = [em_line.line_name]#*em_line.nlines
 
+        #Special cases for Halpha and Hbeta.
+        if em_line.line_name == 'Hbeta_[OIII]_[OIII]':
+            line_names = ['Hbeta', '[OIII]', None]
+        if em_line.line_name == 'Ha_[NII]_[NII]':
+            line_names = [r'H$\alpha$+[NII]', None, None]
+
+
         #Draw a vertical dashed gray line with a label at the location of every emission line within the x-axis range. For multiple line fits. draw the label of the first one on the left, and the rest on the right.
         #for k, lam in enumerate(line_center):
         for i,j in enumerate(np.argsort(line_center)):
@@ -151,9 +158,13 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
             if len(line_names)==1 and j>0:
                 continue
 
+            #Also, if name is None, continue.
+            if line_names[j] is None:
+                continue
+
             #Otherwise, draw the label
             dlam_label = -0.015*(xmax-xmin) #120
-            if i>=1 and line_names[j]!='[NeV]':
+            if i>=1 and line_names[j]!='[NeV]' and line_names[j]!=r'H$\alpha$+[NII]':
                 dlam_label = 0.003*(xmax+xmin) #50
             line_name_use = line_names[j]
             if line_names[j] in linename_latex:
