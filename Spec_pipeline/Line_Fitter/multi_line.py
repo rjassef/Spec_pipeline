@@ -833,7 +833,7 @@ class Multi_Line_fit(Line_fit):
     def print_header(self,MC=False):
         print_output = "{0:15s} {1:7s} ".format("Obj_ID","z_spec")
         print_output += "{0:10s} ".format("line_id")
-        print_output += "{0:10s} {1:10s} {2:10s} {3:10s} {4:10s} {5:10s} {6:10s} ".format("dv", "flam_line", "FWHM_v", "lam_cen", "line_flux", "EW","p","a","b")
+        print_output += "{0:10s} {1:10s} {2:10s} {3:10s} {4:10s} {5:10s} {6:10s} {7:10s} {8:10s} ".format("dv", "flam_line", "FWHM_v", "lam_cen", "line_flux", "EW","p","a","b")
         if MC:
             print_output += "{0:10s} ".format("SNR")
             print_output += "{0:10s} ".format("SNR_wing")
