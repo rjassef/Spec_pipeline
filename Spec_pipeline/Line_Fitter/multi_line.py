@@ -841,7 +841,7 @@ class Multi_Line_fit(Line_fit):
             print_output += "{0:14s} {1:14s} ".format( "flam_line_low", "flam_line_hig")
             print_output += "{0:14s} {1:14s} ".format( "FWHM_v_low", "FWHM_v_hig")
             print_output += "{0:14s} {1:14s} ".format( "lam_cen_low", "lam_cen_hig")
-            print_output += "{0:14s} {1:14s} ".format( "line_flux_low", "line_flux_hig")
+            print_output += "{0:14s} {1:14s} ".format( "line_flux_low", "line_flux_hig") 
             print_output += "{0:14s} {1:14s} ".format( "EW_low", "EW_hig")
             print_output += "{0:14s} {1:14s} ".format( "a_low", "a_hig")
             print_output += "{0:14s} {1:14s} ".format( "b_low", "b_hig")
