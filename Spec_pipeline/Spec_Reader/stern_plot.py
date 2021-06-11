@@ -225,10 +225,10 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
     #Draw the axis labels
     xlabel = r"Observed Wavelength ({})".format(lam_units)
-    xlabel = re.sub("Angstrom","\AA", xlabel)
+    xlabel = re.sub("Angstrom",r"\\AA", xlabel)
     ax.set_xlabel(xlabel, fontsize=12)
     ylabel = r"$F_{{\lambda}}$ [{}]".format(flam_units)
-    ylabel = re.sub("Angstrom","\AA~", ylabel)
+    ylabel = re.sub("Angstrom",r"\\AA~", ylabel)
     ylabel = re.sub("cm2", "cm$^2$", ylabel)
     ax.set_ylabel(ylabel, fontsize=12)
 
