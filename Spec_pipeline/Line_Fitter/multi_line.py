@@ -841,7 +841,7 @@ class Multi_Line_fit(Line_fit):
             print_output += "{0:14s} {1:14s} ".format( "flam_line_low", "flam_line_hig")
             print_output += "{0:14s} {1:14s} ".format( "FWHM_v_low", "FWHM_v_hig")
             print_output += "{0:14s} {1:14s} ".format( "lam_cen_low", "lam_cen_hig")
-            print_output += "{0:14s} {1:14s} ".format( "line_flux_low", "line_flux_hig") 
+            print_output += "{0:14s} {1:14s} ".format( "line_flux_low", "line_flux_hig")
             print_output += "{0:14s} {1:14s} ".format( "EW_low", "EW_hig")
             print_output += "{0:14s} {1:14s} ".format( "a_low", "a_hig")
             print_output += "{0:14s} {1:14s} ".format( "b_low", "b_hig")
@@ -858,7 +858,7 @@ class Multi_Line_fit(Line_fit):
         for i in range(self.nlines):
             print_output += "{0:15s} {1:7.3f} ".format(spec.name, spec.zspec)
             print_output += "{0:10s} ".format(lname[i])
-            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f} {4:10.3e} {5:10.3f} {6:10.3f}  ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]), self.line_flux()[i].value, self.EW()[i].value, self.p[i])
+            print_output += "{0:10.3f} {1:10.3e} {2:10.3f} {3:10.3f} {4:10.3e} {5:10.3f} {6:10.3f} ".format( self.dv_fit[i].value, self.flam_line_fit[i].value, self.FWHM_v[i].value, self.line_center[i].value*(1+self.zline()[i]), self.line_flux()[i].value, self.EW()[i].value, self.p[i])
             print_output += "{0:10.3e} {1:10.3e} ".format(self.a.value, self.b.value)
             if MC:
                 print_output += "{0:10.3e} ".format(self.line_SNR[i])
