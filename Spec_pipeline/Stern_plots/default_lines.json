@@ -1,0 +1,153 @@
+[
+    {
+		"id": "Lybeta",
+		"lam_rest": 1025.722,
+		"name": "Ly$\\beta$"
+	},
+	{
+		"id": "OVI",
+		"lam_rest": 1033.82,
+		"name": "OVI",
+		"xpos": "right"
+	},
+	{
+		"id": "Lyalpha",
+		"lam_rest": 1215.670,
+		"name": "Ly$\\alpha$"
+	},
+	{
+		"id": "NV",
+		"lam_rest": 1240.81,
+		"name": "NV",
+		"xpos": "right"
+	},
+	{
+		"id": "SiIV-OIV]",
+		"lam_rest": 1399.80,
+		"name": "SiIV-OIV]"
+	},
+	{
+		"id": "CIV",
+		"lam_rest": 1549.48,
+		"name": "CIV"
+	},
+	{
+		"id": "HeII",
+		"lam_rest": 1640.40,
+		"name": "HeII"
+	},
+	{
+		"id": "CIII]",
+		"lam_rest": 1908.734,
+		"name": "CIII]"
+	},
+	{
+		"id": "CII]",
+		"lam_rest": 2326.0,
+		"name": "CII]"
+	},
+	{
+		"id": "NeIV",
+		"lam_rest": 2439.5,
+		"name": "NeIV"
+	},
+	{
+		"id": "MgII",
+		"lam_rest": 2799.117,
+		"name": "MgII"
+	},
+	{
+		"id": "[NeV]3346",
+		"lam_rest": 3346.79,
+		"name": "[NeV]"
+	},
+	{
+		"id": "[NeV]3426",
+		"lam_rest": 3426.85,
+		"name": "[NeV]"
+	},
+	{
+		"id": "[OII]3726",
+		"lam_rest": 3727.092,
+		"name": "[OII]"
+	},
+	{
+		"id": "[OII]3728",
+		"lam_rest": 3729.875,
+		"name": "None"
+	},
+	{
+		"id": "[NeIII]",
+		"lam_rest": 3869.86,
+		"name": "[NeIII]"
+	},
+	{
+		"id": "HeI",
+		"lam_rest": 3889.75,
+		"name": "HeI",
+		"xpos": "right"
+	},
+	{
+		"id": "Hzeta",
+		"lam_rest": 3890.158,
+		"name": "H$\\zeta$",
+		"skip": true
+	},
+	{
+		"id": "Hepsilon",
+		"lam_rest": 3971.202,
+		"name": "H$\\epsilon$",
+		"rel_pos": 0.6
+	},
+	{
+		"id": "Hdelta",
+		"lam_rest": 4102.899,
+		"name": "H$\\delta$"
+	},
+	{
+		"id": "Hgamma",
+		"lam_rest": 4341.691,
+		"name": "H$\\gamma$"
+	},
+	{
+		"id": "Hbeta",
+		"lam_rest": 4862.691,
+		"name": "H$\\beta$"
+	},
+	{
+		"id": "[OIII]4959",
+		"lam_rest": 4960.295,
+		"name": "None"
+	},
+	{
+		"id": "[OIII]5007",
+		"lam_rest": 5008.240,
+		"name": "[OIII]",
+		"xpos": "right"
+	},
+	{
+		"id": "[NII]6548",
+		"lam_rest": 6549.86,
+		"name": "None"
+	},
+	{
+		"id": "Halpha",
+		"lam_rest": 6564.632,
+		"name": "H$\\alpha$+[NII]"
+	},
+	{
+		"id": "[NII]6584",
+		"lam_rest": 6585.27,
+		"name": "None"
+	},
+	{
+		"id": "[SII]6716",
+		"lam_rest": 6718.295,
+		"name": "[SII]"
+	},
+	{
+		"id": "[SII]6730",
+		"lam_rest": 6732.674,
+		"name": "None"
+	}
+]

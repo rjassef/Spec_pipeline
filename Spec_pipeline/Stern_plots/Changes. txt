@@ -1,0 +1,20 @@
+##
+# Properties
+#
+# 1. Line list
+# 2. Wavelength range of the spectra
+# 3. Smooth properties
+# 4. Wavelength range of the emission lines within spectra
+# 5. Determine the peak of the region around the emission lines, both for the y-axis range as well as for the emission line label. 
+
+#Need to set up a system such that the default attributes for any line can be overriden by a configuration file. 
+
+#Start by having just a default list of emission lines that are always plot. Add some typical absorption lines as well. The list can have wavelength, identifier, and label to show (or None if no label is to be shown).
+
+#When read from the list, lines outside the wavelength range of the spectrum should be filtered our. For the rest, a dictionary should be created with the line id being the key and the following attributes: observed wavelength, label, default label position in y-axis and x-axis, and whether it is in emission or absorption.
+
+#All other aspects of the plot should be controlled by a general dictionary as well. 
+
+#Move outside of SpecReader into its own folder. 
+
+#For each line use a moving window to determine the peak. 
