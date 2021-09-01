@@ -9,6 +9,48 @@ import json
 from ..Line_Fitter.multi_line import Multi_Line_fit
 
 def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False, xrange=None, yrange=None, sp_lines_conf=None):
+    """
+    This function receives a list of spec objects and makes a Stern-style spectrum plot with the possible emission/absorption lines marked. Note that all lines in em_lines are marked, regardless of whether they where found.
+
+    Parameters
+    ----------
+    specs: list
+        List of Spec objects from the Spec_pipeline.Spec_Reader.Spec class.
+
+    date: str
+        UT Date on which the observations were carried out.
+
+    em_lines_list: list, optional
+        List of emission line names to plot. Default is to load all the lines in Line_Fitter/multi_lines.txt.
+
+    sv_wl: int, optional
+        Window length for scipy.signal.savgol_filter smoothing. Default is 21.
+
+    sv_polyorder: int, optional
+        Polynomial order for scipy.signal.savgol_filter smoothing. Default is 5.
+
+    hardcopy: str, optional
+        File name of the hard copy of the plot. Can be any format supported by matplotlib.
+
+    flam_units: astropy.units, optional
+        Flux density per unit wavelength units on which to plot the spectrum. Default is (u.erg/u.s/u.cm**2/u.AA).
+
+    lam_units: astropy.units, optional
+        Units for plotting the observed wavelength. Default is u.AA .
+
+    legend_inside: boolean, optional
+        If True, puts the legend inside the plot. Default is False.
+
+    xrange: numpy array with astropy.units, optional
+        Observed wavelength range to plot. If None, full range covered by the spectrum is shown. Default is None.
+
+    yrange: numpy array with astropy.units, optional
+        Flam range range to plot. If None, range is autoscaled to the spectrum. Default is None.
+
+    sp_lines_conf: dictionary, optional
+        Dictionary with modifiers from default behavior. Default is None.
+
+    """
 
     #If no wavelength range has been given, find the wavelength range of the spectra.
     if xrange is None:
@@ -67,6 +109,7 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
             sp_line['peak'] = np.max(spec.flam_smooth[cond])
             if ymax is None or sp_line['peak']>ymax:
                 ymax = sp_line['peak']
+                x_fmax = sp_line['lam_rest']
         if 'peak' not in sp_line:
             sp_line['skip'] = True
 
@@ -97,8 +140,8 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
             input()
 
         #Set the absolute y-position.
-        if 'abs_pos' in sp_line:
-            yline = sp_line['abs_pos']
+        if 'ypos' in sp_line:
+            yline = sp_line['ypos']
         else:
             yline = 0.5*(ymax+ymin)
             if sp_line['peak']>yline:
@@ -107,8 +150,6 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
         #Draw a line at the central wavelength.
         lam = sp_line['lam_rest']*(1+specs[0].zspec)
         linestyle='dashed'
-        if 'abs_line' in sp_line and sp_line['abs_line']:
-            linestyle='dotted'
         ax.plot(np.ones(2)*lam, [ymin, yline], linestyle=linestyle, color='xkcd:grey', linewidth=0.5)
 
         #Now, draw the label.
@@ -116,14 +157,16 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
             continue
 
         #Now, if a relative offset is set in y, then apply it.
-        if 'rel_pos' in sp_line:
-            yline *= sp_line['rel_pos']
+        if 'ypos_rel' in sp_line:
+            yline *= sp_line['ypos_rel']
 
         #Set the label left or right of the line.
-        if 'xpos' not in sp_line or sp_line['xpos']=='left':
-            dlam_label = -0.015*(xmax-xmin)
-        else:
-            dlam_label =  0.005*(xmax-xmin)
+        if 'xpos_rel' not in sp_line:
+            if 'xpos' not in sp_line or sp_line['xpos']=='left':
+                sp_line['xpos_rel'] = -0.015
+            else:
+                sp_line['xpos_rel'] = 0.005
+        dlam_label = sp_line['xpos_rel']*(xmax-xmin)
 
         #Draw the label
         lam_label = (lam+dlam_label).to(lam_units).value

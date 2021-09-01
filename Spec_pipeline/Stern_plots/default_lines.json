@@ -97,7 +97,7 @@
 		"id": "Hepsilon",
 		"lam_rest": 3971.202,
 		"name": "H$\\epsilon$",
-		"rel_pos": 0.6
+		"ypos_rel": 0.6
 	},
 	{
 		"id": "Hdelta",
