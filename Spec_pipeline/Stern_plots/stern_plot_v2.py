@@ -8,7 +8,7 @@ import json
 
 from ..Line_Fitter.multi_line import Multi_Line_fit
 
-def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False, xrange=None, yrange=None, sp_lines_conf=None):
+def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False, xrange=None, xmin=None, xmax=None, yrange=None, ymin=None, ymax=None, ypos_mid_label=0.5, sp_lines_conf=None):
     """
     This function receives a list of spec objects and makes a Stern-style spectrum plot with the possible emission/absorption lines marked. Note that all lines in em_lines are marked, regardless of whether they where found.
 
@@ -20,8 +20,8 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
     date: str
         UT Date on which the observations were carried out.
 
-    em_lines_list: list, optional
-        List of emission line names to plot. Default is to load all the lines in Line_Fitter/multi_lines.txt.
+    sp_lines_list: list, optional
+        Filename of linelists to use in .json format. Default is to load all the lines in default_lines.json .
 
     sv_wl: int, optional
         Window length for scipy.signal.savgol_filter smoothing. Default is 21.
@@ -42,15 +42,23 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
         If True, puts the legend inside the plot. Default is False.
 
     xrange: numpy array with astropy.units, optional
-        Observed wavelength range to plot. If None, full range covered by the spectrum is shown. Default is None.
+        Observed wavelength range to plot. If None, full range covered by the spectrum is shown. Default is None. Can also declare xmin and xmax.
 
     yrange: numpy array with astropy.units, optional
-        Flam range range to plot. If None, range is autoscaled to the spectrum. Default is None.
+        Flam range range to plot. If None, range is autoscaled to the spectrum. Default is None. Can also declare ymax, and optionally ymin.
 
     sp_lines_conf: dictionary, optional
         Dictionary with modifiers from default behavior. Default is None.
 
     """
+
+    #Set the xrange and yrange if xmin, xmax, ymin and/or ymax are provided.
+    if xrange is None and xmin is not None and xmax is not None:
+        xrange = np.concatenate([xmin.to(lam_units).value, xmax.to(lam_units).value])
+    if yrange is None and ymax is not None:
+        if ymin is None:
+            ymin = -0.05*ymax
+        yrange = np.array([ymin.to(flam_units).value, ymax.to(flam_units).value])
 
     #If no wavelength range has been given, find the wavelength range of the spectra.
     if xrange is None:
@@ -68,7 +76,10 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
         spec.flam_smooth = savgol_filter(spec.flam.to(flam_units).value, sv_wl, sv_polyorder)
 
     #Load the default list of spectral lines. 
-    f = open("{}/Spec_pipeline/Stern_plots/default_lines.json".format(os.environ.get('SPEC_PIPE_LOC')))
+    if sp_lines_list is None:
+        f = open("{}/Spec_pipeline/Stern_plots/default_lines.json".format(os.environ.get('SPEC_PIPE_LOC')))
+    else:
+        f = open(sp_lines_list)
     sp_lines = json.load(f)
 
     #Now, process the spectral lines list. For each spectral line we will need to add the new keywords, if provided, and determine whether they are to be skipped or not, and where the labels should be drawn. Keep track of the maximum line height.
@@ -101,7 +112,13 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
         #Calculate the peak of the emission line.
         #lw = np.array([0.999, 1.001])*sp_line['lam_rest']
-        lw = np.array([-10., 10.])*u.AA+sp_line['lam_rest']
+        lwmin = -10.0
+        lwmax =  10.0
+        if 'lwmin' in sp_line:
+            lwmin = sp_line['lwmin']
+        if 'lwmax' in sp_line:
+            lwmax = sp_line['lwmax']
+        lw = np.array([lwmin, lwmax])*u.AA+sp_line['lam_rest']
         for spec in specs:
             cond = (spec.lam_rest>lw[0]) & (spec.lam_rest<lw[1])  
             if cond.sum()==0:
@@ -141,11 +158,15 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
         #Set the absolute y-position.
         if 'ypos' in sp_line:
-            yline = sp_line['ypos']
+            yline = sp_line['ypos']*ymax
         else:
-            yline = 0.5*(ymax+ymin)
+            yline = ypos_mid_label * ymax #0.5*(ymax+ymin)
             if sp_line['peak']>yline:
                 yline = ymax
+
+        #Now, if a relative offset is set in y, then apply it.
+        if 'ypos_rel' in sp_line:
+            yline *= sp_line['ypos_rel']
 
         #Draw a line at the central wavelength.
         lam = sp_line['lam_rest']*(1+specs[0].zspec)
@@ -153,12 +174,8 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
         ax.plot(np.ones(2)*lam, [ymin, yline], linestyle=linestyle, color='xkcd:grey', linewidth=0.5)
 
         #Now, draw the label.
-        if 'name' not in sp_line or sp_line['name'] is None:
+        if 'name' not in sp_line or sp_line['name'] == "None":
             continue
-
-        #Now, if a relative offset is set in y, then apply it.
-        if 'ypos_rel' in sp_line:
-            yline *= sp_line['ypos_rel']
 
         #Set the label left or right of the line.
         if 'xpos_rel' not in sp_line:

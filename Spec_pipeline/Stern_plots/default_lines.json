@@ -128,17 +128,21 @@
 	{
 		"id": "[NII]6548",
 		"lam_rest": 6549.86,
-		"name": "None"
+		"name": "H$\\alpha$+[NII]",
+		"lwmax":  20.0
 	},
 	{
 		"id": "Halpha",
 		"lam_rest": 6564.632,
-		"name": "H$\\alpha$+[NII]"
+		"name": "None",
+		"lwmin": -20.0, 
+		"lwmax":  20.0
 	},
 	{
 		"id": "[NII]6584",
 		"lam_rest": 6585.27,
-		"name": "None"
+		"name": "None",
+		"lwmin": -40.0
 	},
 	{
 		"id": "[SII]6716",
