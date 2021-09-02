@@ -1,7 +1,3 @@
-- Add a constraint that the continuum below Lyman alpha is not negative. 
-
-- What to do about the continuum fit under Lyman alpha.
-
 - Ftest is currently wrong, but should work for what we need (a rough discriminant of the line detection) for the time being. But the number of fit parameters can be off.
 
 - Add IGM absorption. A test version of this already implemented in the test fit module in the LRIS folder.
@@ -144,3 +140,7 @@ Done
   Nothing missing for GMOS or DEIMOS.
 
   DONE.
+
+- Add a constraint that the continuum below Lyman alpha is not negative. DONE
+
+- What to do about the continuum fit under Lyman alpha. DONE (see above)
