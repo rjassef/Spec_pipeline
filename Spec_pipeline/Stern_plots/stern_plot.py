@@ -4,21 +4,11 @@ from scipy.signal import savgol_filter
 import astropy.units as u
 import re
 import os
+import json
 
 from ..Line_Fitter.multi_line import Multi_Line_fit
 
-#It would be great to have a more elegant way to convert from the code names of the lines to the latex pretty version, but we'll just do this for now.
-linename_latex = {
-    "Lyb"     : r"Ly$\beta$",
-    "LyA"     : r"Ly$\alpha$",
-    "Hbeta"   : r"H$\beta$",
-    "Ha"      : r"H$\alpha$",
-    "Hgamma"  : r"H$\gamma$",
-    "Hdelta"  : r"H$\delta$",
-    "Hepsilon": r"H$\epsilon$"
-}
-
-def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False):
+def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False, xrange=None, xmin=None, xmax=None, yrange=None, ymin=None, ymax=None, ypos_mid_label=0.7, sp_lines_conf=None):
     """
     This function receives a list of spec objects and makes a Stern-style spectrum plot with the possible emission/absorption lines marked. Note that all lines in em_lines are marked, regardless of whether they where found.
 
@@ -30,8 +20,8 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
     date: str
         UT Date on which the observations were carried out.
 
-    em_lines_list: list, optional
-        List of emission line names to plot. Default is to load all the lines in Line_Fitter/multi_lines.txt.
+    sp_lines_list: list, optional
+        Filename of linelists to use in .json format. Default is to load all the lines in default_lines.json .
 
     sv_wl: int, optional
         Window length for scipy.signal.savgol_filter smoothing. Default is 21.
@@ -41,138 +31,166 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
     hardcopy: str, optional
         File name of the hard copy of the plot. Can be any format supported by matplotlib.
+
+    flam_units: astropy.units, optional
+        Flux density per unit wavelength units on which to plot the spectrum. Default is (u.erg/u.s/u.cm**2/u.AA).
+
+    lam_units: astropy.units, optional
+        Units for plotting the observed wavelength. Default is u.AA .
+
+    legend_inside: boolean, optional
+        If True, puts the legend inside the plot. Default is False.
+
+    xrange: numpy array with astropy.units, optional
+        Observed wavelength range to plot. If None, full range covered by the spectrum is shown. Default is None. Can also declare xmin and xmax.
+
+    yrange: numpy array with astropy.units, optional
+        Flam range range to plot. If None, range is autoscaled to the spectrum. Default is None. Can also declare ymax, and optionally ymin.
+
+    sp_lines_conf: dictionary, optional
+        Dictionary with modifiers from default behavior. Default is None.
+
     """
 
-    #Find the maximum and minimum wavelength of the spectrum.
-    for k, spec in enumerate(specs):
-        if k==0 or xmin>np.min(spec.lam_obs):
-            xmin = np.min(spec.lam_obs)
-        if k==0 or xmax<np.min(spec.lam_obs):
-            xmax = np.max(spec.lam_obs)
-        xmin_rest = xmin/(1+specs[0].zspec)
-        xmax_rest = xmax/(1+specs[0].zspec)
+    #Set the xrange and yrange if xmin, xmax, ymin and/or ymax are provided.
+    if xrange is None and xmin is not None and xmax is not None:
+        xrange = np.concatenate([xmin.to(lam_units).value, xmax.to(lam_units).value])
+    if yrange is None and ymax is not None:
+        if ymin is None:
+            ymin = -0.05*ymax
+        yrange = np.array([ymin.to(flam_units).value, ymax.to(flam_units).value])
 
-    #If no list of emission lines has been provided, load the full list. This is a bad idea though, much better to provide them.
-    if em_lines_list is None:
-        em_lines = np.genfromtxt("{}/Spec_pipeline/Line_Fitter/multi_lines.txt".format(os.environ.get('SPEC_PIPE_LOC')), usecols=[0], dtype='U')
+    #If no wavelength range has been given, find the wavelength range of the spectra.
+    if xrange is None:
+        lam_rest = specs[0].lam_rest
+        for spec in specs[1:]:
+            lam_rest = np.concatenate([lam_rest, spec.lam_rest])
+        xmin = np.min(lam_rest)
+        xmax = np.max(lam_rest)
+    else:
+        xmin = xrange[0]
+        xmax = xrange[1]
 
-    #Find the minimum line center and create all the line objects.
-    em_lines = list()
-    for k, em_line_name in enumerate(em_lines_list):
-        #Start by loading the emission line in question.
-        em_lines.append(Multi_Line_fit(em_line_name))
+    #Smooth the spectra.
+    for spec in specs:
+        spec.flam_smooth = savgol_filter(spec.flam.to(flam_units).value, sv_wl, sv_polyorder)
 
-        lam_centers = em_lines[-1].line_center
-        lam_centers = lam_centers[(lam_centers>=xmin_rest) & (lam_centers<=xmax_rest)]
-        if len(lam_centers)==0:
+    #Load the default list of spectral lines. 
+    if sp_lines_list is None:
+        f = open("{}/Spec_pipeline/Stern_plots/default_lines.json".format(os.environ.get('SPEC_PIPE_LOC')))
+    else:
+        f = open(sp_lines_list)
+    sp_lines = json.load(f)
+
+    #Now, process the spectral lines list. For each spectral line we will need to add the new keywords, if provided, and determine whether they are to be skipped or not, and where the labels should be drawn. Keep track of the maximum line height.
+    ymax = None
+    for sp_line in sp_lines:
+        #Load the user provided attributes.
+        lid = sp_line['id']
+        if sp_lines_conf is not None and lid in sp_lines_conf:
+            for key in sp_lines_conf[lid].keys():
+                sp_line[key] = sp_lines_conf[lid][key]
+
+        #Add the units to the line central wavelength.
+        if 'lam_unit' not in sp_line:
+            sp_line['lam_unit'] = u.AA
+        else:
+            sp_line['lam_unit'] = u.Unit(sp_line['lam_unit'])
+        sp_line['lam_rest'] = sp_line['lam_rest']*sp_line['lam_unit']
+
+        #Add skip false is not loaded already.
+        if 'skip' not in sp_line:
+            sp_line['skip'] = False
+
+        #Determine if the line is outside the range, and hence should be skipped. 
+        if sp_line['lam_rest']<xmin or sp_line['lam_rest']>xmax:
+            sp_line['skip'] = True
+
+        #Do not process height for lines that should be skipped. 
+        if sp_line['skip']:
             continue
-        try:
-            if line_center_min > np.min(lam_centers):
-                line_center_min = np.min(lam_centers)
-            if line_center_max < np.max(lam_centers):
-                line_center_max = np.max(lam_centers)
-        except UnboundLocalError:
-            line_center_min = np.min(lam_centers)
-            line_center_max = np.max(lam_centers)
 
+        #Calculate the peak of the emission line.
+        #lw = np.array([0.999, 1.001])*sp_line['lam_rest']
+        lwmin = -20.0
+        lwmax =  20.0
+        if 'lwmin' in sp_line:
+            lwmin = sp_line['lwmin']
+        if 'lwmax' in sp_line:
+            lwmax = sp_line['lwmax']
+        lw = np.array([lwmin, lwmax])*u.AA+sp_line['lam_rest']
+        for spec in specs:
+            cond = (spec.lam_rest>lw[0]) & (spec.lam_rest<lw[1])  
+            if cond.sum()==0:
+                continue
+            sp_line['peak'] = np.max(spec.flam_smooth[cond])
+            if ymax is None or sp_line['peak']>ymax:
+                ymax = sp_line['peak']
+                x_fmax = sp_line['lam_rest']
+        if 'peak' not in sp_line:
+            sp_line['skip'] = True
 
-    #print(line_center_min, line_center_max)
+    if yrange is None:
+        ymax *= 1.2
+        ymin = -0.05*ymax
+    else:
+        ymax = yrange[1]
+        ymin = yrange[0]
+
     #Create the figure.
     fig, ax = plt.subplots()
 
-    #Smooth the spectra.
-    for k, spec in enumerate(specs):
-        spec.flam_smooth = savgol_filter(spec.flam.to(flam_units).value, sv_wl, sv_polyorder)
-
-    #Find the minimum and maximum value of F_lam and lambda for setting the plot x and y range. Only consider wavelengths longer than about the shortest wavelength in the list of line centers.
-    for k, spec in enumerate(specs):
-        cond = (spec.lam_rest>0.999*line_center_min) & (spec.lam_rest<1.001*line_center_max)
-        if k==0 or ymax<np.max(spec.flam_smooth[cond]):
-            if cond.sum()>0:
-                kw_max = np.argmax(spec.flam_smooth[cond])
-                ymax = spec.flam_smooth[cond][kw_max]
-                x_fmax = spec.lam_obs[cond][kw_max].to(lam_units).value
-            else:
-                ymax = 0
-    xmin = xmin.to(lam_units).value
-    xmax = xmax.to(lam_units).value
-
-    #For the y range, set it to be 20% higher than the highest point in the plot. The minimum should be -5% of the maximum.
-    ymax *= 1.2
-    ymin  = -0.05*ymax
+    #Set the axis ranges.
+    xmin *= (1+specs[0].zspec)
+    xmax *= (1+specs[0].zspec)
+    ax.set_xlim([0.95*xmin.to(lam_units).value, 1.02*xmax.to(lam_units).value])
     ax.set_ylim([ymin, ymax])
 
-    #Set the xlimits to match the spectrum range.
-    ax.set_xlim([0.95*xmin, 1.02*xmax])
+    #Draw the spectral lines.
+    for sp_line in sp_lines:
 
-    #Mark the emission/absorption lines.
-    for k, em_line in enumerate(em_lines):
+        if sp_line['skip']:
+            continue
 
-        #Set the observed-frame line center.
-        line_center = em_line.line_center.value*(1+specs[0].zspec)
+        if 'peak' not in sp_line:
+            print(sp_line['id'])
+            input()
 
-        #The label with the line name should be either half way through the plot or at the top, depending on the flux values of the emission lines.
-        yline = 0.5*(ymax+ymin)
-        flam_max = None
-        for spec in specs:
-            box_width = 0.005
-            cond = (spec.lam_obs.value>=np.min(line_center)*(1-box_width)) & (spec.lam_obs.value<=np.max(line_center)*(1+box_width))
-            if len(spec.flam_smooth[cond])>0:
-                flam_max = np.max(spec.flam_smooth[cond])
-        if flam_max is not None and flam_max >= yline:
-            yline = ymax
-
-        #Go through the emission lines and separate the names of the multiple fit emission lines.
-        if re.search("_", em_line.line_name):
-            lnames = re.sub("red","",em_line.line_name)
-            line_names = lnames.split("_")
+        #Set the absolute y-position.
+        if 'ypos' in sp_line:
+            yline = sp_line['ypos']*ymax
         else:
-            #The [NeV] lines are separate enough that we want to label both for clarity. Should do something more general based on the wavelength separation of the emission lines.
-            if em_line.line_name == '[NeV]':
-                line_names = [em_line.line_name]*em_line.nlines
+            yline = ypos_mid_label * ymax #0.5*(ymax+ymin)
+            if sp_line['peak']>yline:
+                yline = ymax
+
+        #Now, if a relative offset is set in y, then apply it.
+        if 'ypos_rel' in sp_line:
+            yline *= sp_line['ypos_rel']
+
+        #Draw a line at the central wavelength.
+        lam = sp_line['lam_rest']*(1+specs[0].zspec)
+        linestyle='dashed'
+        ax.plot(np.ones(2)*lam, [ymin, yline], linestyle=linestyle, color='xkcd:grey', linewidth=0.5)
+
+        #Now, draw the label.
+        if 'name' not in sp_line or sp_line['name'] == "None":
+            continue
+
+        #Set the label left or right of the line.
+        if 'xpos_rel' not in sp_line:
+            if 'xpos' not in sp_line or sp_line['xpos']=='left':
+                sp_line['xpos_rel'] = -0.015
             else:
-                line_names = [em_line.line_name]#*em_line.nlines
+                sp_line['xpos_rel'] = 0.005
+        dlam_label = sp_line['xpos_rel']*(xmax-xmin)
 
-        #Special cases for Halpha and Hbeta.
-        if em_line.line_name == 'Hbeta_[OIII]_[OIII]':
-            line_names = ['Hbeta', '[OIII]', None]
-        if em_line.line_name == 'Ha_[NII]_[NII]':
-            line_names = [r'H$\alpha$+[NII]', None, None]
-
-
-        #Draw a vertical dashed gray line with a label at the location of every emission line within the x-axis range. For multiple line fits. draw the label of the first one on the left, and the rest on the right.
-        #for k, lam in enumerate(line_center):
-        for i,j in enumerate(np.argsort(line_center)):
-            lam = line_center[j]
-            if lam<xmin or lam>xmax:
-                continue
-
-            #If it is Hepsilon, push ymax down a bit to avoid clashing with other lines.
-            yline_use = yline
-            if len(line_names)>j and line_names[j]=='Hepsilon':
-                yline_use = 0.6*yline
-
-            ax.plot([lam, lam], [ymin, yline_use], linestyle='dashed', color='xkcd:grey', linewidth=0.5)
-
-            #If the line is a complex with only one designation, like [OII] or [OIII], only plot the line name once.
-            if len(line_names)==1 and j>0:
-                continue
-
-            #Also, if name is None, continue.
-            if line_names[j] is None:
-                continue
-
-            #Otherwise, draw the label
-            dlam_label = -0.015*(xmax-xmin) #120
-            if i>=1 and line_names[j]!='[NeV]' and line_names[j]!=r'H$\alpha$+[NII]':
-                dlam_label = 0.003*(xmax+xmin) #50
-            line_name_use = line_names[j]
-            if line_names[j] in linename_latex:
-                line_name_use = linename_latex[line_names[j]]
-            ax.text(lam+dlam_label, 0.9*yline_use, line_name_use, rotation=90, fontsize=7, clip_on=True)
+        #Draw the label
+        lam_label = (lam+dlam_label).to(lam_units).value
+        ax.text(lam_label, 0.99*yline, sp_line['name'], rotation=90, fontsize=7, clip_on=True, va='top')
 
     #Draw a horizontal dashed line at the zero flux level.
-    ax.plot([xmin, xmax], [0,0], linestyle='dashed', color='xkcd:grey', linewidth=0.5)
+    ax.plot(ax.get_xlim(), [0,0], linestyle='dashed', color='xkcd:grey', linewidth=0.5)
 
     #Plot the smoothed version of the spectrum.
     for k, spec in enumerate(specs):
@@ -242,3 +260,5 @@ def stern_plot(specs, date, em_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
     plt.close(fig)
 
     return
+
+

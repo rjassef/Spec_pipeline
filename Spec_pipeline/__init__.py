@@ -6,9 +6,7 @@ from .Spec_Reader.GMOS_Spec import GMOS_Spec
 from .Spec_Reader.DBSP_Spec import DBSP_Spec
 from .Spec_Reader.SDSS_Spec import SDSS_Spec
 from .Spec_Reader.DEIMOS_Spec import DEIMOS_Spec
-#from .Spec_Reader.stern_plot import stern_plot
-#from .Stern_plots.stern_plot import stern_plot
-from .Stern_plots.stern_plot_v2 import stern_plot #as stern_plot_new
+from .Stern_plots.stern_plot import stern_plot
 
 #Now, from the Line_Fitter part, import only the multi_line class modules, the rest are deprecated.
 from .Line_Fitter.multi_line import Multi_Line_fit
