@@ -205,6 +205,8 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
         z_legend = "$z = {0:.4f}\pm{1:.4f}$".format(specs[0].zspec, specs[0].dzspec)
     else:
         z_legend = "$z = {0:.3f}$".format(specs[0].zspec)
+    if hasattr(specs[0],'z_qual'):
+        z_legend += " - {}".format(specs[0].z_qual)
     if legend_inside:
         yloc   = 0.95
         dyloc  = 0.06
