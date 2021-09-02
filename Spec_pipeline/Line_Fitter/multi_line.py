@@ -470,13 +470,22 @@ class Multi_Line_fit(Line_fit):
     #Constraints on the continuum fit parameters.
     def meet_cont_constraints(self,x_cont):
         #Require continuum to be non-negative over the entire range. Since it is just a straight line, it is enough to check the edges of the regions.
-        #a, b = self.cont_par_parser(x_cont)
-        #edge_fluxes = a*self.continuum_regions.flatten()+b
         a = x_cont[0]
         b = x_cont[1]
+     
+        #Set the wavelength ranges of the continuum regions.
         lam = self.continuum_regions.flatten().to(self.waveunit).value
         edge_fluxes = a*lam+b
-        if len(edge_fluxes[edge_fluxes<0])>0:
+
+        #For lines like Lyman alpha, we will only have one continuum region, which could lead to the continuum flux becoming negative under the emission line. Hence, we also need to take into account the continuum under the emission lines as well. For simplicity, we also only take the edges of the region.
+        line_center_lam_min = np.min(self.line_center)
+        line_center_lam_max = np.max(self.line_center)
+        line_lam_min = line_center_lam_min * (1 - self.line_velocity_region/c)
+        line_lam_max = line_center_lam_max * (1 + self.line_velocity_region/c)
+        line_lam = np.array([line_lam_min.to(self.waveunit).value, line_lam_max.to(self.waveunit).value])
+        line_edge_fluxes = a*line_lam+b
+
+        if len(edge_fluxes[edge_fluxes<0])>0 or len(line_edge_fluxes[line_edge_fluxes<0]>0):
             return False
         return True
 
