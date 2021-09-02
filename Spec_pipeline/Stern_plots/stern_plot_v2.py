@@ -8,7 +8,7 @@ import json
 
 from ..Line_Fitter.multi_line import Multi_Line_fit
 
-def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False, xrange=None, xmin=None, xmax=None, yrange=None, ymin=None, ymax=None, ypos_mid_label=0.5, sp_lines_conf=None):
+def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False, xrange=None, xmin=None, xmax=None, yrange=None, ymin=None, ymax=None, ypos_mid_label=0.7, sp_lines_conf=None):
     """
     This function receives a list of spec objects and makes a Stern-style spectrum plot with the possible emission/absorption lines marked. Note that all lines in em_lines are marked, regardless of whether they where found.
 
@@ -112,8 +112,8 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
         #Calculate the peak of the emission line.
         #lw = np.array([0.999, 1.001])*sp_line['lam_rest']
-        lwmin = -10.0
-        lwmax =  10.0
+        lwmin = -20.0
+        lwmax =  20.0
         if 'lwmin' in sp_line:
             lwmin = sp_line['lwmin']
         if 'lwmax' in sp_line:

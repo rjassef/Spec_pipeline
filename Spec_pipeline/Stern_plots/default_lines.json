@@ -59,12 +59,14 @@
 	{
 		"id": "[NeV]3346",
 		"lam_rest": 3346.79,
-		"name": "[NeV]"
+		"name": "[NeV]",
+		"lwmax": 100.0
 	},
 	{
 		"id": "[NeV]3426",
 		"lam_rest": 3426.85,
-		"name": "[NeV]"
+		"name": "[NeV]",
+		"lwmin": -100.0
 	},
 	{
 		"id": "[OII]3726",
@@ -117,19 +119,21 @@
 	{
 		"id": "[OIII]4959",
 		"lam_rest": 4960.295,
-		"name": "None"
+		"name": "None",
+		"lwmax": 60.0
 	},
 	{
 		"id": "[OIII]5007",
 		"lam_rest": 5008.240,
 		"name": "[OIII]",
-		"xpos": "right"
+		"xpos": "right",
+		"lwmin": -60.0
 	},
 	{
 		"id": "[NII]6548",
 		"lam_rest": 6549.86,
 		"name": "H$\\alpha$+[NII]",
-		"lwmax":  20.0
+		"lwmax":  40.0
 	},
 	{
 		"id": "Halpha",
