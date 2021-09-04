@@ -118,8 +118,8 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
         #Calculate the peak of the emission line.
         #lw = np.array([0.999, 1.001])*sp_line['lam_rest']
-        lwmin = -50.0
-        lwmax =  50.0
+        lwmin = -20.0
+        lwmax =  20.0
         if 'lwmin' in sp_line:
             lwmin = sp_line['lwmin']
         if 'lwmax' in sp_line:
