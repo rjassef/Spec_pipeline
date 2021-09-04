@@ -1,0 +1,15 @@
+SiII        1260.42     SiII
+#OI          1303.3      OI          Combined mean wavelength of the doublet.
+OI1302      1302.168    OI
+OI1304      1304.858    OI
+CII         1334.5      CII         
+SiIV1394    1393.76     SiIV
+SiIV1402    1402.77     SiIV
+SiII        1526.72     SiII
+AlII        1670.8      AlII
+FeII2343    2343.50     FeII         Blend of many lines.
+FeII2373    2373.73     FeII         Blend of many lines.
+FeII2382    2382.03     FeII         Blend of many lines.
+FeII2585    2585.88     FeII         Blend of many lines.
+CaIIK       3934.77     CaII~K
+CaIIH       3969.59     CaII~H

@@ -8,7 +8,7 @@ import json
 
 from ..Line_Fitter.multi_line import Multi_Line_fit
 
-def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False, xrange=None, xmin=None, xmax=None, yrange=None, ymin=None, ymax=None, ypos_mid_label=0.7, sp_lines_conf=None):
+def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardcopy=None, flam_units=(u.erg/u.s/u.cm**2/u.AA), lam_units=u.AA, legend_inside=False, xrange=None, xmin=None, xmax=None, yrange=None, ymin=None, ymax=None, ypos_mid_label=0.7, show_emission_lines=True, show_absorption_lines=False, sp_lines_conf=None):
     """
     This function receives a list of spec objects and makes a Stern-style spectrum plot with the possible emission/absorption lines marked. Note that all lines in em_lines are marked, regardless of whether they where found.
 
@@ -46,6 +46,12 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
     yrange: numpy array with astropy.units, optional
         Flam range range to plot. If None, range is autoscaled to the spectrum. Default is None. Can also declare ymax, and optionally ymin.
+
+    show_emission_lines: boolean, optional
+        Plot emission lines. Default is True.
+
+    show_absorption_lines: boolean, optional
+        Plot absorption lines along the emission lines. Default is False.
 
     sp_lines_conf: dictionary, optional
         Dictionary with modifiers from default behavior. Default is None.
@@ -112,8 +118,8 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
 
         #Calculate the peak of the emission line.
         #lw = np.array([0.999, 1.001])*sp_line['lam_rest']
-        lwmin = -20.0
-        lwmax =  20.0
+        lwmin = -50.0
+        lwmax =  50.0
         if 'lwmin' in sp_line:
             lwmin = sp_line['lwmin']
         if 'lwmax' in sp_line:
@@ -152,16 +158,24 @@ def stern_plot(specs, date, sp_lines_list=None, sv_wl=21, sv_polyorder=5, hardco
         if sp_line['skip']:
             continue
 
+        #Skip absorption or emission lines depending on the user input.
+        if 'abs_line' in sp_line and sp_line['abs_line']:
+            if not show_absorption_lines:
+                continue
+        else:
+            if not show_emission_lines:
+                continue
+
         if 'peak' not in sp_line:
             print(sp_line['id'])
             input()
 
         #Set the absolute y-position.
         if 'ypos' in sp_line:
-            yline = sp_line['ypos']*ymax
+            yline = sp_line['ypos']*(ymax-ymin)
         else:
-            yline = ypos_mid_label * ymax #0.5*(ymax+ymin)
-            if sp_line['peak']>yline:
+            yline = ypos_mid_label * (ymax-ymin)
+            if sp_line['peak']>0.5*(ymax-ymin):
                 yline = ymax
 
         #Now, if a relative offset is set in y, then apply it.

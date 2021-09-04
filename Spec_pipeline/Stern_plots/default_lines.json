@@ -157,5 +157,90 @@
 		"id": "[SII]6730",
 		"lam_rest": 6732.674,
 		"name": "None"
+	},
+	{
+		"id": "SiII1260",
+		"lam_rest": 1260.42,
+		"name": "SiII",
+		"abs_line": true
+	},
+	{
+		"id": "OI1302",
+		"lam_rest": 1302.168,
+		"name": "OI",
+		"abs_line": true
+	},
+	{
+		"id": "OI1304",
+		"lam_rest": 1304.858,
+		"name": "None",
+		"abs_line": true
+	},
+	{
+		"id": "CII",
+		"lam_rest": 1334.5,
+		"name": "CII",
+		"abs_line": true
+	},
+	{
+		"id": "SiIV1394",
+		"lam_rest": 1393.76,
+		"name": "SiIV",
+		"abs_line": true
+	},
+	{
+		"id": "SiIV1402",
+		"lam_rest": 1402.77,
+		"name": "SiIV",
+		"abs_line": true,
+		"xpos": "right"
+	},
+	{
+		"id": "SiII1526",
+		"lam_rest": 1526.72,
+		"name": "SiII",
+		"abs_line": true
+	},
+	{
+		"id": "AlII",
+		"lam_rest": 1670.8,
+		"name": "AlII",
+		"abs_line": true
+	},
+	{
+		"id": "FeII2343",
+		"lam_rest": 2343.50,
+		"name": "FeII",
+		"abs_line": true
+	},
+	{
+		"id": "FeII2373",
+		"lam_rest": 2373.73,
+		"name": "FeII",
+		"abs_line": true
+	},
+	{
+		"id": "FeII2382",
+		"lam_rest": 2382.03,
+		"name": "FeII",
+		"abs_line": true
+	},
+	{
+		"id": "FeII2585",
+		"lam_rest": 2585.88,
+		"name": "FeII",
+		"abs_line": true
+	},
+	{
+		"id": "CaIIK",
+		"lam_rest": 3934.77,
+		"name": "CaII~K",
+		"abs_line": true
+	},
+	{
+		"id": "CaIIH",
+		"lam_rest": 3969.59,
+		"name": "CaII~H",
+		"abs_line": true
 	}
 ]
