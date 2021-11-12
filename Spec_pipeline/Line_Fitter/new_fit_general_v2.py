@@ -37,17 +37,21 @@ def fit(spec, line_fitter, x0=None):
     i_all = line_fitter.get_i_fit(spec)
 
     #We'll try with only setting a non-linear constraint, not a bound. 
-    con = lambda x: -1*int(line_fitter.meet_constraints(x))
+    con = lambda x: int(not line_fitter.meet_constraints(x))
     nlc = NonlinearConstraint(con, -np.inf, -0.5)
     #print(nlc)
 
+    print(x0)
+    print(con(x0))
+
     #Fit
-    res = minimize(chi2_fit, x0  , args=(spec,line_fitter,i_all,False), constraints=[{'type':'ineq', 'fun':con}], method='COBYLA')
+    res = minimize(chi2_fit, x0  , args=(spec,line_fitter,i_all,False), constraints=[{'type':'eq', 'fun':con}], method='SLSQP')
     print(res)
     xopt = res.x
+    print(xopt, chi2_fit(xopt,spec,line_fitter,i_all, True))
 
-    #xopt = fmin(chi2_fit, x0  , args=(spec,line_fitter,i_all,True),disp=False)
-    #xopt = fmin(chi2_fit, xopt, args=(spec,line_fitter,i_all,True),disp=False)
-    #print(xopt)
+    xopt = fmin(chi2_fit, x0  , args=(spec,line_fitter,i_all,True),disp=False)
+    xopt = fmin(chi2_fit, xopt, args=(spec,line_fitter,i_all,True),disp=False)
+    print(xopt, chi2_fit(xopt,spec,line_fitter,i_all))
 
     return xopt
