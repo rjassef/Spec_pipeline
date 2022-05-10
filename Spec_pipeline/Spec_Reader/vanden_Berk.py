@@ -23,9 +23,11 @@ Args:
    """
 
     def __init__(self,_zspec,):
-        super(vandenBerk_Spec,self).__init__("vB01_template",_zspec)
+        self.zspec = _zspec
         self.RT   = 1.25*u.m #Telescope radius.
         self.instrument = "SDSS"
+        self.FWHM_res = 0.*u.AA
+        super(vandenBerk_Spec,self).__init__("vB01template",_zspec, instrument=self.instrument)
         self.__flam
 
     @property
