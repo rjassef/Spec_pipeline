@@ -6,6 +6,7 @@ from matplotlib import rc
 rc('text',usetex=True)
 
 import astropy.units as u
+from astropy import visualization
 from astropy.constants import c
 from scipy.signal import savgol_filter
 import re
@@ -90,16 +91,17 @@ def plot_fit(spec,line_fitter,plot_fname=None,chain_file=None,chain=None):
             flam_mod_low2[k], flam_mod_hig2[k] = get_error(flam_mod_chain,
                                                            flam_mod[k],
                                                            cf=99.1)#cf=95.4)
-        plt.fill_between(lam_mod,
-                         flam_mod-flam_mod_low2,
-                         flam_mod+flam_mod_hig2,
-                         color='xkcd:cyan',
-                         alpha=1.0, label="3$\sigma$")
-        plt.fill_between(lam_mod,
-                         flam_mod-flam_mod_low1,
-                         flam_mod+flam_mod_hig1,
-                         color='xkcd:orange',
-                         alpha=1.0, label="1$\sigma$")
+        with visualization.quantity_support():
+            plt.fill_between(lam_mod,
+                            flam_mod-flam_mod_low2,
+                            flam_mod+flam_mod_hig2,
+                            color='xkcd:cyan',
+                            alpha=1.0, label="3$\sigma$")
+            plt.fill_between(lam_mod,
+                            flam_mod-flam_mod_low1,
+                            flam_mod+flam_mod_hig1,
+                            color='xkcd:orange',
+                            alpha=1.0, label="1$\sigma$")
 
     #Plot the model.
     plt.plot(lam_mod,flam_cont_mod,'--r',label="Continuum")
