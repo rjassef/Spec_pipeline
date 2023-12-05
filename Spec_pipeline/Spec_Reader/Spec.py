@@ -333,7 +333,7 @@ class Spec(object):
         try:
             self.texp.unit
         except AttributeError:
-            self.texp = np.float(self.texp) * u.s
+            self.texp = float(self.texp) * u.s
 
         #Convert fnu to flambda if in fnu units. If not, raise a warning.
         try:
