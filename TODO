@@ -6,6 +6,8 @@
 
 - Change the rebin_spec code to not depend on pysynphot. It is the only place where that is used and it makes the load times slower and the code less portable. - Low priority, probably not worth doing.
 
+- Add [AlIII] emission.
+
 ####
 
 Done
